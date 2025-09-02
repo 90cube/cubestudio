@@ -1,0 +1,3 @@
+@echo off
+echo Starting front-end server on port 9000...
+node_modules\.bin\live-server --port=9000 --ignore=renewal

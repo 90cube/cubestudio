@@ -1,0 +1,15 @@
+# Ignore virtual environment
+.venv/
+
+# Ignore python cache
+__pycache__/
+
+# Ignore claude files
+.claude/
+CLAUDE.md
+
+# Ignore models
+models/
+
+# Ignore renewal directory
+renewal/
