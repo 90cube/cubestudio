@@ -487,7 +487,7 @@ export class FloatingPanel {
         
         // 점으로 최소화 버튼 (항상 표시)
         this.minimizeBtn = document.createElement('button');
-        this.minimizeBtn.innerHTML = '●';
+        this.minimizeBtn.innerHTML = '−';
         this.minimizeBtn.style.cssText = `
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -651,7 +651,7 @@ export class FloatingPanel {
         let startX, startY, initialX, initialY;
         
         this.headerElement.addEventListener('mousedown', (e) => {
-            if (e.target === this.markingTab || e.target === this.collapseBtn || e.target === this.closeBtn) {
+            if (e.target === this.markingTab || e.target === this.closeBtn || e.target === this.minimizeBtn) {
                 return;
             }
             
@@ -775,6 +775,14 @@ export class FloatingPanel {
             const componentElement = component.render();
             componentElement.dataset.componentId = componentId; // ID 저장
             this.bodyElement.appendChild(componentElement);
+            
+            // renewal 아키텍처 호환: DOM 마운트 후 init 메서드 호출
+            if (typeof component.init === 'function') {
+                // DOM 마운트가 완료되도록 다음 프레임에서 실행
+                requestAnimationFrame(() => {
+                    component.init();
+                });
+            }
         } else if (component instanceof HTMLElement) {
             component.dataset.componentId = componentId; // ID 저장
             this.bodyElement.appendChild(component);

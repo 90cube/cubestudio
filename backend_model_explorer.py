@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uvicorn
 
@@ -190,6 +192,38 @@ async def get_models_info():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 정보 로딩 실패: {str(e)}")
+
+@app.get("/api/models/preview/{file_path:path}")
+async def get_model_preview(file_path: str):
+    """모델 프리뷰 이미지 서비스"""
+    try:
+        # 보안: 상위 디렉토리 접근 방지
+        if ".." in file_path or file_path.startswith("/"):
+            raise HTTPException(status_code=400, detail="잘못된 파일 경로")
+        
+        full_path = MODELS_BASE_PATH / file_path
+        
+        if not full_path.exists() or not full_path.is_file():
+            raise HTTPException(status_code=404, detail="파일을 찾을 수 없습니다")
+        
+        # 이미지 파일만 허용
+        allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+        if full_path.suffix.lower() not in allowed_extensions:
+            raise HTTPException(status_code=400, detail="지원하지 않는 이미지 형식")
+        
+        return FileResponse(
+            path=str(full_path),
+            media_type=f"image/{full_path.suffix[1:]}",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"이미지 로딩 실패: {str(e)}")
+
+# 정적 파일 서비스 설정 (모델 폴더)
+app.mount("/models", StaticFiles(directory="models", html=False), name="models")
 
 if __name__ == "__main__":
     print("CUBE Studio Model Explorer Backend 시작 중...")

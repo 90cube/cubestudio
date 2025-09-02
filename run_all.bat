@@ -1,0 +1,6 @@
+@echo off
+echo Starting backend server...
+start "Backend" cmd /c "python backend_model_explorer.py"
+
+echo Starting front-end server...
+start "Frontend" cmd /c "run_frontend.bat"

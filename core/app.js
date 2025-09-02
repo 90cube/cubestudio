@@ -2,7 +2,10 @@ import { init as initCanvas, getStage, getLayer, getSelectedImage } from '../com
 import { init as initImageEditor } from '../components/imageEditor/imageEditor.js';
 import { init as initKeyboardManager, registerShortcut } from '../components/keyboardManager/keyboardManager.js';
 import { startTransformMode, isTransformModeActive, getTransformer } from '../components/imageEditor/tools/transformer.js';
-import { runFloatingPanelDemo } from '../components/ui/floatingPanel/panelDemo.js';
+import { FloatingPanel } from '../components/ui/floatingPanel/floatingPanel.js';
+import { ModelExplorerComponent } from '../components/modelExplorer/modelExplorerComponent.js';
+import { ParametersComponent } from '../components/parameters/parametersComponent.js';
+import { MultiDetailerComponent } from '../components/multiDetailer/multiDetailerComponent.js';
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,10 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. 글로벌 이미지 편집 단축키 등록
     setupImageEditingShortcuts();
     
-    // 6. 플로팅 패널 데모 실행
-    setTimeout(() => {
-        runFloatingPanelDemo();
-    }, 100);
+    // 6. 모델 탐색기 패널 생성
+    createModelExplorerPanel();
+    
+    // 7. 파라미터 패널 생성
+    createParametersPanel();
+    
+    // 8. 멀티 디테일러 패널 생성
+    createMultiDetailerPanel();
 
     console.log('Canvas Studio initialized successfully');
 });
@@ -131,4 +138,70 @@ function toggleTransformerVisibility() {
     }
     
     console.log(isVisible ? 'Transformer hidden' : 'Transformer visible');
+}
+
+// 모델 탐색기 패널 생성
+function createModelExplorerPanel() {
+    const modelExplorer = new ModelExplorerComponent();
+    
+    const modelExplorerPanel = new FloatingPanel({
+        id: 'model-explorer-panel',
+        title: 'Model Explorer',
+        x: 50,
+        y: 50,
+        width: 300,
+        height: 400,
+        markingColor: '#4a5568',
+        resizable: true,
+        draggable: true
+    });
+    
+    // 컴포넌트를 패널에 추가 (올바른 생명주기 처리)
+    modelExplorerPanel.addComponent('modelExplorer', modelExplorer);
+    
+    console.log('Model Explorer panel created');
+}
+
+// 파라미터 패널 생성
+function createParametersPanel() {
+    const parameters = new ParametersComponent();
+    
+    const parametersPanel = new FloatingPanel({
+        id: 'parameters-panel',
+        title: 'Parameters',
+        x: 370, // 모델 탐색기 옆에 배치
+        y: 50,
+        width: 320,
+        height: 480,
+        markingColor: '#e67e22',
+        resizable: true,
+        draggable: true
+    });
+    
+    // 컴포넌트를 패널에 추가 (올바른 생명주기 처리)
+    parametersPanel.addComponent('parameters', parameters);
+    
+    console.log('Parameters panel created');
+}
+
+// 멀티 디테일러 패널 생성
+function createMultiDetailerPanel() {
+    const multiDetailer = new MultiDetailerComponent();
+    
+    const multiDetailerPanel = new FloatingPanel({
+        id: 'multi-detailer-panel',
+        title: 'Multi Detailer',
+        x: 710, // 파라미터 패널 옆에 배치
+        y: 50,
+        width: 360,
+        height: 520,
+        markingColor: '#9c27b0', // 보라색 테마
+        resizable: true,
+        draggable: true
+    });
+    
+    // 컴포넌트를 패널에 추가 (올바른 생명주기 처리)
+    multiDetailerPanel.addComponent('multiDetailer', multiDetailer);
+    
+    console.log('Multi-detailer panel created');
 }

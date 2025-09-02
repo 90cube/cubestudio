@@ -1,5 +1,7 @@
 // components/modelExplorer/modelExplorerComponent.js
 
+import { Tooltip } from '../ui/tooltip/tooltip.js';
+
 /**
  * 모델 탐색기 컴포넌트 - 플로팅 패널에서 사용
  * FastAPI 백엔드(포트 9001)와 통신하여 모델 목록을 표시
@@ -10,8 +12,28 @@ export class ModelExplorerComponent {
         this.checkpointList = [];
         this.vaeList = [];
         this.selectedModel = null;
+        this.selectedFolderPath = null; // 선택된 모델의 폴더 경로 추적
         this.apiUrl = 'http://localhost:9001/api';
-        this.activeTooltip = null;
+        this.tooltip = new Tooltip();
+        this.containerElement = null;
+        this.isInitialized = false;
+    }
+    
+    /**
+     * renewal 아키텍처 호환 init 메서드
+     * DOM 마운트 후에 호출되어 API 데이터를 로드
+     */
+    init() {
+        if (this.isInitialized || !this.containerElement) {
+            return;
+        }
+        
+        this.isInitialized = true;
+        
+        // DOM이 마운트된 후에 API 호출
+        setTimeout(() => {
+            this.loadModels();
+        }, 0);
     }
     
     render() {
@@ -72,8 +94,8 @@ export class ModelExplorerComponent {
         // 이벤트 리스너 설정
         this.setupEventListeners(container);
         
-        // 데이터 로드
-        this.loadModels();
+        // 컨테이너를 참조로 저장 (DOM 마운트 후 API 호출용)
+        this.containerElement = container;
         
         return container;
     }
@@ -185,43 +207,6 @@ export class ModelExplorerComponent {
                 color: #6cb6ff;
                 font-weight: 500;
             }
-            
-            /* 툴팁 스타일 */
-            .model-tooltip {
-                position: fixed;
-                z-index: 1100;
-                border: 1px solid rgba(134, 142, 150, 0.3);
-                background: rgba(32, 35, 42, 0.95);
-                backdrop-filter: blur(20px);
-                padding: 8px;
-                border-radius: 10px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-                pointer-events: none;
-                animation: fadeIn 0.2s ease-out;
-            }
-            
-            .model-tooltip img {
-                max-width: 256px;
-                max-height: 256px;
-                width: auto;
-                height: auto;
-                display: block;
-                border-radius: 6px;
-            }
-            
-            .tooltip-filename {
-                max-width: 256px;
-                padding: 4px 8px;
-                color: #e8eaed;
-                font-size: 12px;
-                text-align: center;
-                word-break: break-all;
-            }
-            
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(-5px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
         `;
         
         document.head.appendChild(style);
@@ -264,22 +249,28 @@ export class ModelExplorerComponent {
             }
         });
         
-        // 툴팁 이벤트
+        // 툴팁 이벤트 - 새로운 Tooltip 컴포넌트 사용
         container.addEventListener('mouseover', (e) => {
             if (e.target.classList.contains('file') && e.target.dataset.preview) {
-                this.showTooltip(e);
-            }
-        });
-        
-        container.addEventListener('mousemove', (e) => {
-            if (this.activeTooltip) {
-                this.updateTooltipPosition(e);
+                const filename = e.target.textContent;
+                const previewPath = e.target.dataset.preview;
+                const imageUrl = `${this.apiUrl}/models/preview/${previewPath}`;
+                
+                const content = `
+                    <div class="tooltip-caption">${filename}</div>
+                    <img src="${imageUrl}" alt="Preview" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; text-align: center; padding: 20px; color: #999;">
+                        이미지를 불러올 수 없습니다
+                    </div>
+                `;
+                
+                this.tooltip.show(content, e);
             }
         });
         
         container.addEventListener('mouseout', (e) => {
-            if (e.target.classList.contains('file') && this.activeTooltip) {
-                this.hideTooltip();
+            if (e.target.classList.contains('file')) {
+                this.tooltip.hide();
             }
         });
     }
@@ -308,47 +299,38 @@ export class ModelExplorerComponent {
             subfolder: fileElement.dataset.subfolder
         };
         
+        // 선택된 모델의 폴더 경로 추출 (첫 번째 폴더만)
+        const subfolderParts = this.selectedModel.subfolder.split(/[\/\\]/).filter(p => p);
+        this.selectedFolderPath = subfolderParts.length > 0 ? subfolderParts[0] : null;
+        
         console.log('Selected model:', this.selectedModel);
+        console.log('Selected folder path:', this.selectedFolderPath);
+        
+        // VAE 목록을 선택된 폴더에 맞게 업데이트
+        this.renderFilteredVaes();
         
         // 이벤트 디스패치 (다른 컴포넌트에서 사용할 수 있도록)
         document.dispatchEvent(new CustomEvent('model:selected', {
-            detail: this.selectedModel
+            detail: {
+                ...this.selectedModel,
+                folderPath: this.selectedFolderPath
+            }
         }));
     }
     
-    showTooltip(event) {
-        if (this.activeTooltip) this.hideTooltip();
-        
-        this.activeTooltip = document.createElement('div');
-        this.activeTooltip.className = 'model-tooltip';
-        
-        const filename = event.target.textContent;
-        const previewSrc = event.target.dataset.preview;
-        
-        this.activeTooltip.innerHTML = `
-            <div class="tooltip-filename">${filename}</div>
-            <img src="${this.apiUrl}/${previewSrc}" alt="Preview">
-        `;
-        
-        document.body.appendChild(this.activeTooltip);
-        this.updateTooltipPosition(event);
-    }
-    
-    updateTooltipPosition(event) {
-        if (!this.activeTooltip) return;
-        
-        this.activeTooltip.style.left = `${event.pageX + 15}px`;
-        this.activeTooltip.style.top = `${event.pageY + 15}px`;
-    }
-    
-    hideTooltip() {
-        if (this.activeTooltip) {
-            this.activeTooltip.remove();
-            this.activeTooltip = null;
-        }
-    }
     
     async loadModels() {
+        // DOM 요소 존재 확인
+        const checkpointsElement = this.containerElement?.querySelector('#checkpoints-content') || 
+                                  document.getElementById('checkpoints-content');
+        const vaesElement = this.containerElement?.querySelector('#vaes-content') || 
+                           document.getElementById('vaes-content');
+        
+        if (!checkpointsElement || !vaesElement) {
+            console.error('Model Explorer: DOM 요소를 찾을 수 없습니다. 컴포넌트가 아직 마운트되지 않았을 수 있습니다.');
+            return;
+        }
+        
         try {
             const [checkpointsRes, vaesRes] = await Promise.all([
                 fetch(`${this.apiUrl}/models/checkpoints`),
@@ -366,19 +348,73 @@ export class ModelExplorerComponent {
             
         } catch (error) {
             console.error('모델 로딩 실패:', error);
-            document.getElementById('checkpoints-content').innerHTML = 
-                '<div class="error">모델을 불러올 수 없습니다.<br>백엔드 서버(포트 9001)가 실행 중인지 확인해주세요.</div>';
+            
+            // 안전한 DOM 업데이트
+            if (checkpointsElement) {
+                checkpointsElement.innerHTML = 
+                    '<div class="error">모델을 불러올 수 없습니다.<br>백엔드 서버(포트 9001)가 실행 중인지 확인해주세요.</div>';
+            }
         }
     }
     
     renderCheckpoints() {
+        const checkpointsElement = this.containerElement?.querySelector('#checkpoints-content') || 
+                                  document.getElementById('checkpoints-content');
+        
+        if (!checkpointsElement) {
+            console.error('Model Explorer: checkpoints-content 요소를 찾을 수 없습니다.');
+            return;
+        }
+        
         const tree = this.buildTree(this.checkpointList);
-        document.getElementById('checkpoints-content').innerHTML = this.renderTree(tree);
+        checkpointsElement.innerHTML = this.renderTree(tree);
     }
     
     renderVaes() {
+        const vaesElement = this.containerElement?.querySelector('#vaes-content') || 
+                           document.getElementById('vaes-content');
+        
+        if (!vaesElement) {
+            console.error('Model Explorer: vaes-content 요소를 찾을 수 없습니다.');
+            return;
+        }
+        
         const tree = this.buildTree(this.vaeList);
-        document.getElementById('vaes-content').innerHTML = this.renderTree(tree);
+        vaesElement.innerHTML = this.renderTree(tree);
+    }
+    
+    renderFilteredVaes() {
+        const vaesElement = this.containerElement?.querySelector('#vaes-content') || 
+                           document.getElementById('vaes-content');
+        
+        if (!vaesElement) {
+            console.error('Model Explorer: vaes-content 요소를 찾을 수 없습니다.');
+            return;
+        }
+        
+        if (!this.selectedFolderPath) {
+            // 폴더가 선택되지 않았으면 전체 VAE 표시
+            const tree = this.buildTree(this.vaeList);
+            vaesElement.innerHTML = this.renderTree(tree);
+            return;
+        }
+        
+        // 선택된 폴더와 같은 첫 번째 폴더를 가진 VAE만 필터링
+        const filteredVaes = this.vaeList.filter(vae => {
+            const vaeSubfolderParts = vae.subfolder.split(/[\/\\]/).filter(p => p);
+            const vaeFirstFolder = vaeSubfolderParts.length > 0 ? vaeSubfolderParts[0] : null;
+            return vaeFirstFolder === this.selectedFolderPath;
+        });
+        
+        console.log(`Filtered VAEs for folder '${this.selectedFolderPath}':`, filteredVaes.length, 'items');
+        
+        if (filteredVaes.length === 0) {
+            vaesElement.innerHTML = `<div class="no-models">선택된 폴더(${this.selectedFolderPath})에 VAE가 없습니다.</div>`;
+            return;
+        }
+        
+        const tree = this.buildTree(filteredVaes);
+        vaesElement.innerHTML = this.renderTree(tree);
     }
     
     buildTree(files) {
@@ -386,44 +422,11 @@ export class ModelExplorerComponent {
         files.forEach(file => {
             let currentLevel = tree;
             
-            // SD15, SDXL 등 주 카테고리 결정
-            let primaryCategory = null;
+            // 전체 하위 폴더 구조를 추적
             const subfolderParts = file.subfolder.split(/[\/\\]/).filter(p => p);
             
-            if (subfolderParts.length > 0) {
-                const firstPart = subfolderParts[0].toLowerCase();
-                if (firstPart === 'sd15') {
-                    primaryCategory = 'SD 1.5';
-                } else if (firstPart === 'sdxl' || firstPart === 'ilxl') {
-                    primaryCategory = 'SDXL';
-                }
-            }
-            
-            // 주 카테고리가 있으면 첫 레벨로 생성
-            if (primaryCategory) {
-                if (!currentLevel[primaryCategory]) {
-                    currentLevel[primaryCategory] = {};
-                }
-                currentLevel = currentLevel[primaryCategory];
-            } else {
-                // 주 카테고리가 없으면 '기타'로 분류
-                if (!currentLevel['기타']) {
-                    currentLevel['기타'] = {};
-                }
-                currentLevel = currentLevel['기타'];
-            }
-            
-            // 나머지 서브폴더들 처리
-            let startIndex = 0;
-            if (subfolderParts.length > 0 && primaryCategory) {
-                const firstOriginalPartLower = subfolderParts[0].toLowerCase();
-                if (firstOriginalPartLower === primaryCategory.toLowerCase().replace(/[^a-z0-9]/g, '') || 
-                    (firstOriginalPartLower === 'ilxl' && primaryCategory === 'SDXL')) {
-                    startIndex = 1;
-                }
-            }
-            
-            for (let i = startIndex; i < subfolderParts.length; i++) {
+            // 각 하위 폴더별로 트리 구조 생성
+            for (let i = 0; i < subfolderParts.length; i++) {
                 const part = subfolderParts[i];
                 if (!currentLevel[part]) {
                     currentLevel[part] = {};
@@ -431,6 +434,15 @@ export class ModelExplorerComponent {
                 currentLevel = currentLevel[part];
             }
             
+            // 하위 폴더가 없으면 '루트'로 분류
+            if (subfolderParts.length === 0) {
+                if (!currentLevel['루트']) {
+                    currentLevel['루트'] = {};
+                }
+                currentLevel = currentLevel['루트'];
+            }
+            
+            // 최종 레벨에 파일 추가
             if (!currentLevel._files) currentLevel._files = [];
             currentLevel._files.push(file);
         });
@@ -470,7 +482,7 @@ export class ModelExplorerComponent {
     }
     
     destroy() {
-        this.hideTooltip();
+        this.tooltip.hide();
         console.log('Model Explorer component destroyed');
     }
 }
