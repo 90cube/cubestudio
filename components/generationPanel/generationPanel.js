@@ -296,10 +296,18 @@ export class GenerationPanel {
             }
             
             .collapsed-controls .btn-infinity.collapsed {
-                background: linear-gradient(135deg, #6cb6ff 0%, #4a9eff 100%);
-                color: white;
+                background: rgba(108, 182, 255, 0.1);
+                border: 1px solid rgba(108, 182, 255, 0.3);
+                color: #6cb6ff;
                 padding: 0 16px;
                 min-width: 60px;
+            }
+            
+            .collapsed-controls .btn-infinity.collapsed.active {
+                background: linear-gradient(135deg, #6cb6ff 0%, #4a9eff 100%);
+                border-color: #6cb6ff;
+                color: white;
+                box-shadow: 0 0 0 2px rgba(108, 182, 255, 0.3);
             }
             
             .collapsed-controls .btn-generate.collapsed {
@@ -307,6 +315,18 @@ export class GenerationPanel {
                 color: white;
                 padding: 0 24px;
                 min-width: 100px;
+            }
+            
+            .collapsed-controls .btn-generate.collapsed.generating {
+                background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 100%);
+                animation: pulse 1.5s infinite;
+            }
+            
+            .collapsed-controls .btn-infinity.collapsed.generating {
+                background: linear-gradient(135deg, #ff8c00 0%, #ff6b00 100%);
+                color: white;
+                border-color: #ff8c00;
+                animation: pulse 1.5s infinite;
             }
             
             .collapsed-controls .expand-btn {
@@ -1007,6 +1027,13 @@ export class GenerationPanel {
     collapse() {
         this.isCollapsed = true;
         this.containerElement.classList.add('collapsed');
+        
+        // 접기 후 버튼 상태 동기화
+        setTimeout(() => {
+            this.updateInfinityButtons();
+            this.updateGenerateButtons();
+        }, 100);
+        
         this.saveState();
         console.log('Generation panel collapsed');
     }
@@ -1017,6 +1044,13 @@ export class GenerationPanel {
     expand() {
         this.isCollapsed = false;
         this.containerElement.classList.remove('collapsed');
+        
+        // 펼치기 후 버튼 상태 동기화
+        setTimeout(() => {
+            this.updateInfinityButtons();
+            this.updateGenerateButtons();
+        }, 100);
+        
         this.saveState();
         console.log('Generation panel expanded');
     }
@@ -1138,8 +1172,16 @@ export class GenerationPanel {
      */
     toggleInfinityMode() {
         this.state.generation.infinityMode = !this.state.generation.infinityMode;
+        
+        // 즉시 UI 업데이트
         this.updateInfinityButtons();
         this.updateRepeatCountState();
+        
+        // 추가적으로 약간의 지연 후 한 번 더 동기화 (접힌 상태 고려)
+        setTimeout(() => {
+            this.updateInfinityButtons();
+        }, 50);
+        
         this.saveState();
         
         console.log(`Infinity mode: ${this.state.generation.infinityMode ? 'ON' : 'OFF'}`);
@@ -1247,12 +1289,25 @@ export class GenerationPanel {
         
         this.state.generation.isGenerating = true;
         this.updateGenerateButtons();
+        
+        // 추가적으로 약간의 지연 후 한 번 더 동기화 (접힌 상태 고려)
+        setTimeout(() => {
+            this.updateGenerateButtons();
+            this.updateInfinityButtons();
+        }, 50);
+        
         this.saveState();
         
         // 시뮬레이션을 위한 임시 코드 (실제로는 AI 백엔드로 전송)
         setTimeout(() => {
             this.state.generation.isGenerating = false;
             this.updateGenerateButtons();
+            
+            // 생성 완료 후에도 버튼 상태 동기화
+            setTimeout(() => {
+                this.updateGenerateButtons();
+                this.updateInfinityButtons();
+            }, 50);
             
             // 무한 모드라면 다시 시작
             if (this.state.generation.infinityMode && this.isRandomSeed()) {
@@ -1270,6 +1325,13 @@ export class GenerationPanel {
     stopGeneration() {
         this.state.generation.isGenerating = false;
         this.updateGenerateButtons();
+        
+        // 중단 후 버튼 상태 동기화
+        setTimeout(() => {
+            this.updateGenerateButtons();
+            this.updateInfinityButtons();
+        }, 50);
+        
         stateManager.updateState('generation_stop', true);
         console.log('Generation stopped');
     }
@@ -1410,6 +1472,11 @@ export class GenerationPanel {
         // 조건부 슬라이더 상태 업데이트
         this.updateRepeatCountState();
         this.updateDenoiseState();
+        
+        // 추가적으로 약간의 지연 후 한 번 더 상태 동기화
+        setTimeout(() => {
+            this.updateInfinityButtons();
+        }, 50);
         
         // console.log('UI updated');
     }
