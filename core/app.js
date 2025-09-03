@@ -2,11 +2,12 @@ import { init as initCanvas, getStage, getLayer, getSelectedImage } from '../com
 import { init as initImageEditor } from '../components/imageEditor/imageEditor.js';
 import { init as initKeyboardManager, registerShortcut } from '../components/keyboardManager/keyboardManager.js';
 import { startTransformMode, isTransformModeActive, getTransformer } from '../components/imageEditor/tools/transformer.js';
-import { FloatingPanel } from '../components/ui/floatingPanel/floatingPanel.js';
+import { FloatingPanel, getAllPanels } from '../components/ui/floatingPanel/floatingPanel.js';
 import { ModelExplorerComponent } from '../components/modelExplorer/modelExplorerComponent.js';
 import { ParametersComponent } from '../components/parameters/parametersComponent.js';
 import { MultiDetailerComponent } from '../components/multiDetailer/multiDetailerComponent.js';
 import { LoRASelectorComponent } from '../components/loraSelector/loraSelector.js';
+import { GenerationPanel } from '../components/generationPanel/generationPanel.js';
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -42,6 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 9. LoRA 선택기 패널 생성
     createLoRAPanel();
+    
+    // 10. 통합 생성 패널 생성
+    createGenerationPanel();
 
     console.log('Canvas Studio initialized successfully');
 });
@@ -167,15 +171,95 @@ function toggleTransformerVisibility() {
     console.log(isVisible ? 'Transformer hidden' : 'Transformer visible');
 }
 
+// ============================================================================
+// SYMMETRIC PANEL POSITIONING SYSTEM
+// ============================================================================
+// 4개 패널을 중앙 기점으로 좌우 대칭 배치하고 화면 끝에 스냅
+
+/**
+ * 화면 크기와 패널 개수에 따라 대칭 위치 계산
+ * @returns {Object} 각 패널의 초기 위치 좌표
+ */
+function calculateSymmetricPositions() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // 패널 기본 크기
+    const panelWidth = 320;
+    const panelHeight = 420;
+    
+    // 화면 가장자리 여백
+    const edgeMargin = 30;
+    
+    // 수직 중앙 위치 계산 (패널 2개가 세로로 배치)
+    const centerY = (viewportHeight - (panelHeight * 2 + 20)) / 2; // 20px 간격
+    
+    // 좌측 패널들 (화면 왼쪽 끝)
+    const leftX = edgeMargin;
+    const leftTop = Math.max(50, centerY);
+    const leftBottom = leftTop + panelHeight + 20;
+    
+    // 우측 패널들 (화면 오른쪽 끝)
+    const rightX = viewportWidth - panelWidth - edgeMargin;
+    const rightTop = Math.max(50, centerY);
+    const rightBottom = rightTop + panelHeight + 20;
+    
+    return {
+        modelExplorer: { x: leftX, y: leftTop },
+        parameters: { x: leftX, y: leftBottom },
+        loraSelector: { x: rightX, y: rightTop },
+        multiDetailer: { x: rightX, y: rightBottom }
+    };
+}
+
+/**
+ * 창 크기 변경 시 패널 위치 재조정 (화면 끝 스냅 유지)
+ */
+function adjustPanelsOnResize() {
+    const positions = calculateSymmetricPositions();
+    const panelInstances = getAllPanels();
+    
+    panelInstances.forEach(panel => {
+        let newPosition = null;
+        
+        switch(panel.id) {
+            case 'model-explorer-panel':
+                newPosition = positions.modelExplorer;
+                break;
+            case 'parameters-panel':
+                newPosition = positions.parameters;
+                break;
+            case 'lora-selector-panel':
+                newPosition = positions.loraSelector;
+                break;
+            case 'multi-detailer-panel':
+                newPosition = positions.multiDetailer;
+                break;
+        }
+        
+        if (newPosition) {
+            panel.setPosition(newPosition.x, newPosition.y);
+        }
+    });
+}
+
+// 창 크기 변경 이벤트 리스너 등록
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(adjustPanelsOnResize, 250); // 디바운스
+});
+
 // 모델 탐색기 패널 생성
 function createModelExplorerPanel() {
     const modelExplorer = new ModelExplorerComponent();
+    const positions = calculateSymmetricPositions();
     
     const modelExplorerPanel = new FloatingPanel({
         id: 'model-explorer-panel',
         title: 'Model Explorer',
-        x: 50,
-        y: 50,
+        x: positions.modelExplorer.x,
+        y: positions.modelExplorer.y,
         width: 320,
         height: 420,
         markingColor: '#4a5568',
@@ -192,12 +276,13 @@ function createModelExplorerPanel() {
 // 파라미터 패널 생성
 function createParametersPanel() {
     const parameters = new ParametersComponent();
+    const positions = calculateSymmetricPositions();
     
     const parametersPanel = new FloatingPanel({
         id: 'parameters-panel',
         title: 'Parameters',
-        x: 50, // 모델 탐색기 아래에 배치
-        y: 490,
+        x: positions.parameters.x,
+        y: positions.parameters.y,
         width: 320,
         height: 420,
         markingColor: '#e67e22',
@@ -214,12 +299,13 @@ function createParametersPanel() {
 // 멀티 디테일러 패널 생성
 function createMultiDetailerPanel() {
     const multiDetailer = new MultiDetailerComponent();
+    const positions = calculateSymmetricPositions();
     
     const multiDetailerPanel = new FloatingPanel({
         id: 'multi-detailer-panel',
         title: 'Multi Detailer',
-        x: 1050, // 로라 셀렉터 아래에 배치
-        y: 490,
+        x: positions.multiDetailer.x,
+        y: positions.multiDetailer.y,
         width: 320,
         height: 420,
         markingColor: '#9c27b0', // 보라색 테마
@@ -236,12 +322,13 @@ function createMultiDetailerPanel() {
 // LoRA 선택기 패널 생성
 function createLoRAPanel() {
     const loraSelector = new LoRASelectorComponent();
+    const positions = calculateSymmetricPositions();
     
     const loraPanel = new FloatingPanel({
         id: 'lora-selector-panel',
         title: '🎨 LoRA Selector',
-        x: 1050, // 우측 끝 상단에 배치
-        y: 50,
+        x: positions.loraSelector.x,
+        y: positions.loraSelector.y,
         width: 320,
         height: 420,
         markingColor: '#9b59b6', // 보라색 테마
@@ -253,4 +340,28 @@ function createLoRAPanel() {
     loraPanel.addComponent('loraSelector', loraSelector);
     
     console.log('LoRA Selector panel created');
+}
+
+// 통합 생성 패널 생성 (하단 고정)
+function createGenerationPanel() {
+    const generationPanel = new GenerationPanel();
+    
+    // 컨테이너 엘리먼트 가져오기
+    const container = document.getElementById('generation-panel-container');
+    if (!container) {
+        console.error('Generation panel container not found');
+        return;
+    }
+    
+    // 패널 렌더링 및 컨테이너에 추가
+    const panelElement = generationPanel.render();
+    container.appendChild(panelElement);
+    
+    // 패널 초기화
+    generationPanel.init();
+    
+    // 전역 참조 저장 (디버깅 및 외부 접근용)
+    window.generationPanel = generationPanel;
+    
+    console.log('Generation panel created and initialized');
 }

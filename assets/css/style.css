@@ -1,3 +1,19 @@
+/* CSS 변수 정의 - 다크 테마 */
+:root {
+    --bg-primary: #1a1d23;
+    --bg-secondary: #252a33;
+    --bg-tertiary: #2a3038;
+    --bg-panel: rgba(42, 48, 56, 0.95);
+    --accent-blue: #6cb6ff;
+    --accent-blue-hover: #4a9eff;
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --border-subtle: rgba(134, 142, 150, 0.2);
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -8,7 +24,9 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
 }
 
 #canvas-container {

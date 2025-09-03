@@ -275,7 +275,6 @@ export class MultiDetailerComponent {
             .multi-detailer-component {
                 color: #333;
                 font-size: 13px;
-                max-width: 320px;
                 width: 100%;
             }
             
@@ -485,6 +484,18 @@ export class MultiDetailerComponent {
                 
                 .param-row-split .param-row {
                     flex: 1;
+                }
+            }
+            
+            /* 더 큰 너비에서 여백 및 레이아웃 개선 */
+            @media (min-width: 480px) {
+                .param-row-split {
+                    gap: 12px;
+                }
+                
+                .param-group {
+                    margin-bottom: 16px;
+                    padding-bottom: 12px;
                 }
             }
             
