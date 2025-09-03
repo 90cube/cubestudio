@@ -6,6 +6,7 @@ import { FloatingPanel } from '../components/ui/floatingPanel/floatingPanel.js';
 import { ModelExplorerComponent } from '../components/modelExplorer/modelExplorerComponent.js';
 import { ParametersComponent } from '../components/parameters/parametersComponent.js';
 import { MultiDetailerComponent } from '../components/multiDetailer/multiDetailerComponent.js';
+import { LoRASelectorComponent } from '../components/loraSelector/loraSelector.js';
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -38,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 8. 멀티 디테일러 패널 생성
     createMultiDetailerPanel();
+    
+    // 9. LoRA 선택기 패널 생성
+    createLoRAPanel();
 
     console.log('Canvas Studio initialized successfully');
 });
@@ -149,8 +153,8 @@ function createModelExplorerPanel() {
         title: 'Model Explorer',
         x: 50,
         y: 50,
-        width: 300,
-        height: 400,
+        width: 280,
+        height: 420,
         markingColor: '#4a5568',
         resizable: true,
         draggable: true
@@ -204,4 +208,26 @@ function createMultiDetailerPanel() {
     multiDetailerPanel.addComponent('multiDetailer', multiDetailer);
     
     console.log('Multi-detailer panel created');
+}
+
+// LoRA 선택기 패널 생성
+function createLoRAPanel() {
+    const loraSelector = new LoRASelectorComponent();
+    
+    const loraPanel = new FloatingPanel({
+        id: 'lora-selector-panel',
+        title: '🎨 LoRA Selector',
+        x: 1080, // 멀티 디테일러 패널 옆에 배치
+        y: 50,
+        width: 380,
+        height: 600,
+        markingColor: '#9b59b6', // 보라색 테마
+        resizable: true,
+        draggable: true
+    });
+    
+    // 컴포넌트를 패널에 추가
+    loraPanel.addComponent('loraSelector', loraSelector);
+    
+    console.log('LoRA Selector panel created');
 }

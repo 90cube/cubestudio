@@ -27,3 +27,151 @@ html, body {
 #canvas-container.panning:active {
     cursor: grabbing;
 }
+
+/* ============================================================================ */
+/* CUSTOM SCROLLBAR STYLES - Modern & Beautiful */
+/* ============================================================================ */
+/* 기본 스크롤바 스타일 - 모던하고 얇은 디자인 */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+    transform: scaleX(1.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* ============================================================================ */
+/* DYNAMIC COLOR SCROLLBAR SYSTEM */
+/* ============================================================================ */
+/* CSS 커스텀 속성으로 동적 색상 제어 */
+.panel-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-color, rgba(108, 182, 255, 0.4)) var(--scrollbar-track-color, rgba(255, 255, 255, 0.1));
+}
+
+.panel-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.panel-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color, rgba(255, 255, 255, 0.1));
+    border-radius: 5px;
+    margin: 3px;
+    border: 1px solid var(--scrollbar-track-border, rgba(255, 255, 255, 0.05));
+}
+
+.panel-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        135deg, 
+        var(--scrollbar-thumb-color, rgba(108, 182, 255, 0.4)) 0%, 
+        var(--scrollbar-thumb-color-dark, rgba(108, 182, 255, 0.6)) 100%
+    );
+    border-radius: 5px;
+    border: 1px solid var(--scrollbar-thumb-border, rgba(255, 255, 255, 0.2));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px var(--scrollbar-thumb-shadow, rgba(0, 0, 0, 0.1));
+}
+
+.panel-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        135deg, 
+        var(--scrollbar-thumb-hover, rgba(108, 182, 255, 0.6)) 0%, 
+        var(--scrollbar-thumb-hover-dark, rgba(108, 182, 255, 0.8)) 100%
+    );
+    transform: scaleX(1.1);
+    box-shadow: 0 4px 8px var(--scrollbar-thumb-hover-shadow, rgba(0, 0, 0, 0.15));
+}
+
+.panel-scrollbar::-webkit-scrollbar-thumb:active {
+    background: var(--scrollbar-thumb-active, rgba(108, 182, 255, 0.8));
+    transform: scaleX(1.05);
+}
+
+.panel-scrollbar::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track-color, rgba(255, 255, 255, 0.05));
+    border-radius: 5px;
+}
+
+/* ============================================================================ */
+/* MODEL EXPLORER SCROLLBAR */
+/* ============================================================================ */
+.model-explorer-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(108, 182, 255, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+.model-explorer-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.model-explorer-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin: 3px;
+}
+
+.model-explorer-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(108, 182, 255, 0.4) 0%, rgba(108, 182, 255, 0.6) 100%);
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.model-explorer-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(108, 182, 255, 0.6) 0%, rgba(108, 182, 255, 0.8) 100%);
+    transform: scaleX(1.1);
+}
+
+/* ============================================================================ */
+/* LORA SELECTOR SCROLLBAR */
+/* ============================================================================ */
+.lora-selector-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 89, 182, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+.lora-selector-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.lora-selector-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin: 3px;
+}
+
+.lora-selector-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.4) 0%, rgba(155, 89, 182, 0.6) 100%);
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lora-selector-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.6) 0%, rgba(155, 89, 182, 0.8) 100%);
+    transform: scaleX(1.1);
+}

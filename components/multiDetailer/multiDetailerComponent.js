@@ -30,7 +30,10 @@ export class MultiDetailerComponent {
         }
         
         this.currentTab = 1;
-        this.detectionModels = []; // API에서 불러온 모델 목록
+        this.detectionModels = []; // 로컬에서 불러온 모델 목록
+        this.eventListeners = []; // 이벤트 리스너 추적을 위한 배열
+        this.tabContentElements = {}; // 탭별 DOM 엘리먼트 캐시
+        this.loadingState = { models: false, error: null }; // 로딩 상태 추적
     }
     
     /**
@@ -452,12 +455,22 @@ export class MultiDetailerComponent {
     setupEventListeners() {
         if (!this.containerElement) return;
         
-        // 탭 클릭 이벤트
-        this.containerElement.addEventListener('click', (e) => {
+        // 기존 이벤트 리스너 정리
+        this.cleanupEventListeners();
+        
+        // 탭 클릭 이벤트 (이벤트 위임 사용)
+        const tabClickHandler = (e) => {
             if (e.target.classList.contains('detailer-tab-btn')) {
                 const tabIndex = parseInt(e.target.dataset.tab);
                 this.switchTab(tabIndex);
             }
+        };
+        
+        this.containerElement.addEventListener('click', tabClickHandler);
+        this.eventListeners.push({
+            element: this.containerElement,
+            event: 'click',
+            handler: tabClickHandler
         });
         
         // 현재 탭의 이벤트 리스너 설정
@@ -467,43 +480,73 @@ export class MultiDetailerComponent {
     setupCurrentTabEventListeners() {
         const currentIndex = this.currentTab;
         
+        // 기존 탭별 이벤트 리스너 정리
+        this.cleanupTabEventListeners();
+        
         // 활성화 토글
         const activeToggle = this.containerElement.querySelector(`#detailer-${currentIndex}-active`);
         if (activeToggle) {
-            activeToggle.addEventListener('change', (e) => {
+            const toggleHandler = (e) => {
                 this.detailers[currentIndex].active = e.target.checked;
                 const fieldset = this.containerElement.querySelector(`#detailer-${currentIndex}-fieldset`);
                 if (fieldset) {
                     fieldset.disabled = !e.target.checked;
                 }
+                this.syncStateWithUI(currentIndex);
                 this.notifyChange();
+            };
+            
+            activeToggle.addEventListener('change', toggleHandler);
+            this.eventListeners.push({
+                element: activeToggle,
+                event: 'change',
+                handler: toggleHandler,
+                tabIndex: currentIndex
             });
         }
         
         // 슬라이더 값 표시 업데이트
         const confidenceSlider = this.containerElement.querySelector(`#detailer-${currentIndex}-confidence`);
         if (confidenceSlider) {
-            confidenceSlider.addEventListener('input', (e) => {
+            const confidenceHandler = (e) => {
                 const value = parseFloat(e.target.value);
                 this.detailers[currentIndex].confidence = value;
                 const valueDisplay = this.containerElement.querySelector(`#detailer-${currentIndex}-confidence-value`);
                 if (valueDisplay) {
                     valueDisplay.textContent = value.toFixed(2);
                 }
+                this.syncStateWithUI(currentIndex);
                 this.notifyChange();
+            };
+            
+            confidenceSlider.addEventListener('input', confidenceHandler);
+            this.eventListeners.push({
+                element: confidenceSlider,
+                event: 'input',
+                handler: confidenceHandler,
+                tabIndex: currentIndex
             });
         }
         
         const denoisingSlider = this.containerElement.querySelector(`#detailer-${currentIndex}-denoising-strength`);
         if (denoisingSlider) {
-            denoisingSlider.addEventListener('input', (e) => {
+            const denoisingHandler = (e) => {
                 const value = parseFloat(e.target.value);
                 this.detailers[currentIndex].denoisingStrength = value;
                 const valueDisplay = this.containerElement.querySelector(`#detailer-${currentIndex}-denoising-strength-value`);
                 if (valueDisplay) {
                     valueDisplay.textContent = value.toFixed(2);
                 }
+                this.syncStateWithUI(currentIndex);
                 this.notifyChange();
+            };
+            
+            denoisingSlider.addEventListener('input', denoisingHandler);
+            this.eventListeners.push({
+                element: denoisingSlider,
+                event: 'input',
+                handler: denoisingHandler,
+                tabIndex: currentIndex
             });
         }
         
@@ -516,9 +559,18 @@ export class MultiDetailerComponent {
         fields.forEach(field => {
             const element = this.containerElement.querySelector(`#detailer-${currentIndex}-${field}`);
             if (element) {
-                element.addEventListener('change', (e) => {
+                const fieldHandler = (e) => {
                     this.updateDetailerValue(currentIndex, field, e.target.value);
+                    this.syncStateWithUI(currentIndex);
                     this.notifyChange();
+                };
+                
+                element.addEventListener('change', fieldHandler);
+                this.eventListeners.push({
+                    element: element,
+                    event: 'change',
+                    handler: fieldHandler,
+                    tabIndex: currentIndex
                 });
             }
         });
@@ -550,27 +602,17 @@ export class MultiDetailerComponent {
     }
     
     switchTab(tabIndex) {
-        if (tabIndex === this.currentTab) return;
+        if (tabIndex === this.currentTab || tabIndex < 1 || tabIndex > 4) return;
         
-        // 탭 버튼 활성 상태 업데이트
-        this.containerElement.querySelectorAll('.detailer-tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-            btn.style.background = 'transparent';
-            btn.style.color = '#5f6368';
-            btn.style.fontWeight = '400';
-        });
+        // 현재 탭의 상태를 저장 (성능 최적화를 위해 DOM에서 직접 읽어오기)
+        this.saveCurrentTabState();
         
-        const activeBtn = this.containerElement.querySelector(`[data-tab="${tabIndex}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('active');
-            activeBtn.style.background = 'rgba(108, 182, 255, 0.15)';
-            activeBtn.style.color = '#1a73e8';
-            activeBtn.style.fontWeight = '600';
-        }
+        // 탭 버튼 활성 상태 업데이트 (최적화된 방식)
+        this.updateTabButtonStates(tabIndex);
         
-        // 탭 컨텐트 업데이트
+        // 탭 컨텐트 업데이트 (캐싱 및 재사용)
         this.currentTab = tabIndex;
-        this.updateTabContent();
+        this.updateTabContentOptimized();
     }
     
     updateTabContent() {
@@ -586,21 +628,325 @@ export class MultiDetailerComponent {
         }, 0);
     }
     
+    /**
+     * 성능 최적화된 탭 콘텐트 업데이트
+     */
+    updateTabContentOptimized() {
+        const contentContainer = this.containerElement?.querySelector('#active-tab-content');
+        if (!contentContainer) return;
+        
+        // 기존 캐시된 탭 컨텐트가 있는지 확인
+        if (this.tabContentElements[this.currentTab]) {
+            // 캐시된 엘리먼트 재사용
+            contentContainer.innerHTML = '';
+            contentContainer.appendChild(this.tabContentElements[this.currentTab]);
+        } else {
+            // 새로운 탭 컨텐트 생성 및 캐시
+            const tabElement = document.createElement('div');
+            tabElement.innerHTML = this.generateTabContentHtml(this.currentTab);
+            this.tabContentElements[this.currentTab] = tabElement.cloneNode(true);
+            contentContainer.innerHTML = tabElement.innerHTML;
+        }
+        
+        // 이벤트 리스너와 모델 목록 설정
+        setTimeout(() => {
+            this.setupCurrentTabEventListeners();
+            this.populateDetectionModels(this.currentTab);
+            this.loadTabStateFromData();
+        }, 0);
+    }
+    
+    /**
+     * 현재 탭의 상태를 데이터 객체에 저장
+     */
+    saveCurrentTabState() {
+        if (!this.containerElement) return;
+        
+        const currentIndex = this.currentTab;
+        
+        // DOM에서 현재 값들을 읽어서 데이터 객체에 저장
+        const fields = {
+            'active': { selector: `#detailer-${currentIndex}-active`, type: 'checkbox' },
+            'detectionModel': { selector: `#detailer-${currentIndex}-detection-model`, type: 'value' },
+            'confidence': { selector: `#detailer-${currentIndex}-confidence`, type: 'number' },
+            'maskPadding': { selector: `#detailer-${currentIndex}-mask-padding`, type: 'number' },
+            'maskBlur': { selector: `#detailer-${currentIndex}-mask-blur`, type: 'number' },
+            'prompt': { selector: `#detailer-${currentIndex}-prompt`, type: 'value' },
+            'negativePrompt': { selector: `#detailer-${currentIndex}-negative-prompt`, type: 'value' },
+            'denoisingStrength': { selector: `#detailer-${currentIndex}-denoising-strength`, type: 'number' },
+            'sampler': { selector: `#detailer-${currentIndex}-sampler`, type: 'value' },
+            'steps': { selector: `#detailer-${currentIndex}-steps`, type: 'number' },
+            'cfgScale': { selector: `#detailer-${currentIndex}-cfg-scale`, type: 'number' }
+        };
+        
+        Object.keys(fields).forEach(key => {
+            const field = fields[key];
+            const element = this.containerElement.querySelector(field.selector);
+            if (element) {
+                switch (field.type) {
+                    case 'checkbox':
+                        this.detailers[currentIndex][key] = element.checked;
+                        break;
+                    case 'number':
+                        this.detailers[currentIndex][key] = parseFloat(element.value) || 0;
+                        break;
+                    default:
+                        this.detailers[currentIndex][key] = element.value;
+                }
+            }
+        });
+    }
+    
+    /**
+     * 데이터 객체에서 현재 탭으로 상태 로드
+     */
+    loadTabStateFromData() {
+        if (!this.containerElement) return;
+        
+        const currentIndex = this.currentTab;
+        const detailer = this.detailers[currentIndex];
+        
+        // 데이터 객체의 값을 DOM에 적용
+        const activeToggle = this.containerElement.querySelector(`#detailer-${currentIndex}-active`);
+        if (activeToggle) {
+            activeToggle.checked = detailer.active;
+        }
+        
+        const fieldset = this.containerElement.querySelector(`#detailer-${currentIndex}-fieldset`);
+        if (fieldset) {
+            fieldset.disabled = !detailer.active;
+        }
+        
+        // 다른 필드들도 동기화
+        const fields = [
+            { key: 'detectionModel', selector: `#detailer-${currentIndex}-detection-model` },
+            { key: 'confidence', selector: `#detailer-${currentIndex}-confidence` },
+            { key: 'maskPadding', selector: `#detailer-${currentIndex}-mask-padding` },
+            { key: 'maskBlur', selector: `#detailer-${currentIndex}-mask-blur` },
+            { key: 'prompt', selector: `#detailer-${currentIndex}-prompt` },
+            { key: 'negativePrompt', selector: `#detailer-${currentIndex}-negative-prompt` },
+            { key: 'denoisingStrength', selector: `#detailer-${currentIndex}-denoising-strength` },
+            { key: 'sampler', selector: `#detailer-${currentIndex}-sampler` },
+            { key: 'steps', selector: `#detailer-${currentIndex}-steps` },
+            { key: 'cfgScale', selector: `#detailer-${currentIndex}-cfg-scale` }
+        ];
+        
+        fields.forEach(field => {
+            const element = this.containerElement.querySelector(field.selector);
+            if (element && detailer[field.key] !== undefined) {
+                element.value = detailer[field.key];
+            }
+        });
+        
+        // 슬라이더 값 표시 업데이트
+        const confidenceValue = this.containerElement.querySelector(`#detailer-${currentIndex}-confidence-value`);
+        if (confidenceValue) {
+            confidenceValue.textContent = detailer.confidence.toFixed(2);
+        }
+        
+        const denoisingValue = this.containerElement.querySelector(`#detailer-${currentIndex}-denoising-strength-value`);
+        if (denoisingValue) {
+            denoisingValue.textContent = detailer.denoisingStrength.toFixed(2);
+        }
+    }
+    
+    /**
+     * 탭 버튼 상태 업데이트 (최적화됨)
+     */
+    updateTabButtonStates(activeTabIndex) {
+        const tabButtons = this.containerElement.querySelectorAll('.detailer-tab-btn');
+        
+        tabButtons.forEach(btn => {
+            const tabIndex = parseInt(btn.dataset.tab);
+            const isActive = tabIndex === activeTabIndex;
+            
+            btn.classList.toggle('active', isActive);
+            btn.style.background = isActive ? 'rgba(108, 182, 255, 0.15)' : 'transparent';
+            btn.style.color = isActive ? '#1a73e8' : '#5f6368';
+            btn.style.fontWeight = isActive ? '600' : '400';
+        });
+    }
+    
+    /**
+     * 상태와 UI 동기화
+     */
+    syncStateWithUI(tabIndex) {
+        // 데이터 무결성 검증
+        const detailer = this.detailers[tabIndex];
+        if (!detailer) return;
+        
+        // 범위 검증
+        detailer.confidence = Math.max(0, Math.min(1, detailer.confidence));
+        detailer.denoisingStrength = Math.max(0, Math.min(1, detailer.denoisingStrength));
+        detailer.maskPadding = Math.max(0, Math.min(256, detailer.maskPadding));
+        detailer.maskBlur = Math.max(0, Math.min(64, detailer.maskBlur));
+        detailer.steps = Math.max(1, Math.min(100, detailer.steps));
+        detailer.cfgScale = Math.max(1, Math.min(30, detailer.cfgScale));
+        
+        // 현재 활성 탭인 경우에만 UI 업데이트
+        if (tabIndex === this.currentTab) {
+            this.loadTabStateFromData();
+        }
+    }
+    
+    /**
+     * 이벤트 리스너 정리
+     */
+    cleanupEventListeners() {
+        this.eventListeners.forEach(listener => {
+            if (listener.element && listener.handler) {
+                listener.element.removeEventListener(listener.event, listener.handler);
+            }
+        });
+        this.eventListeners = [];
+    }
+    
+    /**
+     * 특정 탭의 이벤트 리스너만 정리
+     */
+    cleanupTabEventListeners() {
+        const tabListeners = this.eventListeners.filter(listener => listener.tabIndex !== undefined);
+        tabListeners.forEach(listener => {
+            if (listener.element && listener.handler) {
+                listener.element.removeEventListener(listener.event, listener.handler);
+            }
+        });
+        
+        // 탭별 리스너만 제거
+        this.eventListeners = this.eventListeners.filter(listener => listener.tabIndex === undefined);
+    }
+    
     async loadDetectionModels() {
         try {
-            const response = await fetch(`${this.apiUrl}/models/detection`);
-            if (!response.ok) throw new Error(`Detection models 로딩 실패: ${response.status}`);
+            this.loadingState.models = true;
+            this.loadingState.error = null;
+            this.showModelLoadingUI();
             
-            this.detectionModels = await response.json();
+            // 로컬 파일 시스템에서 모델 목록을 가져오기
+            this.detectionModels = this.getLocalDetectionModels();
             
             // 현재 활성 탭의 모델 select 업데이트
             this.populateDetectionModels(this.currentTab);
+            this.loadingState.models = false;
             
         } catch (error) {
             console.error('Detection models 로딩 실패:', error);
-            this.detectionModels = ['Default detection model']; // 기본값
+            this.loadingState.error = error.message;
+            this.showModelErrorUI(error.message);
+            
+            // 기본값으로 폴백
+            this.detectionModels = this.getFallbackModels();
             this.populateDetectionModels(this.currentTab);
+            this.loadingState.models = false;
         }
+    }
+    
+    /**
+     * 로컬 파일 시스템의 ultralytics 모델 목록 반환
+     */
+    getLocalDetectionModels() {
+        // bbox (bounding box) 모델들
+        const bboxModels = [
+            'bbox/anime_score_cls_v1.pt',
+            'bbox/breast_size_det_cls_v8_640.pt',
+            'bbox/drones_det_v3_1024.pt',
+            'bbox/Eyes.pt',
+            'bbox/face_yolov11.pt',
+            'bbox/face_yolov8m.pt',
+            'bbox/hand_yolov8s.pt',
+            'bbox/manface_det_v2_1024.pt',
+            'bbox/womanface_det_v5_1024.pt'
+        ];
+        
+        // segm (segmentation) 모델들
+        const segmModels = [
+            'segm/Anzhcs-text-seg-v6-y11m.pt',
+            'segm/breasts_seg_v1_1024m.pt',
+            'segm/breasts_seg_v1_1024n.pt',
+            'segm/breasts_seg_v1_1024s.pt',
+            'segm/eye_seg_v11_640_v3.pt',
+            'segm/face_seg_v2_1024.pt',
+            'segm/face_seg_v2_640.pt',
+            'segm/face_seg_v2_768.pt',
+            'segm/face_seg_v2_768ms.pt',
+            'segm/face_seg_v3_640.pt',
+            'segm/face_yolov9c.pt',
+            'segm/hand_yolov9c.pt',
+            'segm/person_yolov8m-seg.pt'
+        ];
+        
+        return [...bboxModels, ...segmModels];
+    }
+    
+    /**
+     * 폴백 모델 목록
+     */
+    getFallbackModels() {
+        return [
+            'bbox/face_yolov8m.pt',
+            'segm/face_seg_v2_640.pt',
+            'bbox/hand_yolov8s.pt',
+            'segm/hand_yolov9c.pt'
+        ];
+    }
+    
+    /**
+     * 모델 로딩 UI 표시
+     */
+    showModelLoadingUI() {
+        const selectElements = this.containerElement?.querySelectorAll('select[id*="detection-model"]');
+        selectElements?.forEach(select => {
+            select.innerHTML = '<option>모델 로딩 중...</option>';
+            select.disabled = true;
+        });
+    }
+    
+    /**
+     * 모델 로딩 에러 UI 표시
+     */
+    showModelErrorUI(errorMessage) {
+        const selectElements = this.containerElement?.querySelectorAll('select[id*="detection-model"]');
+        selectElements?.forEach(select => {
+            select.innerHTML = `<option>⚠️ 모델 로딩 실패: ${errorMessage}</option>`;
+            select.disabled = false;
+        });
+        
+        // 에러 알림 표시
+        this.showNotification('모델 로딩에 실패했습니다. 기본 모델을 사용합니다.', 'error');
+    }
+    
+    /**
+     * 알림 표시 (UI 피드백)
+     */
+    showNotification(message, type = 'info') {
+        // 간단한 알림 구현 (실제 프로젝트의 알림 시스템과 연동 가능)
+        console.log(`[${type.toUpperCase()}] ${message}`);
+        
+        // DOM에 알림 표시
+        const notification = document.createElement('div');
+        notification.className = `multidetailer-notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#f44336' : '#2196f3'};
+            color: white;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3초 후 자동 제거
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
     }
     
     populateDetectionModels(tabIndex) {
@@ -699,7 +1045,36 @@ export class MultiDetailerComponent {
         }
     }
     
+    /**
+     * 컴포넌트 완전 정리 메서드 (메모리 리크 방지)
+     */
     destroy() {
-        console.log('Multi-detailer component destroyed');
+        // 모든 이벤트 리스너 정리
+        this.cleanupEventListeners();
+        
+        // 탭 콘텐트 캐시 정리
+        this.tabContentElements = {};
+        
+        // DOM 레퍼런스 정리
+        this.containerElement = null;
+        
+        // 데이터 객체 초기화 (메모리 해제)
+        this.detailers = {};
+        this.detectionModels = [];
+        
+        // 상태 초기화
+        this.isInitialized = false;
+        this.currentTab = 1;
+        this.loadingState = { models: false, error: null };
+        
+        // 알림 DOM 정리 (있을 경우)
+        const notifications = document.querySelectorAll('.multidetailer-notification');
+        notifications.forEach(notification => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        });
+        
+        console.log('Multi-detailer component destroyed and cleaned up');
     }
 }

@@ -62,11 +62,12 @@ export class ModelExplorerComponent {
         
         // 탭 컨텐트
         const tabContent = document.createElement('div');
-        tabContent.className = 'tab-content';
+        tabContent.className = 'tab-content model-explorer-scrollbar';
         tabContent.style.cssText = `
             flex: 1;
             overflow-y: auto;
             min-height: 0;
+            max-height: 100%;
         `;
         
         // 체크포인트 패널
@@ -151,8 +152,8 @@ export class ModelExplorerComponent {
             
             .model-explorer-component .folder-content {
                 list-style: none;
-                padding-left: 16px;
-                margin: 4px 0;
+                padding-left: 12px;
+                margin: 2px 0;
                 transition: all 0.2s ease;
             }
             
@@ -165,13 +166,16 @@ export class ModelExplorerComponent {
             .model-explorer-component .folder {
                 display: flex;
                 align-items: center;
-                padding: 4px 8px;
+                padding: 3px 6px;
                 cursor: pointer;
                 border-radius: 4px;
-                font-size: 13px;
+                font-size: 11px;
                 font-weight: 500;
                 color: #e8eaed;
                 transition: background 0.2s ease;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             .model-explorer-component .folder:hover {
@@ -186,15 +190,17 @@ export class ModelExplorerComponent {
             
             .model-explorer-component .file {
                 display: block;
-                padding: 6px 12px;
+                padding: 3px 8px;
                 cursor: pointer;
                 border-radius: 4px;
-                font-size: 12px;
+                font-size: 11px;
                 color: #9aa0a6;
                 transition: all 0.2s ease;
                 text-overflow: ellipsis;
                 overflow: hidden;
                 white-space: nowrap;
+                max-width: 100%;
+                box-sizing: border-box;
             }
             
             .model-explorer-component .file:hover {

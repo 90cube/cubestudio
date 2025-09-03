@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrollbar Test - Cube Studio</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .test-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .test-panel {
+            width: 300px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+        
+        .test-header {
+            height: 44px;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-weight: 600;
+        }
+        
+        .test-content {
+            height: 356px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        
+        .item {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 개별 패널 색상 설정 */
+        .panel-blue .test-header {
+            background: linear-gradient(135deg, #6cb6ff, #5aa3e8);
+        }
+        
+        .panel-blue .test-content {
+            --scrollbar-thumb-color: rgba(108, 182, 255, 0.4);
+            --scrollbar-thumb-color-dark: rgba(108, 182, 255, 0.6);
+            --scrollbar-thumb-hover: rgba(108, 182, 255, 0.6);
+            --scrollbar-thumb-hover-dark: rgba(108, 182, 255, 0.8);
+            --scrollbar-thumb-active: rgba(108, 182, 255, 0.8);
+        }
+        
+        .panel-purple .test-header {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        .panel-purple .test-content {
+            --scrollbar-thumb-color: rgba(155, 89, 182, 0.4);
+            --scrollbar-thumb-color-dark: rgba(155, 89, 182, 0.6);
+            --scrollbar-thumb-hover: rgba(155, 89, 182, 0.6);
+            --scrollbar-thumb-hover-dark: rgba(155, 89, 182, 0.8);
+            --scrollbar-thumb-active: rgba(155, 89, 182, 0.8);
+        }
+        
+        .panel-green .test-header {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        
+        .panel-green .test-content {
+            --scrollbar-thumb-color: rgba(46, 204, 113, 0.4);
+            --scrollbar-thumb-color-dark: rgba(46, 204, 113, 0.6);
+            --scrollbar-thumb-hover: rgba(46, 204, 113, 0.6);
+            --scrollbar-thumb-hover-dark: rgba(46, 204, 113, 0.8);
+            --scrollbar-thumb-active: rgba(46, 204, 113, 0.8);
+        }
+        
+        .panel-orange .test-header {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .panel-orange .test-content {
+            --scrollbar-thumb-color: rgba(243, 156, 18, 0.4);
+            --scrollbar-thumb-color-dark: rgba(243, 156, 18, 0.6);
+            --scrollbar-thumb-hover: rgba(243, 156, 18, 0.6);
+            --scrollbar-thumb-hover-dark: rgba(243, 156, 18, 0.8);
+            --scrollbar-thumb-active: rgba(243, 156, 18, 0.8);
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Beautiful Scrollbar Test - Cube Studio</h1>
+    
+    <div class="test-container">
+        <!-- Model Explorer Style -->
+        <div class="test-panel panel-blue">
+            <div class="test-header">📁 Model Explorer</div>
+            <div class="test-content panel-scrollbar">
+                <div class="item">SDXL/ILXL/model1.safetensors</div>
+                <div class="item">SDXL/ILXL/model2.safetensors</div>
+                <div class="item">SDXL/ILXL/model3.safetensors</div>
+                <div class="item">SDXL/NOOB/asian-beauty.safetensors</div>
+                <div class="item">SDXL/NOOB/film-photography.safetensors</div>
+                <div class="item">WAN/video-model-1.safetensors</div>
+                <div class="item">WAN/video-model-2.safetensors</div>
+                <div class="item">WAN/KJ_WAN/causality-model.safetensors</div>
+                <div class="item">WAN/KJ_WAN/light-model.safetensors</div>
+                <div class="item">WAN/KJ_WAN/fusion-model.safetensors</div>
+                <div class="item">Extra Model 1</div>
+                <div class="item">Extra Model 2</div>
+                <div class="item">Extra Model 3</div>
+                <div class="item">Extra Model 4</div>
+                <div class="item">Extra Model 5</div>
+                <div class="item">Extra Model 6</div>
+                <div class="item">Extra Model 7</div>
+                <div class="item">Extra Model 8</div>
+                <div class="item">Extra Model 9</div>
+                <div class="item">Extra Model 10</div>
+            </div>
+        </div>
+        
+        <!-- LoRA Selector Style -->
+        <div class="test-panel panel-purple">
+            <div class="test-header">🎨 LoRA Selector</div>
+            <div class="test-content panel-scrollbar">
+                <div class="item">✅ YHILXL-000001 (Weight: 1.0)</div>
+                <div class="item">✅ iLLMythSmo0thL1nes (Weight: 0.8)</div>
+                <div class="item">✅ ILLMythP0rtr4itStyle (Weight: 1.2)</div>
+                <div class="item">leather armor IL (Weight: 0.9)</div>
+                <div class="item">goblin IL (Weight: 1.1)</div>
+                <div class="item">minotaur IL (Weight: 0.7)</div>
+                <div class="item">kobold IL (Weight: 1.3)</div>
+                <div class="item">tiefling IL (Weight: 0.6)</div>
+                <div class="item">yuanti IL (Weight: 1.4)</div>
+                <div class="item">warforged (Weight: 0.5)</div>
+                <div class="item">gnome IL (Weight: 1.5)</div>
+                <div class="item">view topdown IL (Weight: 0.8)</div>
+                <div class="item">kenku IL (Weight: 1.0)</div>
+                <div class="item">armors IL (Weight: 0.9)</div>
+                <div class="item">NinjaAF IL (Weight: 1.2)</div>
+                <div class="item">korean idol-noob (Weight: 0.7)</div>
+                <div class="item">Film Photography-NOOB (Weight: 1.1)</div>
+                <div class="item">asian beauty face (Weight: 0.8)</div>
+            </div>
+        </div>
+        
+        <!-- Additional Test Panels -->
+        <div class="test-panel panel-green">
+            <div class="test-header">🌿 Green Theme</div>
+            <div class="test-content panel-scrollbar">
+                <div class="item">Nature Scene 1</div>
+                <div class="item">Forest Landscape</div>
+                <div class="item">Mountain View</div>
+                <div class="item">Ocean Waves</div>
+                <div class="item">Desert Sunset</div>
+                <div class="item">Arctic Tundra</div>
+                <div class="item">Tropical Paradise</div>
+                <div class="item">Autumn Forest</div>
+                <div class="item">Spring Garden</div>
+                <div class="item">Winter Wonderland</div>
+                <div class="item">River Valley</div>
+                <div class="item">Canyon Vista</div>
+                <div class="item">Meadow Flowers</div>
+                <div class="item">Rocky Coast</div>
+                <div class="item">Prairie Grass</div>
+                <div class="item">Jungle Canopy</div>
+                <div class="item">Savanna Plains</div>
+                <div class="item">Glacial Lake</div>
+            </div>
+        </div>
+        
+        <div class="test-panel panel-orange">
+            <div class="test-header">🔥 Orange Theme</div>
+            <div class="test-content panel-scrollbar">
+                <div class="item">Fire Element</div>
+                <div class="item">Sunset Glow</div>
+                <div class="item">Autumn Leaves</div>
+                <div class="item">Orange Citrus</div>
+                <div class="item">Desert Sand</div>
+                <div class="item">Copper Metal</div>
+                <div class="item">Amber Stone</div>
+                <div class="item">Pumpkin Spice</div>
+                <div class="item">Tangerine Dream</div>
+                <div class="item">Marigold Flower</div>
+                <div class="item">Peach Blossom</div>
+                <div class="item">Coral Reef</div>
+                <div class="item">Rust Texture</div>
+                <div class="item">Clay Pottery</div>
+                <div class="item">Caramel Sweet</div>
+                <div class="item">Bronze Metal</div>
+                <div class="item">Apricot Fruit</div>
+                <div class="item">Honey Gold</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 스크롤바 테스트를 위한 간단한 인터랙션 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const panels = document.querySelectorAll('.test-panel');
+            
+            panels.forEach((panel, index) => {
+                const header = panel.querySelector('.test-header');
+                const colors = ['#6cb6ff', '#9b59b6', '#2ecc71', '#f39c12'];
+                
+                header.addEventListener('click', function() {
+                    const content = panel.querySelector('.test-content');
+                    
+                    // 색상 순환
+                    const currentIndex = colors.findIndex(color => 
+                        header.style.background.includes(color.substring(1))
+                    );
+                    const nextIndex = (currentIndex + 1) % colors.length;
+                    const newColor = colors[nextIndex];
+                    
+                    // 헤더 색상 변경
+                    const darkerColor = adjustColorBrightness(newColor, -20);
+                    header.style.background = `linear-gradient(135deg, ${newColor}, ${darkerColor})`;
+                    
+                    // 스크롤바 색상 동적 업데이트
+                    const rgb = hexToRgb(newColor);
+                    content.style.setProperty('--scrollbar-thumb-color', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`);
+                    content.style.setProperty('--scrollbar-thumb-color-dark', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6)`);
+                    content.style.setProperty('--scrollbar-thumb-hover', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6)`);
+                    content.style.setProperty('--scrollbar-thumb-hover-dark', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8)`);
+                    content.style.setProperty('--scrollbar-thumb-active', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8)`);
+                });
+            });
+        });
+        
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        function adjustColorBrightness(color, amount) {
+            const num = parseInt(color.replace("#", ""), 16);
+            const amt = Math.round(2.55 * amount);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            
+            return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000
+                + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100
+                + (B < 255 ? B < 1 ? 0 : B : 255))
+                .toString(16).slice(1);
+        }
+    </script>
+</body>
+</html>

@@ -21,6 +21,7 @@ let panelIdCounter = 0; // 고유 패널 ID 생성용 카운터
 // 패널과 점들을 10px 그리드에 정렬하는 시스템
 
 const PANEL_GRID_SIZE = 10; // 그리드 간격 (10px)
+const PANEL_HEIGHT_SNAP = 20; // 세로 리사이즈 스냅 간격 (20px)
 
 /**
  * 값을 그리드에 스냅하는 유틸리티 함수
@@ -29,6 +30,15 @@ const PANEL_GRID_SIZE = 10; // 그리드 간격 (10px)
  */
 function snapPanelToGrid(value) {
     return Math.round(value / PANEL_GRID_SIZE) * PANEL_GRID_SIZE;
+}
+
+/**
+ * 높이 값을 20px 단위로 스냅하는 함수
+ * @param {number} height - 스냅할 높이 값
+ * @returns {number} 20px 단위로 정렬된 높이 값
+ */
+function snapPanelHeight(height) {
+    return Math.round(height / PANEL_HEIGHT_SNAP) * PANEL_HEIGHT_SNAP;
 }
 
 // ============================================================================
@@ -433,6 +443,8 @@ export class FloatingPanel {
             transition: all 0.3s ease;
             min-width: 250px;
             min-height: 200px;
+            display: flex;
+            flex-direction: column;
         `;
         
         // 헤더 (마킹 탭 포함)
@@ -530,12 +542,18 @@ export class FloatingPanel {
         
         // 본문 영역
         this.bodyElement = document.createElement('div');
-        this.bodyElement.className = 'panel-body';
+        this.bodyElement.className = 'panel-body panel-scrollbar';
         this.bodyElement.style.cssText = `
             flex: 1;
             padding: 16px;
             overflow-y: auto;
+            overflow-x: hidden;
             background: rgba(255, 255, 255, 0.9);
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            word-wrap: break-word;
+            box-sizing: border-box;
         `;
         
         // 리사이즈 핸들
@@ -715,7 +733,7 @@ export class FloatingPanel {
                 const deltaY = e.clientY - startY;
                 
                 this.width = Math.max(250, snapPanelToGrid(initialWidth + deltaX));
-                this.height = Math.max(200, snapPanelToGrid(initialHeight + deltaY));
+                this.height = Math.max(200, snapPanelHeight(initialHeight + deltaY));
                 
                 this.element.style.width = this.width + 'px';
                 this.element.style.height = this.height + 'px';
@@ -750,6 +768,67 @@ export class FloatingPanel {
         if (this.resizeHandle) {
             this.resizeHandle.style.background = `linear-gradient(-45deg, transparent 0%, transparent 30%, ${this.markingColor} 30%, ${this.markingColor} 40%, transparent 40%, transparent 60%, ${this.markingColor} 60%, ${this.markingColor} 70%, transparent 70%)`;
         }
+        
+        // 스크롤바 색상 업데이트
+        this.updateScrollbarColors();
+    }
+    
+    /**
+     * 패널의 markingColor에 따라 스크롤바 색상을 동적으로 업데이트
+     */
+    updateScrollbarColors() {
+        if (!this.bodyElement) return;
+        
+        // markingColor를 rgba로 변환
+        const baseColor = this.hexToRgba(this.markingColor);
+        
+        // 다양한 투명도와 밝기로 스크롤바 색상 생성
+        const thumbColor = this.rgbaWithOpacity(baseColor, 0.4);
+        const thumbColorDark = this.rgbaWithOpacity(baseColor, 0.6);
+        const thumbHover = this.rgbaWithOpacity(baseColor, 0.6);
+        const thumbHoverDark = this.rgbaWithOpacity(baseColor, 0.8);
+        const thumbActive = this.rgbaWithOpacity(baseColor, 0.8);
+        const thumbBorder = 'rgba(255, 255, 255, 0.2)';
+        const trackColor = 'rgba(255, 255, 255, 0.1)';
+        const trackBorder = 'rgba(255, 255, 255, 0.05)';
+        const thumbShadow = 'rgba(0, 0, 0, 0.1)';
+        const thumbHoverShadow = 'rgba(0, 0, 0, 0.15)';
+        
+        // CSS 커스텀 속성으로 색상 설정
+        this.bodyElement.style.setProperty('--scrollbar-thumb-color', thumbColor);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-color-dark', thumbColorDark);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-hover', thumbHover);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-hover-dark', thumbHoverDark);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-active', thumbActive);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-border', thumbBorder);
+        this.bodyElement.style.setProperty('--scrollbar-track-color', trackColor);
+        this.bodyElement.style.setProperty('--scrollbar-track-border', trackBorder);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-shadow', thumbShadow);
+        this.bodyElement.style.setProperty('--scrollbar-thumb-hover-shadow', thumbHoverShadow);
+    }
+    
+    /**
+     * HEX 색상을 RGBA 객체로 변환
+     * @param {string} hex - HEX 색상 (#RRGGBB)
+     * @returns {Object} {r, g, b} 객체
+     */
+    hexToRgba(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : {r: 108, g: 182, b: 255}; // 기본값
+    }
+    
+    /**
+     * RGBA 색상에 투명도 적용
+     * @param {Object} rgba - {r, g, b} 색상 객체
+     * @param {number} opacity - 투명도 (0-1)
+     * @returns {string} rgba 문자열
+     */
+    rgbaWithOpacity(rgba, opacity) {
+        return `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${opacity})`;
     }
     
     // 색상 밝기 조절 유틸리티
