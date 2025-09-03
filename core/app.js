@@ -153,7 +153,7 @@ function createModelExplorerPanel() {
         title: 'Model Explorer',
         x: 50,
         y: 50,
-        width: 280,
+        width: 320,
         height: 420,
         markingColor: '#4a5568',
         resizable: true,
@@ -173,10 +173,10 @@ function createParametersPanel() {
     const parametersPanel = new FloatingPanel({
         id: 'parameters-panel',
         title: 'Parameters',
-        x: 370, // 모델 탐색기 옆에 배치
-        y: 50,
+        x: 50, // 모델 탐색기 아래에 배치
+        y: 490,
         width: 320,
-        height: 480,
+        height: 420,
         markingColor: '#e67e22',
         resizable: true,
         draggable: true
@@ -195,10 +195,10 @@ function createMultiDetailerPanel() {
     const multiDetailerPanel = new FloatingPanel({
         id: 'multi-detailer-panel',
         title: 'Multi Detailer',
-        x: 710, // 파라미터 패널 옆에 배치
-        y: 50,
-        width: 360,
-        height: 520,
+        x: 1050, // 로라 셀렉터 아래에 배치
+        y: 490,
+        width: 320,
+        height: 420,
         markingColor: '#9c27b0', // 보라색 테마
         resizable: true,
         draggable: true
@@ -217,10 +217,10 @@ function createLoRAPanel() {
     const loraPanel = new FloatingPanel({
         id: 'lora-selector-panel',
         title: '🎨 LoRA Selector',
-        x: 1080, // 멀티 디테일러 패널 옆에 배치
+        x: 1050, // 우측 끝 상단에 배치
         y: 50,
-        width: 380,
-        height: 600,
+        width: 320,
+        height: 420,
         markingColor: '#9b59b6', // 보라색 테마
         resizable: true,
         draggable: true

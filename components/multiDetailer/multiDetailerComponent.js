@@ -74,10 +74,11 @@ export class MultiDetailerComponent {
         tabNav.style.cssText = `
             display: flex;
             border-bottom: 1px solid rgba(134, 142, 150, 0.2);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             background: rgba(245, 246, 247, 0.8);
             border-radius: 6px 6px 0 0;
-            padding: 4px;
+            padding: 3px;
+            gap: 1px;
         `;
         
         // 탭 버튼들 생성
@@ -93,7 +94,7 @@ export class MultiDetailerComponent {
             flex: 1;
             overflow-y: auto;
             min-height: 0;
-            padding: 8px 0;
+            padding: 6px 0;
         `;
         
         // 현재 활성 탭 컨텐트
@@ -123,16 +124,20 @@ export class MultiDetailerComponent {
         button.textContent = `Detailer ${index}`;
         button.style.cssText = `
             flex: 1;
-            padding: 8px 12px;
+            padding: 6px 4px;
             border: none;
             background: ${active ? 'rgba(108, 182, 255, 0.15)' : 'transparent'};
             color: ${active ? '#1a73e8' : '#5f6368'};
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: ${active ? '600' : '400'};
             border-radius: 4px;
             transition: all 0.2s ease;
-            margin: 0 2px;
+            margin: 0 1px;
+            min-width: 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
         `;
         
         return button;
@@ -170,11 +175,13 @@ export class MultiDetailerComponent {
                         
                         <div class="param-row slider-row">
                             <label for="detailer-${index}-confidence">Confidence</label>
-                            <input type="range" 
-                                   id="detailer-${index}-confidence" 
-                                   min="0" max="1" step="0.01" 
-                                   value="${detailer.confidence}">
-                            <span class="slider-value" id="detailer-${index}-confidence-value">${detailer.confidence.toFixed(2)}</span>
+                            <div class="slider-container">
+                                <input type="range" 
+                                       id="detailer-${index}-confidence" 
+                                       min="0" max="1" step="0.01" 
+                                       value="${detailer.confidence}">
+                                <span class="slider-value" id="detailer-${index}-confidence-value">${detailer.confidence.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -220,11 +227,13 @@ export class MultiDetailerComponent {
                         
                         <div class="param-row slider-row">
                             <label for="detailer-${index}-denoising-strength">Denoising Strength</label>
-                            <input type="range" 
-                                   id="detailer-${index}-denoising-strength" 
-                                   min="0" max="1" step="0.01" 
-                                   value="${detailer.denoisingStrength}">
-                            <span class="slider-value" id="detailer-${index}-denoising-strength-value">${detailer.denoisingStrength.toFixed(2)}</span>
+                            <div class="slider-container">
+                                <input type="range" 
+                                       id="detailer-${index}-denoising-strength" 
+                                       min="0" max="1" step="0.01" 
+                                       value="${detailer.denoisingStrength}">
+                                <span class="slider-value" id="detailer-${index}-denoising-strength-value">${detailer.denoisingStrength.toFixed(2)}</span>
+                            </div>
                         </div>
                         
                         <div class="param-row">
@@ -266,14 +275,23 @@ export class MultiDetailerComponent {
             .multi-detailer-component {
                 color: #333;
                 font-size: 13px;
+                max-width: 320px;
+                width: 100%;
             }
             
             .multi-detailer-component .tab-nav {
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                gap: 1px;
             }
             
             .multi-detailer-component .detailer-tab-btn {
                 position: relative;
+                font-size: 11px;
+                padding: 6px 4px;
+                min-width: 0;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
             }
             
             .multi-detailer-component .detailer-tab-btn:hover {
@@ -291,7 +309,7 @@ export class MultiDetailerComponent {
                 bottom: -4px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 20px;
+                width: 16px;
                 height: 2px;
                 background: #1a73e8;
                 border-radius: 1px;
@@ -301,23 +319,25 @@ export class MultiDetailerComponent {
                 background: rgba(76, 175, 80, 0.05);
                 border: 1px solid rgba(76, 175, 80, 0.2);
                 border-radius: 6px;
-                padding: 12px;
-                margin-bottom: 16px;
+                padding: 10px;
+                margin-bottom: 12px;
             }
             
             .detailer-toggle-label {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 6px;
                 font-weight: 600;
                 color: #2e7d32;
                 cursor: pointer;
+                font-size: 12px;
             }
             
             .detailer-toggle-label input[type="checkbox"] {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
                 accent-color: #4caf50;
+                margin: 0;
             }
             
             .toggle-text {
@@ -326,8 +346,8 @@ export class MultiDetailerComponent {
             
             fieldset {
                 border: 1px solid rgba(0, 0, 0, 0.1);
-                border-radius: 8px;
-                padding: 16px;
+                border-radius: 6px;
+                padding: 12px;
                 margin: 0;
             }
             
@@ -337,8 +357,8 @@ export class MultiDetailerComponent {
             }
             
             .param-group {
-                margin-bottom: 16px;
-                padding-bottom: 12px;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
                 border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             }
             
@@ -348,46 +368,50 @@ export class MultiDetailerComponent {
             }
             
             .group-title {
-                margin: 0 0 12px 0;
+                margin: 0 0 10px 0;
                 color: #1565c0;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 600;
-                padding: 4px 0;
+                padding: 3px 0;
                 border-bottom: 2px solid rgba(21, 101, 192, 0.2);
             }
             
             .param-row {
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 display: flex;
                 flex-direction: column;
-                gap: 4px;
+                gap: 3px;
             }
             
             .param-row-split {
                 display: flex;
-                gap: 12px;
-                margin-bottom: 8px;
+                flex-direction: column;
+                gap: 6px;
+                margin-bottom: 6px;
             }
             
             .param-row-split .param-row {
-                flex: 1;
+                flex: none;
                 margin-bottom: 0;
             }
             
             .param-row label {
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 500;
                 color: #424242;
                 margin-bottom: 2px;
+                line-height: 1.2;
             }
             
             .param-row input, .param-row select, .param-row textarea {
-                padding: 6px 8px;
+                padding: 5px 6px;
                 border: 1px solid #ddd;
                 border-radius: 4px;
-                font-size: 12px;
+                font-size: 11px;
                 transition: border-color 0.2s ease;
                 background: white;
+                width: 100%;
+                box-sizing: border-box;
             }
             
             .param-row input:focus, .param-row select:focus, .param-row textarea:focus {
@@ -398,48 +422,70 @@ export class MultiDetailerComponent {
             
             .param-row textarea {
                 resize: vertical;
-                min-height: 60px;
+                min-height: 50px;
                 font-family: inherit;
             }
             
             .slider-row {
-                flex-direction: row !important;
-                align-items: center;
-                gap: 8px;
+                flex-direction: column !important;
+                align-items: stretch;
+                gap: 4px;
             }
             
             .slider-row label {
-                min-width: 120px;
-                margin-bottom: 0;
+                min-width: auto;
+                margin-bottom: 2px;
+                font-size: 11px;
+            }
+            
+            .slider-container {
+                display: flex;
+                align-items: center;
+                gap: 6px;
             }
             
             .slider-row input[type="range"] {
                 flex: 1;
-                margin: 0 8px;
+                margin: 0;
+                height: 18px;
             }
             
             .slider-value {
-                min-width: 40px;
-                font-size: 12px;
+                min-width: 36px;
+                font-size: 10px;
                 font-weight: 600;
                 color: #1976d2;
                 background: rgba(25, 118, 210, 0.1);
-                padding: 2px 6px;
+                padding: 2px 4px;
                 border-radius: 3px;
                 text-align: center;
+                flex-shrink: 0;
             }
             
             .param-row input[type="number"] {
-                max-width: 80px;
+                max-width: none;
             }
             
             .param-row select {
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-                background-position: right 8px center;
+                background-position: right 6px center;
                 background-repeat: no-repeat;
-                background-size: 16px;
-                padding-right: 32px;
+                background-size: 14px;
+                padding-right: 24px;
                 appearance: none;
+            }
+            
+            /* 320px 너비에서 2열 배치 최적화 */
+            @media (min-width: 320px) {
+                .param-row-split {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 8px;
+                }
+                
+                .param-row-split .param-row {
+                    flex: 1;
+                }
             }
             
             /* 비활성 상태 스타일 개선 */
@@ -767,6 +813,8 @@ export class MultiDetailerComponent {
             btn.style.background = isActive ? 'rgba(108, 182, 255, 0.15)' : 'transparent';
             btn.style.color = isActive ? '#1a73e8' : '#5f6368';
             btn.style.fontWeight = isActive ? '600' : '400';
+            btn.style.fontSize = '11px';
+            btn.style.padding = '6px 4px';
         });
     }
     
@@ -1099,10 +1147,11 @@ export class MultiDetailerComponent {
         tabNav.style.cssText = `
             display: flex;
             border-bottom: 1px solid rgba(134, 142, 150, 0.2);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             background: rgba(245, 246, 247, 0.8);
             border-radius: 6px 6px 0 0;
-            padding: 4px;
+            padding: 3px;
+            gap: 1px;
         `;
         
         // 탭 버튼들 재생성
@@ -1118,7 +1167,7 @@ export class MultiDetailerComponent {
             flex: 1;
             overflow-y: auto;
             min-height: 0;
-            padding: 8px 0;
+            padding: 6px 0;
         `;
         
         // 현재 활성 탭 컨텐트 재생성

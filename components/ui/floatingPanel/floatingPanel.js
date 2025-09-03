@@ -24,7 +24,7 @@ let panelIdCounter = 0; // 고유 패널 ID 생성용 카운터
 // ============================================================================
 // 패널과 점들을 10px 그리드에 정렬하는 시스템
 
-const PANEL_GRID_SIZE = 10; // 그리드 간격 (10px)
+const PANEL_GRID_SIZE = 20; // 그리드 간격 (20px)
 const PANEL_HEIGHT_SNAP = 20; // 세로 리사이즈 스냅 간격 (20px)
 
 /**
@@ -33,7 +33,9 @@ const PANEL_HEIGHT_SNAP = 20; // 세로 리사이즈 스냅 간격 (20px)
  * @returns {number} 그리드에 정렬된 값
  */
 function snapPanelToGrid(value) {
-    return Math.round(value / PANEL_GRID_SIZE) * PANEL_GRID_SIZE;
+    const snapped = Math.round(value / PANEL_GRID_SIZE) * PANEL_GRID_SIZE;
+    // console.log('snapPanelToGrid:', value, '->', snapped); // 디버깅용 (너무 많은 로그 방지)
+    return snapped;
 }
 
 /**
@@ -74,7 +76,7 @@ class FloatingPanelDot {
         this.createPanelDotElement();
         this.setupEventListeners();
         panelDotInstances.set(this.id, this);
-        console.log('FloatingPanelDot created:', this.id, 'at position', this.x, this.y);
+        // console.log('FloatingPanelDot created:', this.id, 'at position', this.x, this.y);
     }
     
     /**
@@ -243,12 +245,12 @@ class FloatingPanelDot {
         
         // 클릭으로 패널 복원
         this.element.addEventListener('click', (e) => {
-            console.log('Dot clicked! isDragging:', this.isDragging);
+            // console.log('Dot clicked! isDragging:', this.isDragging);
             if (!this.isDragging) {
-                console.log('Restoring panel...');
+                // console.log('Restoring panel...');
                 this.restorePanel();
             } else {
-                console.log('Ignoring click due to dragging');
+                // console.log('Ignoring click due to dragging');
             }
         });
         
@@ -261,13 +263,17 @@ class FloatingPanelDot {
         let hasMoved = false;
         
         this.element.addEventListener('mousedown', (e) => {
-            console.log('Dot mousedown');
+            // console.log('Dot mousedown');
             this.isDragging = true;
             hasMoved = false;
             startX = e.clientX;
             startY = e.clientY;
             initialX = this.x;
             initialY = this.y;
+            
+            // 성능 최적화: 드래그 중 트랜지션 비활성화
+            const originalTransition = this.element.style.transition;
+            this.element.style.transition = 'none';
             
             this.element.style.zIndex = '1003';
             this.element.style.transform = 'scale(1.3)';
@@ -298,9 +304,13 @@ class FloatingPanelDot {
             const handleMouseUp = () => {
                 this.element.style.zIndex = '1002';
                 this.element.style.transform = 'scale(1)';
+                
+                // 성능 최적화: 드래그 완료 후 원래 트랜지션 복구
+                this.element.style.transition = originalTransition;
+                
                 document.body.style.userSelect = '';
                 
-                console.log('Mouse up, was dragging?', hasMoved);
+                // console.log('Mouse up, was dragging?', hasMoved);
                 
                 // 움직임이 없었으면 즉시 드래그 상태 해제
                 if (!hasMoved) {
@@ -443,8 +453,11 @@ export class FloatingPanel {
         this.title = options.title || 'Panel';
         this.width = options.width || 300;
         this.height = options.height || 400;
-        this.x = options.x || 100;
-        this.y = options.y || 100;
+        // 초기 위치와 크기를 그리드에 스냅
+        this.x = snapPanelToGrid(options.x || 100);
+        this.y = snapPanelToGrid(options.y || 100);
+        this.width = snapPanelToGrid(this.width);
+        this.height = snapPanelHeight(this.height);
         this.markingColor = options.markingColor || '#3498db';
         this.resizable = options.resizable !== false;
         this.draggable = options.draggable !== false;
@@ -731,9 +744,11 @@ export class FloatingPanel {
      * 플로팅 패널 드래그 기능 설정
      * 헤더 영역을 드래그하여 패널 위치 변경 가능
      * 10px 단위 그리드 스냅 적용
+     * 성능 최적화: 드래그 중 트랜지션 비활성화
      */
     setupPanelDragFunctionality() {
         let startX, startY, initialX, initialY;
+        let hasMoved = false;
         
         this.headerElement.addEventListener('mousedown', (e) => {
             if (e.target === this.markingTab || e.target === this.closeBtn || e.target === this.minimizeBtn) {
@@ -741,10 +756,15 @@ export class FloatingPanel {
             }
             
             this.isDragging = true;
+            hasMoved = false;
             startX = e.clientX;
             startY = e.clientY;
             initialX = this.x;
             initialY = this.y;
+            
+            // 성능 최적화: 드래그 중 트랜지션 비활성화
+            const originalTransition = this.element.style.transition;
+            this.element.style.transition = 'none';
             
             this.element.style.zIndex = '1001';
             document.body.style.userSelect = 'none';
@@ -754,6 +774,11 @@ export class FloatingPanel {
                 
                 const deltaX = e.clientX - startX;
                 const deltaY = e.clientY - startY;
+                
+                // 움직임 감지 (점과 동일한 로직)
+                if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+                    hasMoved = true;
+                }
                 
                 this.x = snapPanelToGrid(initialX + deltaX);
                 this.y = snapPanelToGrid(initialY + deltaY);
@@ -765,6 +790,10 @@ export class FloatingPanel {
             const handleMouseUp = () => {
                 this.isDragging = false;
                 this.element.style.zIndex = '1000';
+                
+                // 성능 최적화: 드래그 완료 후 원래 트랜지션 복구
+                this.element.style.transition = originalTransition;
+                
                 document.body.style.userSelect = '';
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
@@ -788,6 +817,7 @@ export class FloatingPanel {
      * 플로팅 패널 리사이즈 기능 설정
      * 우하단 코너의 리사이즈 핸들을 드래그하여 크기 조절 가능
      * 10px 단위 그리드 스냅 적용
+     * 성능 최적화: 리사이즈 중 트랜지션 비활성화
      */
     setupPanelResizeFunctionality() {
         let startX, startY, initialWidth, initialHeight;
@@ -800,6 +830,10 @@ export class FloatingPanel {
             initialWidth = this.width;
             initialHeight = this.height;
             
+            // 성능 최적화: 리사이즈 중 트랜지션 비활성화
+            const originalTransition = this.element.style.transition;
+            this.element.style.transition = 'none';
+            
             document.body.style.userSelect = 'none';
             
             const handleMouseMove = (e) => {
@@ -808,8 +842,18 @@ export class FloatingPanel {
                 const deltaX = e.clientX - startX;
                 const deltaY = e.clientY - startY;
                 
-                this.width = Math.max(250, snapPanelToGrid(initialWidth + deltaX));
-                this.height = Math.max(200, snapPanelHeight(initialHeight + deltaY));
+                const rawWidth = initialWidth + deltaX;
+                const rawHeight = initialHeight + deltaY;
+                this.width = Math.max(250, snapPanelToGrid(rawWidth));
+                this.height = Math.max(200, snapPanelHeight(rawHeight));
+                
+                // 디버깅: 리사이즈 스냅 확인 (주석 처리)
+                // if (rawWidth !== this.width || rawHeight !== this.height) {
+                //     console.log('Panel Resize Snap applied:', { 
+                //         rawWidth, rawHeight, 
+                //         snappedWidth: this.width, snappedHeight: this.height 
+                //     });
+                // }
                 
                 this.element.style.width = this.width + 'px';
                 this.element.style.height = this.height + 'px';
@@ -817,6 +861,10 @@ export class FloatingPanel {
             
             const handleMouseUp = () => {
                 this.isResizing = false;
+                
+                // 성능 최적화: 리사이즈 완료 후 원래 트랜지션 복구
+                this.element.style.transition = originalTransition;
+                
                 document.body.style.userSelect = '';
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
