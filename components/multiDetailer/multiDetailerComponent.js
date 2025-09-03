@@ -42,9 +42,11 @@ export class MultiDetailerComponent {
      */
     init() {
         if (this.isInitialized || !this.containerElement) {
+            console.log('MultiDetailer init skipped - already initialized or no container');
             return;
         }
         
+        console.log('MultiDetailer initializing for the first time...');
         this.isInitialized = true;
         
         // DOM이 마운트된 후에 이벤트 리스너 설정과 API 호출
@@ -52,6 +54,7 @@ export class MultiDetailerComponent {
             this.setupEventListeners();
             this.loadDetectionModels();
             this.updateTabContent();
+            console.log('MultiDetailer initialization complete');
         }, 0);
     }
     
@@ -1045,6 +1048,175 @@ export class MultiDetailerComponent {
         }
     }
     
+    /**
+     * 상태 보존을 위한 refreshData 메서드
+     * FloatingPanel 복원 시 호출되어 상태를 보존하면서 데이터 재로드
+     */
+    refreshData() {
+        if (!this.containerElement) return;
+        
+        console.log('MultiDetailer: Refreshing data after DOM restore');
+        
+        // 현재 상태 백업
+        const previousCurrentTab = this.currentTab;
+        const previousDetailers = JSON.parse(JSON.stringify(this.detailers));
+        
+        console.log('Preserving MultiDetailer state:', {
+            currentTab: previousCurrentTab,
+            detailers: previousDetailers
+        });
+        
+        // DOM 재생성
+        this.renderContent();
+        
+        // 데이터 재로드 후 상태 복원
+        this.loadDetectionModels().then(() => {
+            this.restoreMultiDetailerState(previousCurrentTab, previousDetailers);
+        }).catch(() => {
+            // 에러가 발생해도 상태는 복원
+            this.restoreMultiDetailerState(previousCurrentTab, previousDetailers);
+        });
+    }
+    
+    /**
+     * DOM 컨텐츠 재렌더링 (refreshData에서 사용)
+     */
+    renderContent() {
+        if (!this.containerElement) return;
+        
+        // 기존 이벤트 리스너 정리
+        this.cleanupEventListeners();
+        
+        // 탭 콘텐트 캐시 정리 (새로고침을 위해)
+        this.tabContentElements = {};
+        
+        // DOM 내용 재생성
+        this.containerElement.innerHTML = '';
+        
+        // 탭 네비게이션 재생성
+        const tabNav = document.createElement('div');
+        tabNav.className = 'tab-nav';
+        tabNav.style.cssText = `
+            display: flex;
+            border-bottom: 1px solid rgba(134, 142, 150, 0.2);
+            margin-bottom: 12px;
+            background: rgba(245, 246, 247, 0.8);
+            border-radius: 6px 6px 0 0;
+            padding: 4px;
+        `;
+        
+        // 탭 버튼들 재생성
+        for (let i = 1; i <= 4; i++) {
+            const tabBtn = this.createTabButton(i, i === this.currentTab);
+            tabNav.appendChild(tabBtn);
+        }
+        
+        // 탭 컨텐트 컨테이너 재생성
+        const tabContent = document.createElement('div');
+        tabContent.className = 'tab-content';
+        tabContent.style.cssText = `
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: 8px 0;
+        `;
+        
+        // 현재 활성 탭 컨텐트 재생성
+        const activeTabContent = document.createElement('div');
+        activeTabContent.id = 'active-tab-content';
+        activeTabContent.innerHTML = this.generateTabContentHtml(this.currentTab);
+        
+        tabContent.appendChild(activeTabContent);
+        
+        // 컨테이너 조립
+        this.containerElement.appendChild(tabNav);
+        this.containerElement.appendChild(tabContent);
+        
+        // 이벤트 리스너 재설정
+        this.setupEventListeners();
+    }
+    
+    /**
+     * MultiDetailer 상태 복원
+     */
+    restoreMultiDetailerState(previousCurrentTab, previousDetailers) {
+        console.log('Restoring MultiDetailer state...');
+        
+        // 상태 복원
+        this.currentTab = previousCurrentTab;
+        this.detailers = previousDetailers;
+        
+        // 탭 상태 복원
+        if (previousCurrentTab !== 1) {
+            this.switchTab(previousCurrentTab);
+        }
+        
+        // 각 디테일러의 필드 값들 복원
+        for (let i = 1; i <= 4; i++) {
+            this.restoreDetailerFields(i, previousDetailers[i]);
+        }
+        
+        console.log('MultiDetailer state restored successfully');
+    }
+    
+    /**
+     * 개별 디테일러의 필드 값들 복원
+     */
+    restoreDetailerFields(index, config) {
+        if (!config || index !== this.currentTab) {
+            // 현재 활성 탭이 아니면 나중에 탭 전환시 복원됨
+            return;
+        }
+        
+        // 활성화 상태 복원
+        const checkbox = this.containerElement.querySelector(`#detailer-${index}-active`);
+        if (checkbox) {
+            checkbox.checked = config.active;
+            
+            // 필드셋 활성화/비활성화
+            const fieldset = this.containerElement.querySelector(`#detailer-${index}-fieldset`);
+            if (fieldset) {
+                fieldset.disabled = !config.active;
+            }
+        }
+        
+        // 필드 값들 복원
+        const fieldMappings = [
+            { id: `detailer-${index}-detection-model`, value: config.detectionModel },
+            { id: `detailer-${index}-confidence`, value: config.confidence },
+            { id: `detailer-${index}-mask-padding`, value: config.maskPadding },
+            { id: `detailer-${index}-mask-blur`, value: config.maskBlur },
+            { id: `detailer-${index}-prompt`, value: config.prompt },
+            { id: `detailer-${index}-negative-prompt`, value: config.negativePrompt },
+            { id: `detailer-${index}-denoising-strength`, value: config.denoisingStrength },
+            { id: `detailer-${index}-sampler`, value: config.sampler },
+            { id: `detailer-${index}-steps`, value: config.steps },
+            { id: `detailer-${index}-cfg-scale`, value: config.cfgScale }
+        ];
+        
+        fieldMappings.forEach(({ id, value }) => {
+            const element = this.containerElement.querySelector(`#${id}`);
+            if (element && value !== undefined) {
+                element.value = value;
+                
+                // 슬라이더 값 표시 업데이트
+                if (id.includes('confidence')) {
+                    const valueDisplay = this.containerElement.querySelector(`#detailer-${index}-confidence-value`);
+                    if (valueDisplay) {
+                        valueDisplay.textContent = parseFloat(value).toFixed(2);
+                    }
+                } else if (id.includes('denoising-strength')) {
+                    const valueDisplay = this.containerElement.querySelector(`#detailer-${index}-denoising-strength-value`);
+                    if (valueDisplay) {
+                        valueDisplay.textContent = parseFloat(value).toFixed(2);
+                    }
+                }
+            }
+        });
+        
+        console.log(`Detailer ${index} fields restored:`, config);
+    }
+
     /**
      * 컴포넌트 완전 정리 메서드 (메모리 리크 방지)
      */

@@ -89,14 +89,14 @@ export class ModelExplorerComponent {
         container.appendChild(tabNav);
         container.appendChild(tabContent);
         
+        // 컨테이너를 참조로 저장 (이벤트 리스너 설정 전에 필요)
+        this.containerElement = container;
+        
         // CSS 스타일 추가
         this.addStyles();
         
         // 이벤트 리스너 설정
-        this.setupEventListeners(container);
-        
-        // 컨테이너를 참조로 저장 (DOM 마운트 후 API 호출용)
-        this.containerElement = container;
+        this.setupEventListeners();
         
         return container;
     }
@@ -218,12 +218,165 @@ export class ModelExplorerComponent {
         document.head.appendChild(style);
     }
     
-    setupEventListeners(container) {
+    /**
+     * DOM 복원 후 데이터 재로드를 위한 메서드
+     * 플로팅 패널 복원 시 호출됨
+     * 선택 상태를 보존하여 복원
+     */
+    refreshData() {
+        if (this.containerElement) {
+            console.log('ModelExplorer: Refreshing data after DOM restore');
+            
+            // 현재 선택 상태 백업
+            const previousSelectedModel = this.selectedModel;
+            const previousSelectedFolderPath = this.selectedFolderPath;
+            
+            // 현재 활성 탭 백업
+            const activeTab = this.containerElement.querySelector('.tab-btn.active');
+            const previousActiveTabId = activeTab ? activeTab.dataset.tab : 'checkpoints';
+            
+            console.log('Preserving selection state:', {
+                model: previousSelectedModel,
+                folderPath: previousSelectedFolderPath,
+                activeTab: previousActiveTabId
+            });
+            
+            // 데이터 재로드
+            this.loadModels().then(() => {
+                // 선택 상태 복원
+                if (previousSelectedModel) {
+                    this.restoreModelSelection(previousSelectedModel, previousSelectedFolderPath);
+                }
+                
+                // 탭 상태 복원
+                if (previousActiveTabId !== 'checkpoints') {
+                    this.restoreTabSelection(previousActiveTabId);
+                }
+            });
+        }
+    }
+    
+    /**
+     * 이전에 선택된 모델을 DOM에서 찾아서 선택 상태를 복원
+     */
+    restoreModelSelection(previousSelectedModel, previousSelectedFolderPath) {
+        if (!previousSelectedModel || !this.containerElement) {
+            return;
+        }
+        
+        console.log('Restoring model selection:', previousSelectedModel);
+        
+        // DOM에서 해당 모델 파일 요소 찾기
+        const fileElements = this.containerElement.querySelectorAll('.file');
+        let targetFileElement = null;
+        
+        for (const fileElement of fileElements) {
+            const elementPath = fileElement.dataset.path;
+            const elementSubfolder = fileElement.dataset.subfolder;
+            const elementName = fileElement.textContent.trim();
+            
+            // 경로, 하위폴더, 이름이 모두 일치하는지 확인
+            if (elementPath === previousSelectedModel.path &&
+                elementSubfolder === previousSelectedModel.subfolder &&
+                elementName === previousSelectedModel.name) {
+                targetFileElement = fileElement;
+                break;
+            }
+        }
+        
+        if (targetFileElement) {
+            // 기존 선택 해제
+            this.containerElement.querySelectorAll('.file.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // 찾은 요소 선택 표시
+            targetFileElement.classList.add('selected');
+            
+            // 내부 상태 복원
+            this.selectedModel = previousSelectedModel;
+            this.selectedFolderPath = previousSelectedFolderPath;
+            
+            // 선택된 모델이 속한 폴더를 확장된 상태로 유지
+            this.ensureFolderExpanded(targetFileElement);
+            
+            // VAE 목록 업데이트
+            this.renderFilteredVaes();
+            
+            console.log('Model selection restored successfully:', this.selectedModel);
+            
+            // 다른 컴포넌트에 선택 복원 알림
+            document.dispatchEvent(new CustomEvent('model:selected', {
+                detail: {
+                    ...this.selectedModel,
+                    folderPath: this.selectedFolderPath,
+                    restored: true
+                }
+            }));
+        } else {
+            console.warn('Could not find previously selected model in DOM:', previousSelectedModel);
+            // 이전 선택이 더 이상 유효하지 않으면 상태 초기화
+            this.selectedModel = null;
+            this.selectedFolderPath = null;
+        }
+    }
+    
+    /**
+     * 선택된 파일이 속한 폴더가 접힌 상태라면 펼쳐서 표시
+     */
+    ensureFolderExpanded(fileElement) {
+        let currentElement = fileElement.parentElement;
+        
+        while (currentElement && currentElement !== this.containerElement) {
+            if (currentElement.classList.contains('folder-content') && 
+                currentElement.classList.contains('collapsed')) {
+                // 폴더 펼치기
+                currentElement.classList.remove('collapsed');
+                
+                // 화살표 상태 업데이트
+                const folderHeader = currentElement.previousElementSibling;
+                if (folderHeader && folderHeader.classList.contains('folder')) {
+                    const arrow = folderHeader.querySelector('.toggle-arrow');
+                    if (arrow) {
+                        arrow.textContent = '▼';
+                    }
+                }
+            }
+            currentElement = currentElement.parentElement;
+        }
+    }
+    
+    /**
+     * 이전에 활성화된 탭을 복원
+     */
+    restoreTabSelection(previousActiveTabId) {
+        if (!previousActiveTabId || !this.containerElement) {
+            return;
+        }
+        
+        console.log('Restoring tab selection:', previousActiveTabId);
+        
+        const targetTab = this.containerElement.querySelector(`[data-tab="${previousActiveTabId}"]`);
+        if (targetTab) {
+            // 탭 클릭 이벤트 트리거 (기존 탭 전환 로직 재사용)
+            targetTab.click();
+            console.log('Tab selection restored successfully:', previousActiveTabId);
+        } else {
+            console.warn('Could not find previously active tab:', previousActiveTabId);
+        }
+    }
+
+    setupEventListeners() {
+        if (!this.containerElement) {
+            console.warn('ModelExplorerComponent: containerElement is not set');
+            return;
+        }
+        
         // 탭 전환
-        container.querySelectorAll('.tab-btn').forEach(button => {
+        this.containerElement.querySelectorAll('.tab-btn').forEach(button => {
             button.addEventListener('click', () => {
                 // 모든 탭 비활성화
-                container.querySelectorAll('.tab-btn').forEach(btn => {
+                this.containerElement.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.classList.remove('active');
                     btn.style.background = 'transparent';
                     btn.style.color = '#9aa0a6';
@@ -231,7 +384,7 @@ export class ModelExplorerComponent {
                     btn.style.borderBottom = '2px solid transparent';
                 });
                 
-                container.querySelectorAll('.tab-pane').forEach(pane => {
+                this.containerElement.querySelectorAll('.tab-pane').forEach(pane => {
                     pane.classList.remove('active');
                 });
                 
@@ -242,12 +395,12 @@ export class ModelExplorerComponent {
                 button.style.fontWeight = '600';
                 button.style.borderBottom = '2px solid #6cb6ff';
                 
-                container.querySelector(`#${button.dataset.tab}-content`).classList.add('active');
+                this.containerElement.querySelector(`#${button.dataset.tab}-content`).classList.add('active');
             });
         });
         
         // 델리게이트된 이벤트 리스너 (동적 컨텐트용)
-        container.addEventListener('click', (e) => {
+        this.containerElement.addEventListener('click', (e) => {
             if (e.target.classList.contains('folder')) {
                 this.handleFolderClick(e.target);
             } else if (e.target.classList.contains('file')) {
@@ -256,7 +409,7 @@ export class ModelExplorerComponent {
         });
         
         // 툴팁 이벤트 - 새로운 Tooltip 컴포넌트 사용
-        container.addEventListener('mouseover', (e) => {
+        this.containerElement.addEventListener('mouseover', (e) => {
             if (e.target.classList.contains('file') && e.target.dataset.preview) {
                 const filename = e.target.textContent;
                 const previewPath = e.target.dataset.preview;
@@ -274,7 +427,7 @@ export class ModelExplorerComponent {
             }
         });
         
-        container.addEventListener('mouseout', (e) => {
+        this.containerElement.addEventListener('mouseout', (e) => {
             if (e.target.classList.contains('file')) {
                 this.tooltip.hide();
             }
@@ -334,7 +487,7 @@ export class ModelExplorerComponent {
         
         if (!checkpointsElement || !vaesElement) {
             console.error('Model Explorer: DOM 요소를 찾을 수 없습니다. 컴포넌트가 아직 마운트되지 않았을 수 있습니다.');
-            return;
+            return Promise.reject(new Error('DOM 요소를 찾을 수 없습니다'));
         }
         
         try {
@@ -352,6 +505,8 @@ export class ModelExplorerComponent {
             this.renderCheckpoints();
             this.renderVaes();
             
+            return Promise.resolve();
+            
         } catch (error) {
             console.error('모델 로딩 실패:', error);
             
@@ -360,6 +515,8 @@ export class ModelExplorerComponent {
                 checkpointsElement.innerHTML = 
                     '<div class="error">모델을 불러올 수 없습니다.<br>백엔드 서버(포트 9001)가 실행 중인지 확인해주세요.</div>';
             }
+            
+            return Promise.reject(error);
         }
     }
     

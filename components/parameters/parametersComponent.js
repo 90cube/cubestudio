@@ -630,20 +630,55 @@ export class ParametersComponent {
     }
     
     handleModelChange(modelData) {
-        // 모델명에서 base model 타입 추출
-        const modelName = modelData.name.toLowerCase();
+        // 폴더 경로를 우선으로 모델 타입 감지 (LoRA 컴포넌트와 동일한 방식)
+        let detectedModelType = null;
         
-        if (modelName.includes('sdxl') || modelName.includes('xl')) {
-            this.currentBaseModel = 'sdxl';
-        } else if (modelName.includes('sd1') || modelName.includes('v1')) {
-            this.currentBaseModel = 'sd15';
-        } else {
-            // 기본값으로 SDXL 사용
-            this.currentBaseModel = 'sdxl';
+        // 1. folderPath 또는 subfolder를 사용한 폴더 기반 감지 (가장 정확)
+        if (modelData.folderPath) {
+            const folderName = modelData.folderPath.toLowerCase();
+            if (folderName.includes('sdxl') || folderName === 'sdxl') {
+                detectedModelType = 'sdxl';
+            } else if (folderName.includes('sd15') || folderName === 'sd15') {
+                detectedModelType = 'sd15';
+            }
+        } else if (modelData.subfolder) {
+            // subfolder에서 첫 번째 폴더 추출
+            const subfolderParts = modelData.subfolder.split(/[\/\\]/).filter(p => p);
+            if (subfolderParts.length > 0) {
+                const firstFolder = subfolderParts[0].toLowerCase();
+                if (firstFolder.includes('sdxl') || firstFolder === 'sdxl') {
+                    detectedModelType = 'sdxl';
+                } else if (firstFolder.includes('sd15') || firstFolder === 'sd15') {
+                    detectedModelType = 'sd15';
+                }
+            }
         }
         
+        // 2. 폴더 기반 감지가 실패한 경우에만 모델명 기반 감지 사용 (개선된 로직)
+        if (!detectedModelType) {
+            const modelName = modelData.name.toLowerCase();
+            
+            // SDXL 키워드 우선 검사 (더 구체적)
+            if (modelName.includes('sdxl') || modelName.includes('xl')) {
+                detectedModelType = 'sdxl';
+            } else if (modelName.includes('sd15') || modelName.includes('sd1.5') || 
+                      (modelName.includes('v1') && !modelName.includes('v10') && !modelName.includes('v11') && !modelName.includes('v12'))) {
+                // v1은 포함하되, v10, v11, v12 등은 제외
+                detectedModelType = 'sd15';
+            }
+        }
+        
+        // 3. 감지되지 않은 경우 기본값 사용
+        if (!detectedModelType) {
+            detectedModelType = 'sdxl'; // 기본값으로 SDXL 사용
+        }
+        
+        this.currentBaseModel = detectedModelType;
         this.modelStatus = this.currentBaseModel;
-        console.log('Model changed to:', modelData.name, 'Base model:', this.currentBaseModel);
+        
+        console.log('Model changed to:', modelData.name);
+        console.log('Folder path:', modelData.folderPath || modelData.subfolder || 'N/A');
+        console.log('Detected base model:', this.currentBaseModel);
         
         // 프리셋 인덱스 초기화 (새 모델 타입의 첫 번째 프리셋으로)
         this.currentPresetIndex = 0;

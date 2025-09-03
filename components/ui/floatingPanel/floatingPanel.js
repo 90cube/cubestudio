@@ -3,7 +3,11 @@
 /**
  * 재사용 가능한 플로팅 패널 시스템
  * 드래그, 리사이즈, 마킹 탭, 컬러 피커 기능 포함
+ * 상태 보존 방식 최소화/복원 시스템
  */
+
+// StateManager import
+import stateManager from '../../../core/stateManager.js';
 
 // ============================================================================
 // FLOATING PANEL SYSTEM - INSTANCE MANAGEMENT
@@ -335,11 +339,52 @@ class FloatingPanelDot {
         
         const restoredPanel = new FloatingPanel(options);
         
-        // 저장된 컴포넌트들 복원
+        // 저장된 컴포넌트들 복원 - 상태 보존하면서 복원
         if (this.panelData.components && this.panelData.components.size > 0) {
+            console.log('Restoring', this.panelData.components.size, 'components from dot');
             this.panelData.components.forEach((component, componentId) => {
-                // 컴포넌트를 새로 추가 (render 메서드 다시 호출됨)
-                restoredPanel.addComponent(componentId, component);
+                console.log('Restoring component:', componentId, 'isInitialized:', component.isInitialized);
+                
+                // 컴포넌트를 복원 모드로 추가
+                if (typeof component.render === 'function') {
+                    const componentElement = component.render();
+                    componentElement.dataset.componentId = componentId;
+                    restoredPanel.bodyElement.appendChild(componentElement);
+                    
+                    // 컴포넌트 상태를 맵에 추가
+                    restoredPanel.components.set(componentId, component);
+                    
+                    // 이미 초기화된 컴포넌트는 init 호출하지 않고 DOM 참조만 업데이트
+                    if (component.isInitialized) {
+                        console.log('Updating DOM reference for initialized component:', componentId);
+                        component.containerElement = componentElement;
+                        
+                        // DOM이 마운트된 후 이벤트 리스너 재설정 및 데이터 새로고침
+                        requestAnimationFrame(() => {
+                            if (typeof component.setupEventListeners === 'function') {
+                                component.setupEventListeners();
+                            }
+                            // 데이터 재로드가 필요한 컴포넌트의 경우 refreshData 호출
+                            if (typeof component.refreshData === 'function') {
+                                component.refreshData();
+                            }
+                        });
+                    } else {
+                        console.log('Initializing component on restore:', componentId);
+                        component.containerElement = componentElement;
+                        // DOM 마운트가 완료되도록 다음 프레임에서 실행
+                        requestAnimationFrame(() => {
+                            component.init();
+                        });
+                    }
+                } else if (component instanceof HTMLElement) {
+                    component.dataset.componentId = componentId;
+                    restoredPanel.bodyElement.appendChild(component);
+                    restoredPanel.components.set(componentId, component);
+                }
+                
+                // 상태 저장
+                restoredPanel.saveCurrentState();
             });
         }
         
@@ -407,18 +452,40 @@ export class FloatingPanel {
         this.dotSize = options.dotSize || 24; // 점으로 변환 시 크기
         this.components = new Map(); // 패널 내 컴포넌트들
         
+        // 상태 추적 변수들
+        this.minimized = false;
+        this.createdAt = Date.now();
+        this.activeDuration = 0;
+        this.lastActiveTime = Date.now();
+        this.interactionCount = 0;
+        this.dragCount = 0;
+        this.resizeCount = 0;
+        this.colorChangeCount = 0;
+        
         this.element = null;
         this.isDragging = false;
         this.isResizing = false;
         
         this.init();
         panelInstances.set(this.id, this);
+        
+        // 상태 관리에 초기 상태 저장
+        this.saveCurrentState();
     }
     
     init() {
         this.createElement();
         this.setupPanelEventListeners();
         this.updateMarkingColor();
+        
+        // 패널 생성 로그
+        stateManager.logPanelAction(this.id, 'create', {
+            width: this.width,
+            height: this.height,
+            x: this.x,
+            y: this.y,
+            markingColor: this.markingColor
+        });
     }
     
     createElement() {
@@ -701,6 +768,15 @@ export class FloatingPanel {
                 document.body.style.userSelect = '';
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
+                
+                // 드래그 상호작용 로깅
+                this.incrementInteraction('drag');
+                stateManager.logPanelAction(this.id, 'drag', {
+                    fromPosition: { x: initialX, y: initialY },
+                    toPosition: { x: this.x, y: this.y },
+                    distance: Math.sqrt(Math.pow(this.x - initialX, 2) + Math.pow(this.y - initialY, 2)),
+                    interactionCount: this.interactionCount
+                });
             };
             
             document.addEventListener('mousemove', handleMouseMove);
@@ -744,6 +820,18 @@ export class FloatingPanel {
                 document.body.style.userSelect = '';
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
+                
+                // 리사이즈 상호작용 로깅
+                this.incrementInteraction('resize');
+                stateManager.logPanelAction(this.id, 'resize', {
+                    fromSize: { width: initialWidth, height: initialHeight },
+                    toSize: { width: this.width, height: this.height },
+                    sizeDelta: { 
+                        width: this.width - initialWidth, 
+                        height: this.height - initialHeight 
+                    },
+                    interactionCount: this.interactionCount
+                });
             };
             
             document.addEventListener('mousemove', handleMouseMove);
@@ -756,6 +844,13 @@ export class FloatingPanel {
         this.markingColor = color;
         this.updateMarkingColor();
         this.colorPicker.value = color;
+        
+        // 상호작용 및 로깅
+        this.incrementInteraction('colorChange');
+        stateManager.logPanelAction(this.id, 'colorChange', {
+            newColor: color,
+            interactionCount: this.interactionCount
+        });
         
         // 커스텀 이벤트 발생
         this.dispatchEvent('colorChanged', { color });
@@ -845,6 +940,74 @@ export class FloatingPanel {
             .toString(16).slice(1);
     }
     
+    // ============================================================================
+    // 상태 관리 메서드들
+    // ============================================================================
+    
+    /**
+     * 현재 패널 상태를 stateManager에 저장
+     */
+    saveCurrentState() {
+        const state = {
+            id: this.id,
+            title: this.title,
+            width: this.width,
+            height: this.height,
+            x: this.x,
+            y: this.y,
+            markingColor: this.markingColor,
+            resizable: this.resizable,
+            draggable: this.draggable,
+            dotStyle: this.dotStyle,
+            dotSize: this.dotSize,
+            isMinimized: this.minimized,
+            components: this.components,
+            createdAt: this.createdAt,
+            activeDuration: this.getActiveDuration(),
+            interactionCount: this.interactionCount,
+            lastActiveTime: this.lastActiveTime
+        };
+        
+        stateManager.savePanelState(this.id, state);
+    }
+    
+    /**
+     * 활성 시간 계산
+     * @returns {number} 활성 시간 (밀리초)
+     */
+    getActiveDuration() {
+        const now = Date.now();
+        if (!this.minimized) {
+            this.activeDuration += (now - this.lastActiveTime);
+            this.lastActiveTime = now;
+        }
+        return this.activeDuration;
+    }
+    
+    /**
+     * 상호작용 카운터 증가
+     * @param {string} type - 상호작용 유형 ('drag', 'resize', 'colorChange')
+     */
+    incrementInteraction(type) {
+        this.interactionCount++;
+        this.lastActiveTime = Date.now();
+        
+        switch(type) {
+            case 'drag':
+                this.dragCount++;
+                break;
+            case 'resize':
+                this.resizeCount++;
+                break;
+            case 'colorChange':
+                this.colorChangeCount++;
+                break;
+        }
+        
+        // 상태 저장
+        this.saveCurrentState();
+    }
+    
     
     // 컴포넌트 추가
     addComponent(componentId, component) {
@@ -856,16 +1019,24 @@ export class FloatingPanel {
             this.bodyElement.appendChild(componentElement);
             
             // renewal 아키텍처 호환: DOM 마운트 후 init 메서드 호출
-            if (typeof component.init === 'function') {
+            // 이미 초기화된 컴포넌트나 최소화된 상태에서는 init 호출하지 않음 (중요!)
+            if (typeof component.init === 'function' && !this.minimized && !component.isInitialized) {
+                console.log('Initializing component for the first time:', componentId);
                 // DOM 마운트가 완료되도록 다음 프레임에서 실행
                 requestAnimationFrame(() => {
                     component.init();
                 });
+            } else if (component.isInitialized) {
+                console.log('Component already initialized, skipping init:', componentId);
             }
         } else if (component instanceof HTMLElement) {
             component.dataset.componentId = componentId; // ID 저장
             this.bodyElement.appendChild(component);
         }
+        
+        // 상태 저장
+        this.saveCurrentState();
+        stateManager.saveComponentState(componentId, component);
         
         this.dispatchEvent('componentAdded', { componentId, component });
     }
@@ -878,6 +1049,10 @@ export class FloatingPanel {
                 component.destroy();
             }
             this.components.delete(componentId);
+            
+            // 상태 업데이트
+            this.saveCurrentState();
+            
             this.dispatchEvent('componentRemoved', { componentId });
         }
     }
@@ -960,11 +1135,6 @@ export class FloatingPanel {
         document.dispatchEvent(event);
     }
     
-    // 제목 변경
-    setTitle(title) {
-        this.title = title;
-        this.titleElement.textContent = title;
-    }
     
     // 위치 설정
     setPosition(x, y) {
@@ -972,6 +1142,7 @@ export class FloatingPanel {
         this.y = y;
         this.element.style.left = x + 'px';
         this.element.style.top = y + 'px';
+        this.saveCurrentState();
     }
     
     // 크기 설정
@@ -980,6 +1151,14 @@ export class FloatingPanel {
         this.height = height;
         this.element.style.width = width + 'px';
         this.element.style.height = height + 'px';
+        this.saveCurrentState();
+    }
+    
+    // 제목 변경
+    setTitle(title) {
+        this.title = title;
+        this.titleElement.textContent = title;
+        this.saveCurrentState();
     }
 }
 

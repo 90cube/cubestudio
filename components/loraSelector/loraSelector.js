@@ -783,6 +783,138 @@ export class LoRASelectorComponent {
         console.log('LoRA Selector component destroyed');
     }
     
+    /**
+     * 상태 보존을 위한 refreshData 메서드
+     * FloatingPanel 복원 시 호출되어 상태를 보존하면서 데이터 재로드
+     */
+    refreshData() {
+        if (!this.containerElement) return;
+        
+        console.log('LoRA Selector: Refreshing data after DOM restore');
+        
+        // 현재 상태 백업
+        const previousSearchTerm = this.searchTerm;
+        const previousSelectedLoRAs = [...this.selectedLoRAs];
+        const previousShowSelectedOnly = this.showSelectedOnly;
+        const previousSelectedModelType = this.selectedModelType;
+        
+        console.log('Preserving LoRA Selector state:', {
+            searchTerm: previousSearchTerm,
+            selectedLoRAs: previousSelectedLoRAs.length,
+            showSelectedOnly: previousShowSelectedOnly,
+            selectedModelType: previousSelectedModelType
+        });
+        
+        // DOM 재생성은 하지 않고 데이터만 재로드
+        this.loadLoRAModels().then(() => {
+            this.restoreLoRAState(
+                previousSearchTerm, 
+                previousSelectedLoRAs, 
+                previousShowSelectedOnly, 
+                previousSelectedModelType
+            );
+        }).catch(() => {
+            // 에러가 발생해도 상태는 복원
+            this.restoreLoRAState(
+                previousSearchTerm, 
+                previousSelectedLoRAs, 
+                previousShowSelectedOnly, 
+                previousSelectedModelType
+            );
+        });
+    }
+    
+    /**
+     * LoRA 선택기 상태 복원
+     */
+    restoreLoRAState(previousSearchTerm, previousSelectedLoRAs, previousShowSelectedOnly, previousSelectedModelType) {
+        console.log('Restoring LoRA Selector state...');
+        
+        // 기본 상태 복원
+        this.searchTerm = previousSearchTerm;
+        this.selectedLoRAs = previousSelectedLoRAs;
+        this.showSelectedOnly = previousShowSelectedOnly;
+        this.selectedModelType = previousSelectedModelType;
+        
+        // UI 요소들 상태 복원
+        this.restoreUIElements();
+        
+        // LoRA 트리 재구성 (모델 타입에 맞게)
+        this.buildLoRATree();
+        
+        // 필터링 및 렌더링
+        this.filterAndRenderLoRAs();
+        
+        // 카운터 업데이트
+        this.updateSelectedCounter();
+        
+        console.log('LoRA Selector state restored successfully');
+    }
+    
+    /**
+     * UI 요소들의 상태 복원
+     */
+    restoreUIElements() {
+        if (!this.containerElement) return;
+        
+        // 검색 입력 필드 복원
+        const searchInput = this.containerElement.querySelector('#lora-search');
+        if (searchInput) {
+            searchInput.value = this.searchTerm;
+        }
+        
+        // Selected 필터 버튼 상태 복원
+        const showSelectedBtn = this.containerElement.querySelector('#show-selected-toggle');
+        if (showSelectedBtn) {
+            showSelectedBtn.classList.toggle('active', this.showSelectedOnly);
+            if (this.showSelectedOnly) {
+                showSelectedBtn.style.background = '#9b59b6';
+                showSelectedBtn.style.color = 'white';
+                showSelectedBtn.style.borderColor = '#9b59b6';
+            } else {
+                showSelectedBtn.style.background = 'white';
+                showSelectedBtn.style.color = '#9b59b6';
+                showSelectedBtn.style.borderColor = '#9b59b6';
+            }
+        }
+        
+        // 패널 제목 복원
+        this.updatePanelTitle();
+        
+        console.log('UI elements restored:', {
+            searchTerm: this.searchTerm,
+            showSelectedOnly: this.showSelectedOnly,
+            selectedModelType: this.selectedModelType
+        });
+    }
+    
+    /**
+     * 개선된 LoRA 데이터 로드 메서드 (상태 보존용)
+     */
+    async loadAvailableLoRAs() {
+        // 기존 loadLoRAModels와 동일하지만 상태 보존에 최적화
+        this.loadingState.loras = true;
+        
+        try {
+            const loraModels = await this.scanLocalLoRAModels();
+            this.availableLoRAs = loraModels;
+            this.loadingState.loras = false;
+            this.loadingState.error = null;
+            
+            console.log('LoRA models reloaded:', this.availableLoRAs.length);
+            return Promise.resolve();
+            
+        } catch (error) {
+            console.error('LoRA models loading failed:', error);
+            this.loadingState.loras = false;
+            this.loadingState.error = error.message;
+            
+            // 기본 목록으로 폴백
+            this.availableLoRAs = await this.getDefaultLoRAList();
+            return Promise.resolve();
+        }
+    }
+
     // API 메서드들
     getSelectedLoRAs() {
         return [...this.selectedLoRAs];
