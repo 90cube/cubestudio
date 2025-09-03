@@ -491,14 +491,14 @@ export class FloatingPanel {
         this.setupPanelEventListeners();
         this.updateMarkingColor();
         
-        // 패널 생성 로그
-        stateManager.logPanelAction(this.id, 'create', {
-            width: this.width,
-            height: this.height,
-            x: this.x,
-            y: this.y,
-            markingColor: this.markingColor
-        });
+        // 패널 생성 로그 (주석 처리)
+        // stateManager.logPanelAction(this.id, 'create', {
+        //     width: this.width,
+        //     height: this.height,
+        //     x: this.x,
+        //     y: this.y,
+        //     markingColor: this.markingColor
+        // });
     }
     
     createElement() {
@@ -798,14 +798,14 @@ export class FloatingPanel {
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
                 
-                // 드래그 상호작용 로깅
+                // 드래그 상호작용 로깅 (주석 처리)
                 this.incrementInteraction('drag');
-                stateManager.logPanelAction(this.id, 'drag', {
-                    fromPosition: { x: initialX, y: initialY },
-                    toPosition: { x: this.x, y: this.y },
-                    distance: Math.sqrt(Math.pow(this.x - initialX, 2) + Math.pow(this.y - initialY, 2)),
-                    interactionCount: this.interactionCount
-                });
+                // stateManager.logPanelAction(this.id, 'drag', {
+                //     fromPosition: { x: initialX, y: initialY },
+                //     toPosition: { x: this.x, y: this.y },
+                //     distance: Math.sqrt(Math.pow(this.x - initialX, 2) + Math.pow(this.y - initialY, 2)),
+                //     interactionCount: this.interactionCount
+                // });
             };
             
             document.addEventListener('mousemove', handleMouseMove);
@@ -869,17 +869,17 @@ export class FloatingPanel {
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
                 
-                // 리사이즈 상호작용 로깅
+                // 리사이즈 상호작용 로깅 (주석 처리)
                 this.incrementInteraction('resize');
-                stateManager.logPanelAction(this.id, 'resize', {
-                    fromSize: { width: initialWidth, height: initialHeight },
-                    toSize: { width: this.width, height: this.height },
-                    sizeDelta: { 
-                        width: this.width - initialWidth, 
-                        height: this.height - initialHeight 
-                    },
-                    interactionCount: this.interactionCount
-                });
+                // stateManager.logPanelAction(this.id, 'resize', {
+                //     fromSize: { width: initialWidth, height: initialHeight },
+                //     toSize: { width: this.width, height: this.height },
+                //     sizeDelta: { 
+                //         width: this.width - initialWidth, 
+                //         height: this.height - initialHeight 
+                //     },
+                //     interactionCount: this.interactionCount
+                // });
             };
             
             document.addEventListener('mousemove', handleMouseMove);
@@ -893,12 +893,12 @@ export class FloatingPanel {
         this.updateMarkingColor();
         this.colorPicker.value = color;
         
-        // 상호작용 및 로깅
+        // 상호작용 및 로깅 (주석 처리)
         this.incrementInteraction('colorChange');
-        stateManager.logPanelAction(this.id, 'colorChange', {
-            newColor: color,
-            interactionCount: this.interactionCount
-        });
+        // stateManager.logPanelAction(this.id, 'colorChange', {
+        //     newColor: color,
+        //     interactionCount: this.interactionCount
+        // });
         
         // 커스텀 이벤트 발생
         this.dispatchEvent('colorChanged', { color });
