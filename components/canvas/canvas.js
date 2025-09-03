@@ -1,10 +1,16 @@
 // components/canvas/canvas.js
 
+import { exitTransformMode, isTransformModeActive } from '../imageEditor/tools/transformer.js';
+
 let stage;
 let layer;
 let isPanning = false;
 let lastPointerPosition;
 let selectedImage = null; // 현재 선택된 이미지 추적
+let selectionHighlight = null; // 선택 하이라이트 사각형
+
+// 디버깅용 선택 상태 추적
+let selectionHistory = [];
 
 export function init(containerId) {
     const container = document.getElementById(containerId);
@@ -42,7 +48,7 @@ export function init(containerId) {
         layer.draw();
     });
 
-    // 키보드 이벤트 (스페이스바 팬닝)
+    // 키보드 이벤트 (스페이스바 팬닝, 트랜스폼)
     setupKeyboardEvents(container);
 
     // 마우스 휠 줌
@@ -68,6 +74,7 @@ function setupKeyboardEvents(container) {
             spacePressed = true;
             container.classList.add('panning');
         }
+        // T키와 Escape 키 처리는 app.js의 키보드 매니저에서 담당
     });
 
     document.addEventListener('keyup', (e) => {
@@ -201,8 +208,17 @@ function addImageToCanvas(imageObject, x, y) {
     konvaImage.offsetX(konvaImage.width() / 2);
     konvaImage.offsetY(konvaImage.height() / 2);
 
+    // 이미지 드래그 시 하이라이트 업데이트
+    konvaImage.on('dragmove', () => {
+        if (selectedImage === konvaImage) {
+            updateHighlightPosition();
+        }
+    });
+
     layer.add(konvaImage);
     layer.batchDraw();
+    
+    console.log('📷 New image added to canvas');
 }
 
 // 외부에서 stage와 layer에 접근할 수 있도록 export
@@ -217,8 +233,11 @@ export function getLayer() {
 // 이미지 선택 추적 설정
 function setupImageSelection() {
     stage.on('click tap', (e) => {
+        console.log('Stage clicked - target:', e.target.className, e.target);
+        
         // 팬닝 모드에서는 선택 비활성화
         if (document.querySelector('#canvas-container').classList.contains('panning')) {
+            console.log('Panning mode - selection disabled');
             return;
         }
         
@@ -226,22 +245,141 @@ function setupImageSelection() {
         
         // 이미지가 클릭되었으면 선택 상태로 설정
         if (clickedNode.className === 'Image') {
+            // 다른 이미지를 선택했을 때 기존 트랜스폼 완전 종료
+            if (selectedImage && selectedImage !== clickedNode && isTransformModeActive()) {
+                console.log('🔄 Different image selected - exiting previous transform mode');
+                exitTransformMode();
+            }
+            
+            // 기존 선택된 이미지 하이라이트 제거
+            clearImageHighlight();
+            
             selectedImage = clickedNode;
-            console.log('Image selected:', selectedImage);
+            
+            // 디버깅용 선택 히스토리 추가
+            selectionHistory.push({
+                timestamp: Date.now(),
+                action: 'selected',
+                imageId: selectedImage.id() || 'no-id',
+                imageClassName: selectedImage.className
+            });
+            
+            // 선택된 이미지 하이라이트 적용
+            highlightSelectedImage(selectedImage);
+            
+            console.log('✅ Image selected successfully:', selectedImage);
+            console.log('✅ selectedImage stored:', {
+                className: selectedImage.className,
+                id: selectedImage.id(),
+                position: { x: selectedImage.x(), y: selectedImage.y() }
+            });
+            console.log('✅ Selection history:', selectionHistory.slice(-3)); // 최근 3개만 표시
         } else if (clickedNode.className === 'Rect') {
-            // 배경을 클릭했을 때만 선택 해제 (다른 요소는 무시)
+            // 배경을 클릭했을 때 트랜스폼 종료 및 선택 해제
+            if (isTransformModeActive()) {
+                console.log('🔄 Background clicked - exiting transform mode');
+                exitTransformMode();
+            }
+            
+            clearImageHighlight();
             selectedImage = null;
-            console.log('Image selection cleared');
+            
+            // 디버깅용 선택 히스토리 추가
+            selectionHistory.push({
+                timestamp: Date.now(),
+                action: 'cleared',
+                reason: 'background-clicked'
+            });
+            
+            console.log('❌ Image selection cleared (background clicked)');
+            console.log('❌ Selection history:', selectionHistory.slice(-3));
+        } else {
+            console.log('⚠️ Clicked element is not an image:', clickedNode.className);
         }
     });
 }
 
 // 현재 선택된 이미지 반환
 export function getSelectedImage() {
+    console.log('🔍 getSelectedImage() called - selectedImage:', selectedImage);
+    console.log('🔍 selectedImage type:', typeof selectedImage);
+    console.log('🔍 Recent selection history:', selectionHistory.slice(-3));
+    
+    if (selectedImage) {
+        console.log('🔍 selectedImage properties:', {
+            className: selectedImage.className,
+            id: selectedImage.id(),
+            x: selectedImage.x(),
+            y: selectedImage.y()
+        });
+        
+        // 이미지가 여전히 stage에 존재하는지 확인
+        const imageStillExists = selectedImage.getStage() !== null;
+        console.log('🔍 Image still exists on stage:', imageStillExists);
+        
+        if (!imageStillExists) {
+            console.log('⚠️ Selected image no longer exists on stage - clearing selection');
+            selectedImage = null;
+            clearImageHighlight();
+        }
+    } else {
+        console.log('🔍 No image currently selected');
+    }
+    
     return selectedImage;
 }
 
 // 선택된 이미지 설정
 export function setSelectedImage(image) {
     selectedImage = image;
+}
+
+// 이미지 하이라이트 함수들
+function highlightSelectedImage(image) {
+    if (!image) return;
+    
+    // 기존 하이라이트 제거
+    clearImageHighlight();
+    
+    // 이미지 경계 박스 계산
+    const box = image.getClientRect();
+    
+    // 선택 하이라이트 사각형 생성
+    selectionHighlight = new Konva.Rect({
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: box.height,
+        stroke: '#00aaff',
+        strokeWidth: 2,
+        fill: 'transparent',
+        listening: false, // 이벤트 무시
+        name: 'selection-highlight'
+    });
+    
+    // 하이라이트에 선택된 이미지 참조를 저장 (백업용)
+    selectionHighlight._selectedImageRef = image;
+    
+    layer.add(selectionHighlight);
+    layer.batchDraw();
+    
+    console.log('✨ Image highlighted with reference stored');
+}
+
+function clearImageHighlight() {
+    if (selectionHighlight) {
+        selectionHighlight.destroy();
+        selectionHighlight = null;
+        layer.batchDraw();
+        console.log('🧹 Image highlight cleared');
+    }
+}
+
+function updateHighlightPosition() {
+    if (selectionHighlight && selectedImage) {
+        const box = selectedImage.getClientRect();
+        selectionHighlight.position({ x: box.x, y: box.y });
+        selectionHighlight.size({ width: box.width, height: box.height });
+        layer.batchDraw();
+    }
 }

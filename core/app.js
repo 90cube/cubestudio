@@ -105,23 +105,46 @@ function setupImageEditingShortcuts() {
 
 // 선택된 이미지 찾기 함수
 function findSelectedImage(stage) {
-    // 캔버스에서 추적중인 선택된 이미지 사용
+    console.log('🔎 findSelectedImage() called');
+    
+    // 캔버스에서 추적중인 선택된 이미지만 사용
     const selectedImage = getSelectedImage();
+    console.log('🔎 getSelectedImage() returned:', selectedImage);
+    
     if (selectedImage) {
-        console.log('Using canvas selected image:', selectedImage);
+        console.log('✅ Using canvas selected image:', selectedImage);
         return selectedImage;
     }
     
-    // 선택된 이미지가 없으면 레이어의 첫 번째 이미지 사용 (fallback)
+    // FALLBACK: 하이라이트된 이미지 찾기 (만약 선택이 손실된 경우)
+    console.log('🔎 Fallback: searching for highlighted image...');
     const layer = getLayer();
-    if (!layer) return null;
-    
-    const images = layer.find('Image');
-    if (images.length > 0) {
-        console.log('No selected image, using first image as fallback:', images[0]);
-        return images[0];
+    if (layer) {
+        const selectionHighlight = layer.findOne('.selection-highlight');
+        if (selectionHighlight) {
+            // 하이라이트에 저장된 이미지 참조 확인
+            if (selectionHighlight._selectedImageRef) {
+                console.log('📍 Found highlighted image reference as fallback:', selectionHighlight._selectedImageRef);
+                return selectionHighlight._selectedImageRef;
+            }
+            
+            // 하이라이트 근처의 이미지 찾기 (fallback의 fallback)
+            const images = layer.find('Image');
+            for (const image of images) {
+                const imageBox = image.getClientRect();
+                const highlightBox = selectionHighlight.getClientRect();
+                
+                // 하이라이트와 이미지 위치가 일치하는지 확인
+                if (Math.abs(imageBox.x - highlightBox.x) < 5 && 
+                    Math.abs(imageBox.y - highlightBox.y) < 5) {
+                    console.log('📍 Found highlighted image by position as fallback:', image);
+                    return image;
+                }
+            }
+        }
     }
     
+    console.log('❌ No image selected - please click on an image first');
     return null;
 }
 
