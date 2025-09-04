@@ -10,6 +10,7 @@ let stage;
 let transformer;
 let targetImage;
 let isTransformMode = false;
+let isShiftPressed = false; // Shift 키 상태 추적
 
 export function init(konvaStage, konvaLayer) {
     stage = konvaStage;
@@ -77,9 +78,6 @@ function createTransformer() {
         console.log('Transform start');
     });
     
-    transformer.on('transform', () => {
-        console.log('Transforming...');
-    });
     
     transformer.on('transformend', () => {
         console.log('Transform end');
@@ -115,6 +113,17 @@ function setupTransformKeyboardEvents() {
     const handleKeyDown = (e) => {
         if (!targetImage || !transformer) return;
         
+        // Shift 키 상태 추적 (키 반복 방지)
+        if (e.key === 'Shift' && !isShiftPressed) {
+            isShiftPressed = true;
+            // Konva 내장 회전 스냅 활성화
+            if (transformer) {
+                transformer.rotationSnaps([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 350, 355]);
+                transformer.rotationSnapTolerance(3);
+            }
+            console.log('Shift pressed - 5-degree rotation snapping enabled');
+        }
+        
         switch (e.key.toLowerCase()) {
             case 'escape':
                 e.preventDefault();
@@ -122,6 +131,19 @@ function setupTransformKeyboardEvents() {
                 console.log('ESC pressed in transform mode - exiting');
                 exitTransformMode();
                 break;
+        }
+    };
+    
+    const handleKeyUp = (e) => {
+        // Shift 키 해제 추적 (중복 방지)
+        if (e.key === 'Shift' && isShiftPressed) {
+            isShiftPressed = false;
+            // Konva 내장 회전 스냅 비활성화
+            if (transformer) {
+                transformer.rotationSnaps([]);
+                transformer.rotationSnapTolerance(0);
+            }
+            console.log('Shift released - free rotation enabled');
         }
     };
     
@@ -142,10 +164,12 @@ function setupTransformKeyboardEvents() {
     };
     
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
     stage.on('click tap', handleStageClick);
     
     // 정리를 위한 참조 저장
     transformer._keydownHandler = handleKeyDown;
+    transformer._keyupHandler = handleKeyUp;
     transformer._stageClickHandler = handleStageClick;
 }
 
@@ -176,9 +200,15 @@ export function exitTransformMode() {
     if (transformer && transformer._keydownHandler) {
         document.removeEventListener('keydown', transformer._keydownHandler);
     }
+    if (transformer && transformer._keyupHandler) {
+        document.removeEventListener('keyup', transformer._keyupHandler);
+    }
     if (transformer && transformer._stageClickHandler) {
         stage.off('click tap', transformer._stageClickHandler);
     }
+    
+    // Shift 키 상태 초기화
+    isShiftPressed = false;
     
     isTransformMode = false;
     targetImage = null;

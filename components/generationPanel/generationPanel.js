@@ -91,43 +91,43 @@ export class GenerationPanel {
      * isImageSelected 상태를 구독하여 디노이즈 슬라이더를 제어합니다.
      */
     setupDenoiseStateListener(retryCount = 0) {
-        console.log(`🔧 setupDenoiseStateListener() called (attempt ${retryCount + 1})`);
-        console.log('🔧 containerElement:', this.containerElement);
+        // console.log(`🔧 setupDenoiseStateListener() called (attempt ${retryCount + 1})`);
+        // console.log('🔧 containerElement:', this.containerElement);
         
         const denoiseSlider = this.containerElement?.querySelector('#param-denoise-slider');
         const denoiseInput = this.containerElement?.querySelector('#param-denoise');
 
-        console.log('🔧 Denoise elements found:');
-        console.log('🔧 - Slider:', denoiseSlider);
-        console.log('🔧 - Input:', denoiseInput);
+        // console.log('🔧 Denoise elements found:');
+        // console.log('🔧 - Slider:', denoiseSlider);
+        // console.log('🔧 - Input:', denoiseInput);
 
         if (!denoiseSlider || !denoiseInput) {
-            console.error(`❌ Denoise elements not found - attempt ${retryCount + 1}`);
-            console.log('❌ Available elements in container:', 
-                this.containerElement?.querySelectorAll('*[id]').length || 'container not found');
+            // console.error(`❌ Denoise elements not found - attempt ${retryCount + 1}`);
+            // console.log('❌ Available elements in container:', 
+            //     this.containerElement?.querySelectorAll('*[id]').length || 'container not found');
             
             // 최대 3번까지 재시도
             if (retryCount < 3) {
-                console.log(`⏳ Retrying in 50ms... (attempt ${retryCount + 2})`);
+                // console.log(`⏳ Retrying in 50ms... (attempt ${retryCount + 2})`);
                 setTimeout(() => {
                     this.setupDenoiseStateListener(retryCount + 1);
                 }, 50);
                 return;
             } else {
-                console.error('❌ Failed to find denoise elements after 4 attempts - giving up');
+                // console.error('❌ Failed to find denoise elements after 4 attempts - giving up');
                 return;
             }
         }
 
-        console.log('✅ Setting up isImageSelected subscription...');
+        // console.log('✅ Setting up isImageSelected subscription...');
         
         // isImageSelected 상태 구독
         const unsubscribe = stateManager.subscribe('isImageSelected', (isSelected, oldValue) => {
-            console.log('🎯 isImageSelected subscription callback triggered!');
-            console.log('🎯 - New value:', isSelected);
-            console.log('🎯 - Old value:', oldValue);
-            console.log('🎯 - Slider element:', denoiseSlider);
-            console.log('🎯 - Input element:', denoiseInput);
+            // console.log('🎯 isImageSelected subscription callback triggered!');
+            // console.log('🎯 - New value:', isSelected);
+            // console.log('🎯 - Old value:', oldValue);
+            // console.log('🎯 - Slider element:', denoiseSlider);
+            // console.log('🎯 - Input element:', denoiseInput);
             
             denoiseSlider.disabled = !isSelected;
             denoiseInput.disabled = !isSelected;
@@ -136,35 +136,35 @@ export class GenerationPanel {
             if (!isSelected) {
                 denoiseSlider.style.opacity = '0.5';
                 denoiseInput.style.opacity = '0.5';
-                console.log('🎯 Applied disabled styles (opacity: 0.5)');
+                // console.log('🎯 Applied disabled styles (opacity: 0.5)');
             } else {
                 denoiseSlider.style.opacity = '1';
                 denoiseInput.style.opacity = '1';
-                console.log('🎯 Applied enabled styles (opacity: 1)');
+                // console.log('🎯 Applied enabled styles (opacity: 1)');
             }
         });
         
         // 구독 해제 함수 저장 (컴포넌트 destroy 시 사용)
         this.denoiseStateUnsubscribe = unsubscribe;
-        console.log('✅ Subscription created, unsubscribe function stored');
+        // console.log('✅ Subscription created, unsubscribe function stored');
 
         // 초기 상태 강제 설정 (페이지 로드 시)
         const initialState = stateManager.getState('isImageSelected') || false;
-        console.log('🔧 Initial isImageSelected state:', initialState);
+        // console.log('🔧 Initial isImageSelected state:', initialState);
         
         denoiseSlider.disabled = !initialState;
         denoiseInput.disabled = !initialState;
         if (!initialState) {
             denoiseSlider.style.opacity = '0.5';
             denoiseInput.style.opacity = '0.5';
-            console.log('🔧 Applied initial disabled styles');
+            // console.log('🔧 Applied initial disabled styles');
         } else {
             denoiseSlider.style.opacity = '1';
             denoiseInput.style.opacity = '1';
-            console.log('🔧 Applied initial enabled styles');
+            // console.log('🔧 Applied initial enabled styles');
         }
         
-        console.log('✅ setupDenoiseStateListener completed successfully');
+        // console.log('✅ setupDenoiseStateListener completed successfully');
     }
     
     /**
@@ -1712,11 +1712,11 @@ export class GenerationPanel {
      * 컴포넌트 정리
      */
     destroy() {
-        console.log('🗑️ GenerationPanel destroy() called');
+        // console.log('🗑️ GenerationPanel destroy() called');
         
         // stateManager 구독 해제
         if (this.denoiseStateUnsubscribe) {
-            console.log('🗑️ Unsubscribing from isImageSelected state');
+            // console.log('🗑️ Unsubscribing from isImageSelected state');
             this.denoiseStateUnsubscribe();
             this.denoiseStateUnsubscribe = null;
         }
@@ -1733,6 +1733,6 @@ export class GenerationPanel {
         
         this.eventHandlers.clear();
         
-        console.log('🗑️ GenerationPanel destroyed');
+        // console.log('🗑️ GenerationPanel destroyed');
     }
 }

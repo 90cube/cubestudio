@@ -222,7 +222,7 @@ function addImageToCanvas(imageObject, x, y) {
     layer.add(konvaImage);
     layer.batchDraw();
     
-    console.log('📷 New image added to canvas');
+    // console.log('📷 New image added to canvas');
 }
 
 // 외부에서 stage와 layer에 접근할 수 있도록 export
@@ -237,11 +237,11 @@ export function getLayer() {
 // 이미지 선택 추적 설정
 function setupImageSelection() {
     stage.on('click tap', (e) => {
-        console.log('Stage clicked - target:', e.target.className, e.target);
+        // console.log('Stage clicked - target:', e.target.className, e.target);
         
         // 팬닝 모드에서는 선택 비활성화
         if (document.querySelector('#canvas-container').classList.contains('panning')) {
-            console.log('Panning mode - selection disabled');
+            // console.log('Panning mode - selection disabled');
             return;
         }
         
@@ -251,7 +251,7 @@ function setupImageSelection() {
         if (clickedNode.className === 'Image') {
             // 다른 이미지를 선택했을 때 기존 트랜스폼 완전 종료
             if (selectedImage && selectedImage !== clickedNode && isTransformModeActive()) {
-                console.log('🔄 Different image selected - exiting previous transform mode');
+                // console.log('🔄 Different image selected - exiting previous transform mode');
                 exitTransformMode();
             }
             
@@ -261,15 +261,15 @@ function setupImageSelection() {
             selectedImage = clickedNode;
             
             // 디버깅: stateManager 호출 전 상태 확인
-            console.log('🔄 Before updateState - isImageSelected will be set to TRUE');
-            console.log('🔄 StateManager instance:', stateManager);
-            console.log('🔄 StateManager updateState method:', typeof stateManager.updateState);
+            // console.log('🔄 Before updateState - isImageSelected will be set to TRUE');
+            // console.log('🔄 StateManager instance:', stateManager);
+            // console.log('🔄 StateManager updateState method:', typeof stateManager.updateState);
             
             stateManager.updateState('isImageSelected', true);
             
             // 디버깅: stateManager 호출 후 상태 확인
             const currentState = stateManager.getState('isImageSelected');
-            console.log('✅ After updateState - current isImageSelected state:', currentState);
+            // console.log('✅ After updateState - current isImageSelected state:', currentState);
 
             // 디버깅용 선택 히스토리 추가
             selectionHistory.push({
@@ -283,17 +283,17 @@ function setupImageSelection() {
             // 선택된 이미지 하이라이트 적용
             highlightSelectedImage(selectedImage);
             
-            console.log('✅ Image selected successfully:', selectedImage);
-            console.log('✅ selectedImage stored:', {
-                className: selectedImage.className,
-                id: selectedImage.id(),
-                position: { x: selectedImage.x(), y: selectedImage.y() }
-            });
-            console.log('✅ Selection history:', selectionHistory.slice(-3)); // 최근 3개만 표시
+            // console.log('✅ Image selected successfully:', selectedImage);
+            // console.log('✅ selectedImage stored:', {
+            //     className: selectedImage.className,
+            //     id: selectedImage.id(),
+            //     position: { x: selectedImage.x(), y: selectedImage.y() }
+            // });
+            // console.log('✅ Selection history:', selectionHistory.slice(-3)); // 최근 3개만 표시
         } else if (clickedNode.className === 'Rect') {
             // 배경을 클릭했을 때 트랜스폼 종료 및 선택 해제
             if (isTransformModeActive()) {
-                console.log('🔄 Background clicked - exiting transform mode');
+                // console.log('🔄 Background clicked - exiting transform mode');
                 exitTransformMode();
             }
             
@@ -301,13 +301,13 @@ function setupImageSelection() {
             selectedImage = null;
             
             // 디버깅: stateManager 호출 전 상태 확인
-            console.log('🔄 Before updateState - isImageSelected will be set to FALSE');
+            // console.log('🔄 Before updateState - isImageSelected will be set to FALSE');
             
             stateManager.updateState('isImageSelected', false);
             
             // 디버깅: stateManager 호출 후 상태 확인
             const currentState = stateManager.getState('isImageSelected');
-            console.log('❌ After updateState - current isImageSelected state:', currentState);
+            // console.log('❌ After updateState - current isImageSelected state:', currentState);
 
             // 디버깅용 선택 히스토리 추가
             selectionHistory.push({
@@ -317,39 +317,39 @@ function setupImageSelection() {
                 stateManagerCallSuccess: currentState === false
             });
             
-            console.log('❌ Image selection cleared (background clicked)');
-            console.log('❌ Selection history:', selectionHistory.slice(-3));
+            // console.log('❌ Image selection cleared (background clicked)');
+            // console.log('❌ Selection history:', selectionHistory.slice(-3));
         } else {
-            console.log('⚠️ Clicked element is not an image:', clickedNode.className);
+            // console.log('⚠️ Clicked element is not an image:', clickedNode.className);
         }
     });
 }
 
 // 현재 선택된 이미지 반환
 export function getSelectedImage() {
-    console.log('🔍 getSelectedImage() called - selectedImage:', selectedImage);
-    console.log('🔍 selectedImage type:', typeof selectedImage);
-    console.log('🔍 Recent selection history:', selectionHistory.slice(-3));
+    // console.log('🔍 getSelectedImage() called - selectedImage:', selectedImage);
+    // console.log('🔍 selectedImage type:', typeof selectedImage);
+    // console.log('🔍 Recent selection history:', selectionHistory.slice(-3));
     
     if (selectedImage) {
-        console.log('🔍 selectedImage properties:', {
-            className: selectedImage.className,
-            id: selectedImage.id(),
-            x: selectedImage.x(),
-            y: selectedImage.y()
-        });
+        // console.log('🔍 selectedImage properties:', {
+        //     className: selectedImage.className,
+        //     id: selectedImage.id(),
+        //     x: selectedImage.x(),
+        //     y: selectedImage.y()
+        // });
         
         // 이미지가 여전히 stage에 존재하는지 확인
         const imageStillExists = selectedImage.getStage() !== null;
-        console.log('🔍 Image still exists on stage:', imageStillExists);
+        // console.log('🔍 Image still exists on stage:', imageStillExists);
         
         if (!imageStillExists) {
-            console.log('⚠️ Selected image no longer exists on stage - clearing selection');
+            // console.log('⚠️ Selected image no longer exists on stage - clearing selection');
             selectedImage = null;
             clearImageHighlight();
         }
     } else {
-        console.log('🔍 No image currently selected');
+        // console.log('🔍 No image currently selected');
     }
     
     return selectedImage;
@@ -389,7 +389,7 @@ function highlightSelectedImage(image) {
     layer.add(selectionHighlight);
     layer.batchDraw();
     
-    console.log('✨ Image highlighted with reference stored');
+    // console.log('✨ Image highlighted with reference stored');
 }
 
 function clearImageHighlight() {
@@ -397,7 +397,7 @@ function clearImageHighlight() {
         selectionHighlight.destroy();
         selectionHighlight = null;
         layer.batchDraw();
-        console.log('🧹 Image highlight cleared');
+        // console.log('🧹 Image highlight cleared');
     }
 }
 

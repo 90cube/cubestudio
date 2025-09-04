@@ -51,39 +51,39 @@ class StateManager {
         this.state.set(key, value);
         
         // 디버깅: isImageSelected에 대해서만 로그
-        if (key === 'isImageSelected') {
-            console.log('📡 StateManager.updateState called:');
-            console.log('📡 - Key:', key);
-            console.log('📡 - Old value:', oldValue);
-            console.log('📡 - New value:', value);
-            
-            const keySubscribers = this.subscribers.get(key);
-            console.log('📡 - Subscribers for key:', keySubscribers?.size || 0);
-            
-            if (keySubscribers && keySubscribers.size > 0) {
-                console.log('📡 - Subscriber callbacks:', Array.from(keySubscribers).map(cb => cb.toString().substring(0, 100)));
-            }
-        }
+        // if (key === 'isImageSelected') {
+        //     console.log('📡 StateManager.updateState called:');
+        //     console.log('📡 - Key:', key);
+        //     console.log('📡 - Old value:', oldValue);
+        //     console.log('📡 - New value:', value);
+        //     
+        //     const keySubscribers = this.subscribers.get(key);
+        //     console.log('📡 - Subscribers for key:', keySubscribers?.size || 0);
+        //     
+        //     if (keySubscribers && keySubscribers.size > 0) {
+        //         console.log('📡 - Subscriber callbacks:', Array.from(keySubscribers).map(cb => cb.toString().substring(0, 100)));
+        //     }
+        // }
         
         // 구독자 알림
         const keySubscribers = this.subscribers.get(key);
         if (keySubscribers) {
             keySubscribers.forEach((callback, index) => {
                 try {
-                    if (key === 'isImageSelected') {
-                        console.log(`📡 Calling subscriber ${index + 1}/${keySubscribers.size} for ${key}`);
-                    }
+                    // if (key === 'isImageSelected') {
+                    //     console.log(`📡 Calling subscriber ${index + 1}/${keySubscribers.size} for ${key}`);
+                    // }
                     callback(value, oldValue);
-                    if (key === 'isImageSelected') {
-                        console.log(`✅ Subscriber ${index + 1} called successfully`);
-                    }
+                    // if (key === 'isImageSelected') {
+                    //     console.log(`✅ Subscriber ${index + 1} called successfully`);
+                    // }
                 } catch (error) {
                     console.error(`StateManager: Error in subscriber callback for key "${key}":`, error);
                 }
             });
-        } else if (key === 'isImageSelected') {
-            console.log('⚠️ No subscribers found for isImageSelected');
-        }
+        } // else if (key === 'isImageSelected') {
+            // console.log('⚠️ No subscribers found for isImageSelected');
+        // }
         
         // 전역 구독자 알림
         const globalSubscribers = this.subscribers.get('*');
@@ -439,6 +439,6 @@ setInterval(() => {
 
 // 디버깅을 위한 전역 참조
 window.stateManager = stateManager;
-console.log('StateManager instance created and exposed globally');
+// console.log('StateManager instance created and exposed globally');
 
 export default stateManager;
