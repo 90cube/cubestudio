@@ -5,13 +5,15 @@
  * 이미지 자르기 기능을 제공합니다.
  */
 
+import { getNodeRect, screenToStage } from '../../../core/coordinates.js';
+
 let layer;
 let stage;
 let cropOverlay;
 let cropRect;
 let isAdjustingCrop = false;
 let targetImage; // 자르기 대상 이미지를 저장할 변수
-let initialClientRect; // 자르기 시작 시점의 이미지 좌표
+let initialNodeRect; // 자르기 시작 시점의 이미지 좌표 (FOV 시스템 사용)
 
 
 export function init(konvaStage, konvaLayer) {
@@ -28,8 +30,9 @@ export function startCropMode(imageNode) {
 
     targetImage = imageNode; // 대상 이미지 저장
     
-    const imageRect = imageNode.getClientRect();
-    initialClientRect = imageRect; // 시작 시점 좌표 저장
+    // FOV 시스템 사용하여 일관된 좌표 계산
+    const imageRect = getNodeRect(imageNode);
+    initialNodeRect = imageRect; // 시작 시점 좌표 저장
     
     // 크롭 오버레이 생성
     createCropOverlay(imageRect);
@@ -144,7 +147,7 @@ function createCropHandles(rect) {
  */
 function setupCropEvents() {
     // ESC 키로 크롭 모드 취소
-    const handleKeyDown = (e) => {
+    handleKeyDown = (e) => {
         if (e.key === 'Escape') {
             cancelCropMode();
         } else if (e.key === 'Enter') {
@@ -274,13 +277,13 @@ export function applyCrop() {
  * @param {Object} cropArea - 크롭 영역
  */
 function applyCropToImage(imageNode, cropArea) {
-    // initialClientRect was stored when crop mode started
-    if (!initialClientRect) return;
+    // initialNodeRect was stored when crop mode started
+    if (!initialNodeRect) return;
 
     const absScale = imageNode.getAbsoluteScale();
 
-    const cropDx = cropArea.x - initialClientRect.x;
-    const cropDy = cropArea.y - initialClientRect.y;
+    const cropDx = cropArea.x - initialNodeRect.x;
+    const cropDy = cropArea.y - initialNodeRect.y;
 
     const localCropDx = cropDx / absScale.x;
     const localCropDy = cropDy / absScale.y;
@@ -319,14 +322,20 @@ export function cancelCropMode() {
  */
 function removeCropOverlay() {
     if (cropOverlay) {
+        // 이벤트 리스너 정리
+        document.removeEventListener('keydown', handleKeyDown);
+        
         cropOverlay.destroy();
         cropOverlay = null;
         cropRect = null;
         targetImage = null; // 대상 이미지 초기화
-        initialClientRect = null; // 시작 좌표 초기화
+        initialNodeRect = null; // 시작 좌표 초기화
         layer.batchDraw();
     }
 }
+
+// 키보드 이벤트 핸들러 (외부에서 참조할 수 있도록)
+let handleKeyDown;
 
 /**
  * 크롭 상태 확인
@@ -339,109 +348,464 @@ export function isCropMode() {
 
 let isDrawing = false;
 let lassoLine;
+let lassoEventHandlers = null; // 이벤트 핸들러 추적용
+let originalDraggableState = true; // 원본 draggable 상태 저장
 
 export function activateLassoCrop(imageNode) {
     if (!imageNode) return;
+    
+    // 기존 lasso crop 정리
+    cleanupLassoCrop();
+    
     targetImage = imageNode;
 
-    // Deactivate other interactions
-    stage.listening(false);
-    imageNode.listening(false);
-    stage.listening(true);
-
-    stage.on('mousedown.lasso', () => {
-        isDrawing = true;
-        const pos = stage.getPointerPosition();
-        lassoLine = new Konva.Line({
-            points: [pos.x, pos.y],
-            fill: '#007bff',
-            stroke: '#0056b3',
-            strokeWidth: 1,
-            opacity: 0.7,
-            closed: true
-        });
-        layer.add(lassoLine);
-    });
-
-    stage.on('mousemove.lasso', () => {
-        if (!isDrawing) return;
-        const pos = stage.getPointerPosition();
-        const newPoints = lassoLine.points().concat([pos.x, pos.y]);
-        lassoLine.points(newPoints);
-        layer.batchDraw();
-    });
-
-    stage.on('mouseup.lasso', () => {
-        if (!isDrawing) return;
-        isDrawing = false;
+    // 원본 draggable 상태 저장 후 비활성화
+    originalDraggableState = targetImage.draggable();
+    targetImage.draggable(false);
+    console.log('Image dragging disabled for lasso crop');
+    
+    // 이벤트 핸들러들 정의
+    const handleMouseDown = (e) => {
+        // 이미 그리고 있으면 무시
+        if (isDrawing) return;
         
-        const originalImage = targetImage;
-
+        // Transformer 관련 요소 클릭 시 무시 (더 안전한 방법)
         try {
-            const points = lassoLine.points();
-            if (points.length > 4) {
-                applyLassoClip(originalImage, lassoLine);
+            const target = e.target;
+            const targetName = target?.name || target?.attrs?.name || '';
+            if (typeof targetName === 'string' && (
+                targetName.includes('anchor') || 
+                targetName.includes('transform') ||
+                target.className === 'Transformer'
+            )) {
+                console.log('Ignoring transformer element click');
+                return;
             }
         } catch (error) {
-            console.error("An error occurred during lasso crop:", error);
-        } finally {
-            // Cleanup
-            lassoLine.destroy();
-            stage.off('mousedown.lasso mousemove.lasso mouseup.lasso');
-            
-            if (originalImage) {
-                originalImage.listening(true);
-            }
-            targetImage = null;
-            
-            layer.batchDraw();
+            console.log('Error checking target name, continuing with lasso draw');
         }
-    });
+        
+        console.log('Lasso drawing started', e.target); // 디버깅용
+        isDrawing = true;
+        
+        // 이벤트에서 직접 마우스 좌표를 가져와서 정확한 변환 적용
+        let pos;
+        if (e.evt) {
+            // Konva 이벤트에서 원본 브라우저 이벤트 사용
+            const rect = stage.container().getBoundingClientRect();
+            const screenPoint = {
+                x: e.evt.clientX - rect.left,
+                y: e.evt.clientY - rect.top
+            };
+            pos = screenToStage(screenPoint);
+            console.log('MouseDown - Screen point:', screenPoint, '-> Stage:', pos);
+        } else {
+            // 폴백: stage.getPointerPosition() 사용
+            const stagePointerPos = stage.getPointerPosition();
+            if (!stagePointerPos) {
+                console.log('No pointer position available');
+                isDrawing = false;
+                return;
+            }
+            pos = screenToStage(stagePointerPos);
+        }
+        
+        lassoLine = new Konva.Line({
+            points: [pos.x, pos.y],
+            stroke: '#00ff00', // 더 선명한 색상으로 변경
+            strokeWidth: 3 / stage.scaleX(), // 더 두껍게
+            opacity: 0.8,
+            closed: false,
+            listening: false,
+            // fill 제거 - 선만 그리기
+        });
+        layer.add(lassoLine);
+        layer.batchDraw();
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isDrawing || !lassoLine) return;
+        
+        // 이벤트에서 직접 마우스 좌표를 가져와서 정확한 변환 적용
+        let pos;
+        if (e.evt) {
+            // Konva 이벤트에서 원본 브라우저 이벤트 사용
+            const rect = stage.container().getBoundingClientRect();
+            const screenPoint = {
+                x: e.evt.clientX - rect.left,
+                y: e.evt.clientY - rect.top
+            };
+            pos = screenToStage(screenPoint);
+            console.log('Using event coordinates:', screenPoint, '-> stage:', pos);
+        } else {
+            // 폴백: stage.getPointerPosition() 사용
+            const stagePointerPos = stage.getPointerPosition();
+            if (!stagePointerPos) return;
+            pos = screenToStage(stagePointerPos);
+        }
+        
+        // 최소 움직임 감지로 너무 많은 포인트 방지
+        const currentPoints = lassoLine.points();
+        if (currentPoints.length >= 2) {
+            const lastX = currentPoints[currentPoints.length - 2];
+            const lastY = currentPoints[currentPoints.length - 1];
+            const distance = Math.sqrt((pos.x - lastX) ** 2 + (pos.y - lastY) ** 2);
+            if (distance < 3) return; // 3픽셀 미만 움직임은 무시
+        }
+        
+        const newPoints = currentPoints.concat([pos.x, pos.y]);
+        lassoLine.points(newPoints);
+        layer.batchDraw();
+    };
+
+    const handleMouseUp = () => {
+        if (!isDrawing || !lassoLine) {
+            console.log('Mouse up but not drawing or no lasso line');
+            return;
+        }
+        
+        console.log('Lasso drawing finished');
+        isDrawing = false;
+        
+        const points = lassoLine.points();
+        console.log('Points collected:', points.length / 2, 'points');
+        
+        // 최소 3개 포인트 (6개 좌표값) 필요
+        if (points.length >= 6) {
+            // 경로 닫기
+            lassoLine.closed(true);
+            lassoLine.fill('rgba(0, 255, 0, 0.2)'); // 반투명 채우기 추가
+            layer.batchDraw();
+            
+            console.log('Valid lasso area created, waiting for user confirmation...');
+            
+            // 사용자가 확인할 수 있도록 잠시 대기
+            setTimeout(() => {
+                showConfirmDialog(() => {
+                    console.log('User confirmed, applying lasso clip');
+                    applyLassoClip(targetImage, lassoLine);
+                    cleanupLassoCrop();
+                }, () => {
+                    console.log('User cancelled lasso crop');
+                    cleanupLassoCrop();
+                });
+            }, 500);
+        } else {
+            console.log('Not enough points for lasso crop:', points.length / 2);
+            cleanupLassoCrop();
+        }
+    };
+    
+    // ESC 키로 lasso crop 취소 핸들러
+    const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            cleanupLassoCrop();
+        }
+    };
+    
+    // 이벤트 리스너 등록
+    stage.on('mousedown.lasso', handleMouseDown);
+    stage.on('mousemove.lasso', handleMouseMove);
+    stage.on('mouseup.lasso', handleMouseUp);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // 이벤트 핸들러 저장 (정리용)
+    lassoEventHandlers = {
+        handleMouseDown,
+        handleMouseMove,
+        handleMouseUp,
+        handleKeyDown
+    };
+    
+    layer.batchDraw();
+}
+
+// Lasso crop 정리 함수
+function cleanupLassoCrop() {
+    console.log('Cleaning up lasso crop');
+    
+    // 그리기 상태 초기화
+    isDrawing = false;
+    
+    // 라인 객체 정리
+    if (lassoLine) {
+        lassoLine.destroy();
+        lassoLine = null;
+    }
+    
+    // 이벤트 리스너 제거
+    stage.off('mousedown.lasso');
+    stage.off('mousemove.lasso');
+    stage.off('mouseup.lasso');
+    
+    // 키보드 이벤트 리스너 제거
+    if (lassoEventHandlers && lassoEventHandlers.handleKeyDown) {
+        document.removeEventListener('keydown', lassoEventHandlers.handleKeyDown);
+    }
+    
+    // 핸들러 참조 정리
+    lassoEventHandlers = null;
+    
+    // 이미지의 draggable 상태 복원
+    if (targetImage) {
+        targetImage.draggable(originalDraggableState);
+        console.log('Image dragging restored to:', originalDraggableState);
+    }
+    
+    layer.batchDraw();
+}
+
+// Lasso crop 상태 확인
+export function isLassoCropMode() {
+    return isDrawing || lassoLine !== null;
+}
+
+// 커스텀 확인 다이얼로그
+function showConfirmDialog(onConfirm, onCancel) {
+    // 기존 다이얼로그가 있다면 제거
+    const existingDialog = document.querySelector('.crop-confirm-dialog');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+    
+    // 다이얼로그 오버레이 생성
+    const overlay = document.createElement('div');
+    overlay.className = 'crop-confirm-dialog';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    // 다이얼로그 박스
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        text-align: center;
+        animation: dialogFadeIn 0.2s ease-out;
+    `;
+    
+    // CSS 애니메이션 추가
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes dialogFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // 제목
+    const title = document.createElement('h3');
+    title.textContent = '자유모양 크롭';
+    title.style.cssText = `
+        margin: 0 0 12px 0;
+        color: #333;
+        font-size: 18px;
+        font-weight: 600;
+    `;
+    
+    // 메시지
+    const message = document.createElement('p');
+    message.textContent = '선택한 영역으로 이미지를 자르시겠습니까?';
+    message.style.cssText = `
+        margin: 0 0 24px 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.4;
+    `;
+    
+    // 버튼 컨테이너
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    `;
+    
+    // 취소 버튼
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '취소';
+    cancelBtn.style.cssText = `
+        padding: 8px 20px;
+        border: 1px solid #ddd;
+        background: white;
+        color: #666;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    `;
+    cancelBtn.onmouseover = () => cancelBtn.style.background = '#f5f5f5';
+    cancelBtn.onmouseout = () => cancelBtn.style.background = 'white';
+    
+    // 확인 버튼
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = '자르기';
+    confirmBtn.style.cssText = `
+        padding: 8px 20px;
+        border: none;
+        background: #00ff00;
+        color: #000;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    `;
+    confirmBtn.onmouseover = () => confirmBtn.style.background = '#00dd00';
+    confirmBtn.onmouseout = () => confirmBtn.style.background = '#00ff00';
+    
+    // 이벤트 리스너
+    cancelBtn.onclick = () => {
+        overlay.remove();
+        style.remove();
+        onCancel();
+    };
+    
+    confirmBtn.onclick = () => {
+        overlay.remove();
+        style.remove();
+        onConfirm();
+    };
+    
+    // ESC 키로 취소
+    const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            style.remove();
+            document.removeEventListener('keydown', handleKeyDown);
+            onCancel();
+        }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // 오버레이 클릭으로 취소
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+            style.remove();
+            document.removeEventListener('keydown', handleKeyDown);
+            onCancel();
+        }
+    };
+    
+    // 요소 조립
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(confirmBtn);
+    dialog.appendChild(title);
+    dialog.appendChild(message);
+    dialog.appendChild(buttonContainer);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
 }
 
 function applyLassoClip(imageNode, line) {
-    const parent = imageNode.getParent();
-    const linePoints = line.points();
-
-    // The clipping path needs to be relative to the image's local, un-transformed space.
-    const transform = imageNode.getAbsoluteTransform().copy().invert();
-    const localPoints = [];
-    for (let i = 0; i < linePoints.length; i += 2) {
-        const point = transform.point({ x: linePoints[i], y: linePoints[i+1] });
-        localPoints.push(point.x, point.y);
-    }
-
-    // Clone the image, but reset its own transforms since the group will handle them.
-    const newImage = imageNode.clone({
-        x: 0,
-        y: 0,
-        scaleX: 1,
-        scaleY: 1,
-        rotation: 0,
-        clipFunc: function(ctx) {
-            ctx.beginPath();
-            ctx.moveTo(localPoints[0], localPoints[1]);
-            for (let i = 2; i < localPoints.length; i += 2) {
-                ctx.lineTo(localPoints[i], localPoints[i + 1]);
-            }
-            ctx.closePath();
+    try {
+        console.log('Applying lasso clip to image');
+        
+        if (!imageNode || !line) {
+            console.error('Missing imageNode or line for lasso clip');
+            return;
         }
-    });
+        
+        const parent = imageNode.getParent();
+        if (!parent) {
+            console.error('Image node has no parent');
+            return;
+        }
+        
+        const linePoints = line.points();
+        console.log('Line points for clipping:', linePoints.length / 2, 'points');
 
-    // Create a new group that will contain the clipped image.
-    // The group inherits all transforms from the original image.
-    const clipGroup = new Konva.Group({
-        x: imageNode.x(),
-        y: imageNode.y(),
-        scaleX: imageNode.scaleX(),
-        scaleY: imageNode.scaleY(),
-        rotation: imageNode.rotation(),
-        draggable: true,
-        name: 'image-group' // Add a name to identify this as an image-like object
-    });
+        if (linePoints.length < 6) {
+            console.error('Not enough points for clipping');
+            return;
+        }
 
-    clipGroup.add(newImage);
-    parent.add(clipGroup);
+        // 디버깅: 이미지 변환 정보
+        console.log('Image transform info:', {
+            position: { x: imageNode.x(), y: imageNode.y() },
+            scale: { x: imageNode.scaleX(), y: imageNode.scaleY() },
+            rotation: imageNode.rotation()
+        });
 
-    imageNode.destroy();
+        // 라소 라인의 경계 상자 계산 (클리핑된 결과의 위치 결정용)
+        let minX = linePoints[0], minY = linePoints[1];
+        let maxX = linePoints[0], maxY = linePoints[1];
+        
+        for (let i = 0; i < linePoints.length; i += 2) {
+            const x = linePoints[i];
+            const y = linePoints[i + 1];
+            minX = Math.min(minX, x);
+            maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y);
+            maxY = Math.max(maxY, y);
+        }
+        
+        console.log('Lasso bounds:', { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+
+        // 클리핑 그룹 생성 - 라소 영역의 상단 왼쪽 모서리에 위치
+        const clipGroup = new Konva.Group({
+            x: minX,
+            y: minY,
+            scaleX: 1,
+            scaleY: 1,
+            rotation: 0,
+            draggable: originalDraggableState,
+            name: 'cropped-image',
+            clipFunc: function(ctx) {
+                // 라소 라인 포인트를 그룹의 로컬 좌표계로 조정
+                ctx.beginPath();
+                ctx.moveTo(linePoints[0] - minX, linePoints[1] - minY);
+                
+                for (let i = 2; i < linePoints.length; i += 2) {
+                    ctx.lineTo(linePoints[i] - minX, linePoints[i + 1] - minY);
+                }
+                
+                ctx.closePath();
+            }
+        });
+
+        // 이미지를 그룹의 로컬 좌표계에 맞게 조정하여 추가
+        const newImage = imageNode.clone({
+            x: imageNode.x() - minX,  // 그룹 원점 기준으로 조정
+            y: imageNode.y() - minY
+        });
+        clipGroup.add(newImage);
+        
+        console.log('Created clip group at lasso position:', {
+            groupPos: { x: minX, y: minY },
+            imageInGroup: { x: newImage.x(), y: newImage.y() },
+            clipBounds: { width: maxX - minX, height: maxY - minY }
+        });
+        
+        // 부모에 그룹 추가
+        parent.add(clipGroup);
+
+        // 원본 이미지 제거
+        imageNode.destroy();
+        
+        // 레이어 다시 그리기
+        layer.batchDraw();
+        
+        console.log('Lasso clip applied successfully - result positioned at lasso selection');
+        return clipGroup;
+        
+    } catch (error) {
+        console.error('Error applying lasso clip:', error);
+        return null;
+    }
 }

@@ -1,4 +1,5 @@
 import { init as initCanvas, getStage, getLayer, getSelectedImage } from '../components/canvas/canvas.js';
+import { init as initCoords } from './coordinates.js';
 import { init as initImageEditor } from '../components/imageEditor/imageEditor.js';
 import { init as initKeyboardManager, registerShortcut } from '../components/keyboardManager/keyboardManager.js';
 import { startTransformMode, isTransformModeActive, getTransformer } from '../components/imageEditor/tools/transformer.js';
@@ -19,10 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. 캔버스 모듈 초기화
     initCanvas('canvas-container');
 
-    // 3. 이미지 에디터 초기화
+    // 3. 이미지 에디터 및 좌표계 유틸리티 초기화
     const stage = getStage();
     const layer = getLayer();
     if (stage && layer) {
+        initCoords(stage); // Initialize coordinate system utility
         initImageEditor(stage, layer);
     }
 
