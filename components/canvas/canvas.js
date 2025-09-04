@@ -248,7 +248,7 @@ function setupImageSelection() {
         const clickedNode = e.target;
         
         // 이미지가 클릭되었으면 선택 상태로 설정
-        if (clickedNode.className === 'Image') {
+        if (clickedNode.className === 'Image' || clickedNode.name() === 'image-group') {
             // 다른 이미지를 선택했을 때 기존 트랜스폼 완전 종료
             if (selectedImage && selectedImage !== clickedNode && isTransformModeActive()) {
                 // console.log('🔄 Different image selected - exiting previous transform mode');
@@ -363,33 +363,34 @@ export function setSelectedImage(image) {
 // 이미지 하이라이트 함수들
 function highlightSelectedImage(image) {
     if (!image) return;
-    
+
     // 기존 하이라이트 제거
     clearImageHighlight();
-    
-    // 이미지 경계 박스 계산
+
+    // 이미지의 절대 화면 좌표 경계 박스 계산
     const box = image.getClientRect();
-    
+
+    // 화면 좌표를 스테이지 내부 좌표로 변환
+    const stageTransform = stage.getAbsoluteTransform().copy().invert();
+    const topLeft = stageTransform.point({ x: box.x, y: box.y });
+
     // 선택 하이라이트 사각형 생성
     selectionHighlight = new Konva.Rect({
-        x: box.x,
-        y: box.y,
-        width: box.width,
-        height: box.height,
+        x: topLeft.x,
+        y: topLeft.y,
+        width: box.width / stage.scaleX(),
+        height: box.height / stage.scaleY(),
         stroke: '#00aaff',
-        strokeWidth: 2,
-        fill: 'transparent',
+        strokeWidth: 2 / stage.scaleX(),
         listening: false, // 이벤트 무시
         name: 'selection-highlight'
     });
-    
+
     // 하이라이트에 선택된 이미지 참조를 저장 (백업용)
     selectionHighlight._selectedImageRef = image;
-    
+
     layer.add(selectionHighlight);
     layer.batchDraw();
-    
-    // console.log('✨ Image highlighted with reference stored');
 }
 
 function clearImageHighlight() {
@@ -404,8 +405,17 @@ function clearImageHighlight() {
 function updateHighlightPosition() {
     if (selectionHighlight && selectedImage) {
         const box = selectedImage.getClientRect();
-        selectionHighlight.position({ x: box.x, y: box.y });
-        selectionHighlight.size({ width: box.width, height: box.height });
+        
+        // 화면 좌표를 스테이지 내부 좌표로 변환
+        const stageTransform = stage.getAbsoluteTransform().copy().invert();
+        const topLeft = stageTransform.point({ x: box.x, y: box.y });
+
+        selectionHighlight.position(topLeft);
+        selectionHighlight.size({ 
+            width: box.width / stage.scaleX(), 
+            height: box.height / stage.scaleY() 
+        });
+        selectionHighlight.strokeWidth(2 / stage.scaleX());
         layer.batchDraw();
     }
 }

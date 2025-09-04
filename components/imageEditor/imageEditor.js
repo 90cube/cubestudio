@@ -1,14 +1,16 @@
 // components/imageEditor/imageEditor.js
 import { init as initTransform, rotate, flip } from './tools/transform.js';
 import { init as initFilters, adjustBrightness, adjustContrast, applyColorFilter, applyBlur, applySharpen, resetFilters } from './tools/filters.js';
-import { init as initCrop, startCropMode, applyCrop, cancelCropMode, isCropMode } from './tools/crop.js';
+import { init as initCrop, startCropMode, applyCrop, cancelCropMode, isCropMode, activateLassoCrop } from './tools/crop.js';
 import { init as initTransformer, startTransformMode, exitTransformMode, isTransformModeActive } from './tools/transformer.js';
 import { setSelectedImage } from '../canvas/canvas.js';
+import { registerShortcut } from '../keyboardManager/keyboardManager.js';
 
 let stage;
 let layer;
 let contextMenu;
 let selectedImage;
+let cropModeSelector;
 
 export function init(konvaStage, konvaLayer) {
     stage = konvaStage;
@@ -22,8 +24,11 @@ export function init(konvaStage, konvaLayer) {
     
     setupContextMenu();
     setupDoubleClickHandler();
+    createCropModeSelector(); // Create the selector on init, but keep it hidden
     
     console.log('Image Editor initialized');
+
+    registerShortcut('Delete', deleteImage, {}, 'Delete selected image');
 }
 
 // 더블클릭 핸들러 설정
@@ -37,7 +42,7 @@ function setupDoubleClickHandler() {
         const clickedNode = e.target;
         
         // 이미지 노드인지 확인
-        if (clickedNode.className === 'Image') {
+        if (clickedNode.className === 'Image' || clickedNode.name() === 'image-group') {
             selectedImage = clickedNode;
             // 캔버스의 선택 상태도 동기화
             setSelectedImage(clickedNode);
@@ -297,8 +302,6 @@ function showContextMenu(x, y) {
 // 컨텍스트 메뉴 숨김
 function hideContextMenu() {
     contextMenu.style.display = 'none';
-    // 선택된 이미지 상태는 유지 (T키로 트랜스폼을 사용할 수 있도록)
-    // selectedImage = null;
 }
 
 // 현재 선택된 이미지 반환
@@ -306,15 +309,90 @@ function getCurrentSelectedImage() {
     return selectedImage;
 }
 
-// 추가 도구 기능들
+// --- Crop Mode UI --- //
+
+function createCropModeSelector() {
+    if (cropModeSelector) return;
+
+    cropModeSelector = document.createElement('div');
+    cropModeSelector.style.cssText = `
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(30, 30, 30, 0.85);
+        padding: 8px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        z-index: 1001;
+        display: none;
+        gap: 10px;
+        backdrop-filter: blur(5px);
+    `;
+
+    const rectButton = document.createElement('button');
+    rectButton.textContent = '사각형';
+    rectButton.onclick = () => {
+        hideCropModeSelector();
+        startCropMode(getCurrentSelectedImage());
+    };
+
+    const lassoButton = document.createElement('button');
+    lassoButton.textContent = '자유 모양';
+    lassoButton.onclick = () => {
+        hideCropModeSelector();
+        activateLassoCrop(getCurrentSelectedImage());
+    };
+
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = '취소';
+    cancelButton.onclick = () => {
+        hideCropModeSelector();
+    };
+    
+    [rectButton, lassoButton, cancelButton].forEach(button => {
+        button.style.cssText = `
+            background: #4a4a4a;
+            color: white;
+            border: 1px solid #666;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        `;
+        button.onmouseenter = () => button.style.background = '#666';
+        button.onmouseleave = () => button.style.background = '#4a4a4a';
+    });
+
+    cropModeSelector.appendChild(rectButton);
+    cropModeSelector.appendChild(lassoButton);
+    cropModeSelector.appendChild(cancelButton);
+    document.body.appendChild(cropModeSelector);
+}
+
+function showCropModeSelector() {
+    if (!cropModeSelector) {
+        createCropModeSelector();
+    }
+    cropModeSelector.style.display = 'flex';
+}
+
+function hideCropModeSelector() {
+    if (cropModeSelector) {
+        cropModeSelector.style.display = 'none';
+    }
+}
+
 function startCropTool() {
     const image = getCurrentSelectedImage();
     if (!image) return;
     
     hideContextMenu();
-    startCropMode(image);
+    showCropModeSelector();
 }
 
+// --- End Crop Mode UI --- //
 
 function deleteImage() {
     const image = getCurrentSelectedImage();

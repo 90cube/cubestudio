@@ -334,3 +334,114 @@ function removeCropOverlay() {
 export function isCropMode() {
     return cropOverlay !== null;
 }
+
+// --- Lasso Crop ---
+
+let isDrawing = false;
+let lassoLine;
+
+export function activateLassoCrop(imageNode) {
+    if (!imageNode) return;
+    targetImage = imageNode;
+
+    // Deactivate other interactions
+    stage.listening(false);
+    imageNode.listening(false);
+    stage.listening(true);
+
+    stage.on('mousedown.lasso', () => {
+        isDrawing = true;
+        const pos = stage.getPointerPosition();
+        lassoLine = new Konva.Line({
+            points: [pos.x, pos.y],
+            fill: '#007bff',
+            stroke: '#0056b3',
+            strokeWidth: 1,
+            opacity: 0.7,
+            closed: true
+        });
+        layer.add(lassoLine);
+    });
+
+    stage.on('mousemove.lasso', () => {
+        if (!isDrawing) return;
+        const pos = stage.getPointerPosition();
+        const newPoints = lassoLine.points().concat([pos.x, pos.y]);
+        lassoLine.points(newPoints);
+        layer.batchDraw();
+    });
+
+    stage.on('mouseup.lasso', () => {
+        if (!isDrawing) return;
+        isDrawing = false;
+        
+        const originalImage = targetImage;
+
+        try {
+            const points = lassoLine.points();
+            if (points.length > 4) {
+                applyLassoClip(originalImage, lassoLine);
+            }
+        } catch (error) {
+            console.error("An error occurred during lasso crop:", error);
+        } finally {
+            // Cleanup
+            lassoLine.destroy();
+            stage.off('mousedown.lasso mousemove.lasso mouseup.lasso');
+            
+            if (originalImage) {
+                originalImage.listening(true);
+            }
+            targetImage = null;
+            
+            layer.batchDraw();
+        }
+    });
+}
+
+function applyLassoClip(imageNode, line) {
+    const parent = imageNode.getParent();
+    const linePoints = line.points();
+
+    // The clipping path needs to be relative to the image's local, un-transformed space.
+    const transform = imageNode.getAbsoluteTransform().copy().invert();
+    const localPoints = [];
+    for (let i = 0; i < linePoints.length; i += 2) {
+        const point = transform.point({ x: linePoints[i], y: linePoints[i+1] });
+        localPoints.push(point.x, point.y);
+    }
+
+    // Clone the image, but reset its own transforms since the group will handle them.
+    const newImage = imageNode.clone({
+        x: 0,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        rotation: 0,
+        clipFunc: function(ctx) {
+            ctx.beginPath();
+            ctx.moveTo(localPoints[0], localPoints[1]);
+            for (let i = 2; i < localPoints.length; i += 2) {
+                ctx.lineTo(localPoints[i], localPoints[i + 1]);
+            }
+            ctx.closePath();
+        }
+    });
+
+    // Create a new group that will contain the clipped image.
+    // The group inherits all transforms from the original image.
+    const clipGroup = new Konva.Group({
+        x: imageNode.x(),
+        y: imageNode.y(),
+        scaleX: imageNode.scaleX(),
+        scaleY: imageNode.scaleY(),
+        rotation: imageNode.rotation(),
+        draggable: true,
+        name: 'image-group' // Add a name to identify this as an image-like object
+    });
+
+    clipGroup.add(newImage);
+    parent.add(clipGroup);
+
+    imageNode.destroy();
+}
