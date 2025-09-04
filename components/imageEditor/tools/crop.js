@@ -10,6 +10,9 @@ let stage;
 let cropOverlay;
 let cropRect;
 let isAdjustingCrop = false;
+let targetImage; // 자르기 대상 이미지를 저장할 변수
+let initialClientRect; // 자르기 시작 시점의 이미지 좌표
+
 
 export function init(konvaStage, konvaLayer) {
     stage = konvaStage;
@@ -22,8 +25,11 @@ export function init(konvaStage, konvaLayer) {
  */
 export function startCropMode(imageNode) {
     if (!imageNode) return;
+
+    targetImage = imageNode; // 대상 이미지 저장
     
     const imageRect = imageNode.getClientRect();
+    initialClientRect = imageRect; // 시작 시점 좌표 저장
     
     // 크롭 오버레이 생성
     createCropOverlay(imageRect);
@@ -243,10 +249,9 @@ function updateCropHandles() {
 
 /**
  * 크롭 적용
- * @param {Konva.Image} imageNode - 대상 이미지 (선택적)
  */
-export function applyCrop(imageNode) {
-    if (!cropRect || !cropOverlay) return;
+export function applyCrop() {
+    if (!cropRect || !cropOverlay || !targetImage) return;
     
     const cropArea = {
         x: cropRect.x(),
@@ -255,12 +260,10 @@ export function applyCrop(imageNode) {
         height: cropRect.height()
     };
     
+    // 실제 크롭 적용 로직
+    applyCropToImage(targetImage, cropArea);
+
     removeCropOverlay();
-    
-    if (imageNode) {
-        // 실제 크롭 적용 로직
-        applyCropToImage(imageNode, cropArea);
-    }
     
     return cropArea;
 }
@@ -271,27 +274,35 @@ export function applyCrop(imageNode) {
  * @param {Object} cropArea - 크롭 영역
  */
 function applyCropToImage(imageNode, cropArea) {
-    const imageRect = imageNode.getClientRect();
-    
-    // 크롭 영역을 이미지 좌표계로 변환
-    const relativeX = (cropArea.x - imageRect.x) / imageRect.width;
-    const relativeY = (cropArea.y - imageRect.y) / imageRect.height;
-    const relativeWidth = cropArea.width / imageRect.width;
-    const relativeHeight = cropArea.height / imageRect.height;
-    
-    const originalWidth = imageNode.width();
-    const originalHeight = imageNode.height();
-    
-    // 크롭 적용
-    imageNode.cropX(relativeX * originalWidth);
-    imageNode.cropY(relativeY * originalHeight);
-    imageNode.cropWidth(relativeWidth * originalWidth);
-    imageNode.cropHeight(relativeHeight * originalHeight);
-    
-    // 크롭된 크기에 맞게 이미지 크기 조정
-    imageNode.width(relativeWidth * originalWidth);
-    imageNode.height(relativeHeight * originalHeight);
-    
+    // initialClientRect was stored when crop mode started
+    if (!initialClientRect) return;
+
+    const absScale = imageNode.getAbsoluteScale();
+
+    const cropDx = cropArea.x - initialClientRect.x;
+    const cropDy = cropArea.y - initialClientRect.y;
+
+    const localCropDx = cropDx / absScale.x;
+    const localCropDy = cropDy / absScale.y;
+
+    const currentCrop = imageNode.crop() || { x: 0, y: 0 };
+
+    const newCrop = {
+        x: currentCrop.x + localCropDx,
+        y: currentCrop.y + localCropDy,
+        width: cropArea.width / absScale.x,
+        height: cropArea.height / absScale.y
+    };
+
+    // Apply the new crop
+    imageNode.crop(newCrop);
+
+    // Update position and size to match the visual crop area
+    imageNode.offset({ x: 0, y: 0 }); // 기준점을 리셋하여 위치 계산 오류 방지
+    imageNode.position({ x: cropArea.x, y: cropArea.y });
+    imageNode.size({ width: cropArea.width, height: cropArea.height });
+    imageNode.scale({ x: 1, y: 1 }); // Reset scale
+
     layer.batchDraw();
 }
 
@@ -311,6 +322,8 @@ function removeCropOverlay() {
         cropOverlay.destroy();
         cropOverlay = null;
         cropRect = null;
+        targetImage = null; // 대상 이미지 초기화
+        initialClientRect = null; // 시작 좌표 초기화
         layer.batchDraw();
     }
 }
