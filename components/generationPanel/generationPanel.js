@@ -79,10 +79,92 @@ export class GenerationPanel {
         setTimeout(() => {
             this.setupEventListeners();
             this.updateUI();
-            this.setupCanvasImageListener();
+            
+            // 추가 지연을 두어 DOM이 완전히 렌더링되도록 함
+            setTimeout(() => {
+                this.setupDenoiseStateListener(); // 새 리스너 호출로 변경
+            }, 10);
         }, 0);
+    }
+
+    /**
+     * isImageSelected 상태를 구독하여 디노이즈 슬라이더를 제어합니다.
+     */
+    setupDenoiseStateListener(retryCount = 0) {
+        console.log(`🔧 setupDenoiseStateListener() called (attempt ${retryCount + 1})`);
+        console.log('🔧 containerElement:', this.containerElement);
         
-        // console.log('GenerationPanel initialized successfully');
+        const denoiseSlider = this.containerElement?.querySelector('#param-denoise-slider');
+        const denoiseInput = this.containerElement?.querySelector('#param-denoise');
+
+        console.log('🔧 Denoise elements found:');
+        console.log('🔧 - Slider:', denoiseSlider);
+        console.log('🔧 - Input:', denoiseInput);
+
+        if (!denoiseSlider || !denoiseInput) {
+            console.error(`❌ Denoise elements not found - attempt ${retryCount + 1}`);
+            console.log('❌ Available elements in container:', 
+                this.containerElement?.querySelectorAll('*[id]').length || 'container not found');
+            
+            // 최대 3번까지 재시도
+            if (retryCount < 3) {
+                console.log(`⏳ Retrying in 50ms... (attempt ${retryCount + 2})`);
+                setTimeout(() => {
+                    this.setupDenoiseStateListener(retryCount + 1);
+                }, 50);
+                return;
+            } else {
+                console.error('❌ Failed to find denoise elements after 4 attempts - giving up');
+                return;
+            }
+        }
+
+        console.log('✅ Setting up isImageSelected subscription...');
+        
+        // isImageSelected 상태 구독
+        const unsubscribe = stateManager.subscribe('isImageSelected', (isSelected, oldValue) => {
+            console.log('🎯 isImageSelected subscription callback triggered!');
+            console.log('🎯 - New value:', isSelected);
+            console.log('🎯 - Old value:', oldValue);
+            console.log('🎯 - Slider element:', denoiseSlider);
+            console.log('🎯 - Input element:', denoiseInput);
+            
+            denoiseSlider.disabled = !isSelected;
+            denoiseInput.disabled = !isSelected;
+
+            // 스타일 적용
+            if (!isSelected) {
+                denoiseSlider.style.opacity = '0.5';
+                denoiseInput.style.opacity = '0.5';
+                console.log('🎯 Applied disabled styles (opacity: 0.5)');
+            } else {
+                denoiseSlider.style.opacity = '1';
+                denoiseInput.style.opacity = '1';
+                console.log('🎯 Applied enabled styles (opacity: 1)');
+            }
+        });
+        
+        // 구독 해제 함수 저장 (컴포넌트 destroy 시 사용)
+        this.denoiseStateUnsubscribe = unsubscribe;
+        console.log('✅ Subscription created, unsubscribe function stored');
+
+        // 초기 상태 강제 설정 (페이지 로드 시)
+        const initialState = stateManager.getState('isImageSelected') || false;
+        console.log('🔧 Initial isImageSelected state:', initialState);
+        
+        denoiseSlider.disabled = !initialState;
+        denoiseInput.disabled = !initialState;
+        if (!initialState) {
+            denoiseSlider.style.opacity = '0.5';
+            denoiseInput.style.opacity = '0.5';
+            console.log('🔧 Applied initial disabled styles');
+        } else {
+            denoiseSlider.style.opacity = '1';
+            denoiseInput.style.opacity = '1';
+            console.log('🔧 Applied initial enabled styles');
+        }
+        
+        console.log('✅ setupDenoiseStateListener completed successfully');
     }
     
     /**
@@ -1210,68 +1292,7 @@ export class GenerationPanel {
         }
     }
     
-    /**
-     * 캔버스 이미지 선택 리스너 설정
-     */
-    setupCanvasImageListener() {
-        // 캔버스 이미지 선택 이벤트 감지
-        document.addEventListener('click', () => {
-            // 약간의 지연을 두고 이미지 선택 상태 확인
-            setTimeout(() => {
-                this.updateDenoiseState();
-            }, 100);
-        });
-        
-        // 초기 상태 설정
-        this.updateDenoiseState();
-    }
     
-    /**
-     * 디노이즈 슬라이더 활성화/비활성화 업데이트
-     */
-    updateDenoiseState() {
-        const denoiseSlider = this.containerElement?.querySelector('#param-denoise-slider');
-        const denoiseInput = this.containerElement?.querySelector('#param-denoise');
-        
-        if (denoiseSlider && denoiseInput) {
-            // 캔버스에서 선택된 이미지가 있는지 확인
-            let hasSelectedImage = false;
-            
-            try {
-                // getSelectedImage 함수가 있는지 확인하고 호출
-                if (window.getSelectedImage && typeof window.getSelectedImage === 'function') {
-                    const selectedImage = window.getSelectedImage();
-                    hasSelectedImage = selectedImage != null;
-                } else {
-                    // canvas.js의 getSelectedImage 함수 직접 접근
-                    const canvasModule = document.querySelector('#canvas-container');
-                    if (canvasModule && window.canvasModule) {
-                        const selectedImage = window.canvasModule.getSelectedImage();
-                        hasSelectedImage = selectedImage != null;
-                    }
-                }
-            } catch (error) {
-                console.log('Could not check selected image:', error);
-                // 기본값으로 비활성화
-                hasSelectedImage = false;
-            }
-            
-            // 슬라이더 활성화/비활성화
-            denoiseSlider.disabled = !hasSelectedImage;
-            denoiseInput.disabled = !hasSelectedImage;
-            
-            // 스타일 적용
-            if (!hasSelectedImage) {
-                denoiseSlider.style.opacity = '0.5';
-                denoiseInput.style.opacity = '0.5';
-            } else {
-                denoiseSlider.style.opacity = '1';
-                denoiseInput.style.opacity = '1';
-            }
-            
-            // console.log(`Denoise slider ${hasSelectedImage ? 'enabled' : 'disabled'} - Image selected: ${hasSelectedImage}`);
-        }
-    }
     
     /**
      * 생성 버튼 클릭
@@ -1471,7 +1492,6 @@ export class GenerationPanel {
         
         // 조건부 슬라이더 상태 업데이트
         this.updateRepeatCountState();
-        this.updateDenoiseState();
         
         // 추가적으로 약간의 지연 후 한 번 더 상태 동기화
         setTimeout(() => {
@@ -1692,6 +1712,15 @@ export class GenerationPanel {
      * 컴포넌트 정리
      */
     destroy() {
+        console.log('🗑️ GenerationPanel destroy() called');
+        
+        // stateManager 구독 해제
+        if (this.denoiseStateUnsubscribe) {
+            console.log('🗑️ Unsubscribing from isImageSelected state');
+            this.denoiseStateUnsubscribe();
+            this.denoiseStateUnsubscribe = null;
+        }
+        
         // 이벤트 리스너 정리
         this.eventHandlers.forEach((handlers, elementId) => {
             const element = this.containerElement?.querySelector(`#${elementId}`);
@@ -1704,6 +1733,6 @@ export class GenerationPanel {
         
         this.eventHandlers.clear();
         
-        console.log('GenerationPanel destroyed');
+        console.log('🗑️ GenerationPanel destroyed');
     }
 }

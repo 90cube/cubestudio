@@ -44,8 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 9. LoRA 선택기 패널 생성
     createLoRAPanel();
     
-    // 10. 통합 생성 패널 생성
-    createGenerationPanel();
+    // 10. 통합 생성 패널 생성 (지연 후 생성)
+    setTimeout(() => {
+        console.log('⏰ Creating Generation Panel with delay...');
+        createGenerationPanel();
+        console.log('✅ Generation Panel created and should be ready for image selection');
+    }, 100);
 
     console.log('Canvas Studio initialized successfully');
 });
@@ -344,24 +348,93 @@ function createLoRAPanel() {
 
 // 통합 생성 패널 생성 (하단 고정)
 function createGenerationPanel() {
+    console.log('🏗️ createGenerationPanel() called');
+    
     const generationPanel = new GenerationPanel();
+    console.log('🏗️ GenerationPanel instance created:', generationPanel);
     
     // 컨테이너 엘리먼트 가져오기
     const container = document.getElementById('generation-panel-container');
+    console.log('🏗️ Container element:', container);
+    
     if (!container) {
-        console.error('Generation panel container not found');
+        console.error('❌ Generation panel container not found');
         return;
     }
     
     // 패널 렌더링 및 컨테이너에 추가
+    console.log('🏗️ Rendering panel...');
     const panelElement = generationPanel.render();
+    console.log('🏗️ Panel element rendered:', panelElement);
+    
     container.appendChild(panelElement);
+    console.log('🏗️ Panel element appended to container');
     
     // 패널 초기화
+    console.log('🏗️ Initializing panel...');
     generationPanel.init();
+    console.log('🏗️ Panel initialized');
     
     // 전역 참조 저장 (디버깅 및 외부 접근용)
     window.generationPanel = generationPanel;
+    console.log('🏗️ Global reference stored');
     
-    console.log('Generation panel created and initialized');
+    // 상태 확인
+    setTimeout(() => {
+        console.log('🔍 Post-initialization check:');
+        console.log('🔍 - containerElement:', generationPanel.containerElement);
+        console.log('🔍 - isInitialized:', generationPanel.isInitialized);
+        
+        const denoiseSlider = generationPanel.containerElement?.querySelector('#param-denoise-slider');
+        const denoiseInput = generationPanel.containerElement?.querySelector('#param-denoise');
+        console.log('🔍 - Denoise slider found:', !!denoiseSlider);
+        console.log('🔍 - Denoise input found:', !!denoiseInput);
+        
+        if (denoiseSlider) {
+            console.log('🔍 - Slider disabled:', denoiseSlider.disabled);
+            console.log('🔍 - Slider opacity:', denoiseSlider.style.opacity);
+        }
+        
+        console.log('🔍 - Current isImageSelected state:', window.stateManager?.getState('isImageSelected'));
+    }, 50);
+    
+    console.log('✅ Generation panel created and initialized');
+    
+    // 디버깅 헬퍼 함수들을 전역으로 노출
+    window.debugHelpers = {
+        // 이미지 선택 상태 강제 설정
+        forceImageSelection: (selected = true) => {
+            console.log(`🔧 Manually setting isImageSelected to ${selected}`);
+            window.stateManager.updateState('isImageSelected', selected);
+        },
+        
+        // 현재 상태 확인
+        checkState: () => {
+            console.log('🔍 Current state check:');
+            console.log('- isImageSelected:', window.stateManager.getState('isImageSelected'));
+            console.log('- GenerationPanel instance:', window.generationPanel);
+            
+            if (window.generationPanel) {
+                const slider = window.generationPanel.containerElement?.querySelector('#param-denoise-slider');
+                const input = window.generationPanel.containerElement?.querySelector('#param-denoise');
+                console.log('- Denoise slider found:', !!slider);
+                console.log('- Denoise input found:', !!input);
+                
+                if (slider) {
+                    console.log('- Slider disabled:', slider.disabled);
+                    console.log('- Slider opacity:', slider.style.opacity);
+                }
+            }
+        },
+        
+        // 구독자 상태 확인
+        checkSubscribers: () => {
+            console.log('🔍 Subscriber check:');
+            const subscribers = window.stateManager.subscribers;
+            console.log('- isImageSelected subscribers:', subscribers.get('isImageSelected')?.size || 0);
+            console.log('- All subscribers:', Array.from(subscribers.keys()));
+        }
+    };
+    
+    console.log('🛠️ Debug helpers available in window.debugHelpers');
 }

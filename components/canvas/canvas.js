@@ -1,6 +1,7 @@
 // components/canvas/canvas.js
 
 import { exitTransformMode, isTransformModeActive } from '../imageEditor/tools/transformer.js';
+import stateManager from '../../core/stateManager.js';
 
 let stage;
 let layer;
@@ -61,7 +62,10 @@ export function init(containerId) {
     setupDragAndDrop();
     
     // 이미지 선택 추적 설정
-    setupImageSelection();
+        setupImageSelection();
+
+        // isImageSelected 초기 상태 설정
+        stateManager.updateState('isImageSelected', false);
 }
 
 // 키보드 이벤트 설정 (스페이스바 팬닝)
@@ -256,12 +260,24 @@ function setupImageSelection() {
             
             selectedImage = clickedNode;
             
+            // 디버깅: stateManager 호출 전 상태 확인
+            console.log('🔄 Before updateState - isImageSelected will be set to TRUE');
+            console.log('🔄 StateManager instance:', stateManager);
+            console.log('🔄 StateManager updateState method:', typeof stateManager.updateState);
+            
+            stateManager.updateState('isImageSelected', true);
+            
+            // 디버깅: stateManager 호출 후 상태 확인
+            const currentState = stateManager.getState('isImageSelected');
+            console.log('✅ After updateState - current isImageSelected state:', currentState);
+
             // 디버깅용 선택 히스토리 추가
             selectionHistory.push({
                 timestamp: Date.now(),
                 action: 'selected',
                 imageId: selectedImage.id() || 'no-id',
-                imageClassName: selectedImage.className
+                imageClassName: selectedImage.className,
+                stateManagerCallSuccess: currentState === true
             });
             
             // 선택된 이미지 하이라이트 적용
@@ -284,11 +300,21 @@ function setupImageSelection() {
             clearImageHighlight();
             selectedImage = null;
             
+            // 디버깅: stateManager 호출 전 상태 확인
+            console.log('🔄 Before updateState - isImageSelected will be set to FALSE');
+            
+            stateManager.updateState('isImageSelected', false);
+            
+            // 디버깅: stateManager 호출 후 상태 확인
+            const currentState = stateManager.getState('isImageSelected');
+            console.log('❌ After updateState - current isImageSelected state:', currentState);
+
             // 디버깅용 선택 히스토리 추가
             selectionHistory.push({
                 timestamp: Date.now(),
                 action: 'cleared',
-                reason: 'background-clicked'
+                reason: 'background-clicked',
+                stateManagerCallSuccess: currentState === false
             });
             
             console.log('❌ Image selection cleared (background clicked)');
