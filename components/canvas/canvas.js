@@ -3,6 +3,7 @@
 import { exitTransformMode, isTransformModeActive } from '../imageEditor/tools/transformer.js';
 import stateManager from '../../core/stateManager.js';
 import { getNodeRect, init as initCoordinates } from '../../core/coordinates.js';
+import { showElementsMenu, isElementsMenuOpen } from '../elementsMenu/elementsMenu.js';
 
 let stage;
 let layer;
@@ -67,6 +68,9 @@ export function init(containerId) {
     
     // 이미지 선택 추적 설정
         setupImageSelection();
+
+        // 더블클릭 이벤트 설정
+        setupDoubleClickEvent();
 
         // isImageSelected 초기 상태 설정
         stateManager.updateState('isImageSelected', false);
@@ -180,6 +184,43 @@ function setupDragAndDrop() {
         transform.invert();
         const realPos = transform.point(pos);
 
+        // 엘리먼츠 메뉴에서 드래그된 이미지 처리
+        const elementData = e.dataTransfer.getData('application/element-data');
+        if (elementData) {
+            try {
+                const data = JSON.parse(elementData);
+                if (data.type === 'element' && data.path) {
+                    const img = new window.Image();
+                    img.onload = () => {
+                        addImageToCanvas(img, realPos.x, realPos.y);
+                        console.log('📦 Element dropped on canvas:', data.name);
+                    };
+                    img.onerror = () => {
+                        console.error('❌ Failed to load element image:', data.path);
+                    };
+                    img.src = data.path;
+                    return;
+                }
+            } catch (error) {
+                console.error('❌ Error parsing element data:', error);
+            }
+        }
+
+        // 일반 이미지 URL 드롭 처리
+        const imageUrl = e.dataTransfer.getData('text/plain');
+        if (imageUrl && (imageUrl.startsWith('./') || imageUrl.startsWith('http'))) {
+            const img = new window.Image();
+            img.onload = () => {
+                addImageToCanvas(img, realPos.x, realPos.y);
+                console.log('📦 Image URL dropped on canvas:', imageUrl);
+            };
+            img.onerror = () => {
+                console.error('❌ Failed to load image from URL:', imageUrl);
+            };
+            img.src = imageUrl;
+            return;
+        }
+
         // 드롭된 파일 처리
         if (e.dataTransfer.files.length > 0) {
             const file = e.dataTransfer.files[0];
@@ -190,6 +231,7 @@ function setupDragAndDrop() {
                     img.src = reader.result;
                     img.onload = () => {
                         addImageToCanvas(img, realPos.x, realPos.y);
+                        console.log('📷 File dropped on canvas:', file.name);
                     };
                 };
                 reader.readAsDataURL(file);
@@ -228,6 +270,70 @@ function addImageToCanvas(imageObject, x, y) {
     
     // console.log('📷 New image added to canvas');
 }
+
+/**
+ * 더블클릭 이벤트 설정 - 엘리먼츠 컨텍스트 메뉴 표시
+ */
+function setupDoubleClickEvent() {
+    stage.on('dblclick dbltap', async (e) => {
+        // 팬닝 모드에서는 더블클릭 비활성화
+        if (document.querySelector('#canvas-container').classList.contains('panning')) {
+            return;
+        }
+
+        // 이미지를 더블클릭한 경우는 제외 (이미지 편집 모드로 진입)
+        const clickedNode = e.target;
+        if (clickedNode.className === 'Image') {
+            return;
+        }
+
+        // 배경을 더블클릭한 경우에만 엘리먼츠 메뉴 표시
+        if (clickedNode.className === 'Rect') {
+            // 마우스 포인터 위치 가져오기
+            const pointer = stage.getPointerPosition();
+            const canvasContainer = document.getElementById('canvas-container');
+            const rect = canvasContainer.getBoundingClientRect();
+            
+            // 실제 화면 좌표로 변환
+            const x = pointer.x + rect.left;
+            const y = pointer.y + rect.top;
+            
+            // 엘리먼츠 메뉴가 이미 열려있으면 닫고, 없으면 열기
+            if (isElementsMenuOpen()) {
+                console.log('📦 Elements menu already open - toggling');
+                const { hideElementsMenu } = await import('../elementsMenu/elementsMenu.js');
+                hideElementsMenu();
+            } else {
+                console.log('📦 Opening elements menu at:', { x, y });
+                showElementsMenu(x, y);
+            }
+        }
+    });
+}
+
+/**
+ * 엘리먼츠 메뉴에서 캔버스로 이미지를 추가하는 전역 함수
+ * (elementsMenu.js에서 호출됨)
+ */
+window.addImageToCanvasFromElementsMenu = function(imageObject, screenX, screenY) {
+    // 화면 좌표를 캔버스 좌표로 변환
+    const canvasContainer = document.getElementById('canvas-container');
+    const rect = canvasContainer.getBoundingClientRect();
+    
+    // 화면 좌표를 스테이지 좌표로 변환
+    const stageX = screenX - rect.left;
+    const stageY = screenY - rect.top;
+    
+    // 스테이지 변환 (줌, 팬닝) 고려하여 실제 캔버스 좌표로 변환
+    const transform = stage.getAbsoluteTransform().copy();
+    transform.invert();
+    const canvasPos = transform.point({ x: stageX, y: stageY });
+    
+    // 기존 addImageToCanvas 함수 사용
+    addImageToCanvas(imageObject, canvasPos.x, canvasPos.y);
+    
+    console.log('📦 Element added to canvas at canvas coordinates:', canvasPos);
+};
 
 // 외부에서 stage와 layer에 접근할 수 있도록 export
 export function getStage() {

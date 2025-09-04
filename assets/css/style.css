@@ -193,3 +193,215 @@ html, body {
     background: linear-gradient(135deg, rgba(155, 89, 182, 0.6) 0%, rgba(155, 89, 182, 0.8) 100%);
     transform: scaleX(1.1);
 }
+
+/* ============================================================================ */
+/* ELEMENTS MENU STYLES */
+/* ============================================================================ */
+.elements-menu-container {
+    position: fixed;
+    z-index: 9999;
+    width: 900px;
+    min-height: 400px;
+    max-height: 80vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    user-select: none;
+    box-shadow: var(--shadow-strong);
+}
+
+.elements-menu-window {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    transition: var(--transition-smooth);
+}
+
+.elements-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: move;
+    transition: var(--transition-smooth);
+}
+
+.elements-menu-header:hover {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+}
+
+.elements-menu-header.dragging {
+    cursor: grabbing;
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
+}
+
+.elements-menu-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.menu-icon {
+    font-size: 16px;
+}
+
+.elements-menu-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.control-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.close-btn:hover {
+    background: #ff4757;
+    color: white;
+}
+
+.control-icon {
+    font-size: 12px;
+    line-height: 1;
+}
+
+.elements-menu-content {
+    padding: 16px;
+    height: 500px;
+}
+
+.elements-grid-container {
+    height: 100%;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 12px;
+}
+
+.elements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 4px;
+}
+
+.element-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: grab;
+    transition: var(--transition-smooth);
+    position: relative;
+}
+
+.element-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--accent-blue);
+}
+
+.element-card:active,
+.element-card.dragging {
+    cursor: grabbing;
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+.element-preview {
+    position: relative;
+    width: 100%;
+    height: 80px;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.element-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: var(--transition-smooth);
+    pointer-events: none;
+}
+
+.element-card:hover .element-preview img {
+    transform: scale(1.1);
+}
+
+.element-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition-smooth);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.element-card:hover .element-overlay {
+    opacity: 1;
+}
+
+.element-name {
+    padding: 8px 6px;
+    font-size: 11px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-top: 1px solid var(--border-subtle);
+    background: rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.element-card:hover .element-name {
+    color: var(--accent-blue);
+}
+
+.loading-message,
+.error-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.error-message {
+    color: #ff4757;
+}
+
+.drag-hint {
+    white-space: nowrap;
+}

@@ -9,6 +9,7 @@ import { ParametersComponent } from '../components/parameters/parametersComponen
 import { MultiDetailerComponent } from '../components/multiDetailer/multiDetailerComponent.js';
 import { LoRASelectorComponent } from '../components/loraSelector/loraSelector.js';
 import { GenerationPanel } from '../components/generationPanel/generationPanel.js';
+import { init as initElementsMenu } from '../components/elementsMenu/elementsMenu.js';
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -46,7 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 9. LoRA 선택기 패널 생성
     createLoRAPanel();
     
-    // 10. 통합 생성 패널 생성 (지연 후 생성)
+    // 10. Elements Menu 초기화
+    initElementsMenu();
+    
+    // 11. 통합 생성 패널 생성 (지연 후 생성)
     setTimeout(() => {
         // console.log('⏰ Creating Generation Panel with delay...');
         createGenerationPanel();
