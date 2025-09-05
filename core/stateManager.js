@@ -34,7 +34,7 @@ class StateManager {
             memoryUsage: []
         };
         
-        console.log('StateManager initialized');
+        // console.log('StateManager initialized');
     }
     
     // ============================================================================
@@ -107,10 +107,10 @@ class StateManager {
     subscribe(key, callback) {
         // 디버깅: isImageSelected에 대해서만 로그
         if (key === 'isImageSelected') {
-            console.log('📮 StateManager.subscribe called:');
-            console.log('📮 - Key:', key);
-            console.log('📮 - Callback:', callback.toString().substring(0, 100) + '...');
-            console.log('📮 - Existing subscribers for key:', this.subscribers.get(key)?.size || 0);
+            // console.log('📮 StateManager.subscribe called:');
+            // console.log('📮 - Key:', key);
+            // console.log('📮 - Callback:', callback.toString().substring(0, 100) + '...');
+            // console.log('📮 - Existing subscribers for key:', this.subscribers.get(key)?.size || 0);
         }
         
         if (!this.subscribers.has(key)) {
@@ -120,8 +120,8 @@ class StateManager {
         this.subscribers.get(key).add(callback);
         
         if (key === 'isImageSelected') {
-            console.log('📮 - Total subscribers after add:', this.subscribers.get(key).size);
-            console.log('📮 - All subscribers for isImageSelected:', Array.from(this.subscribers.get(key)).map(cb => cb.toString().substring(0, 50)));
+            // console.log('📮 - Total subscribers after add:', this.subscribers.get(key).size);
+            // console.log('📮 - All subscribers for isImageSelected:', Array.from(this.subscribers.get(key)).map(cb => cb.toString().substring(0, 50)));
         }
         
         // 구독 해제 함수 반환

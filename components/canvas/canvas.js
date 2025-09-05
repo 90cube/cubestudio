@@ -81,7 +81,7 @@ function setupKeyboardEvents(container) {
     let spacePressed = false;
 
     document.addEventListener('keydown', (e) => {
-        console.log('🎹 Key pressed:', e.code, 'selectedImage:', !!selectedImage);
+        // console.log('🎹 Key pressed:', e.code, 'selectedImage:', !!selectedImage);
         
         if (e.code === 'Space' && !spacePressed) {
             e.preventDefault();
@@ -91,12 +91,12 @@ function setupKeyboardEvents(container) {
         
         // Delete 키로 선택된 이미지 삭제
         if (e.code === 'Delete' || e.code === 'Backspace') {
-            console.log('🗑️ Delete/Backspace key detected, selectedImage:', selectedImage);
+            // console.log('🗑️ Delete/Backspace key detected, selectedImage:', selectedImage);
             if (selectedImage) {
                 e.preventDefault();
                 deleteSelectedImage();
             } else {
-                console.log('⚠️ No image selected for deletion');
+                // console.log('⚠️ No image selected for deletion');
             }
         }
         
@@ -290,17 +290,17 @@ function addImageToCanvas(imageObject, x, y) {
  */
 function setupDoubleClickEvent() {
     stage.on('dblclick dbltap', (e) => {
-        console.log('🖱️ Double-click detected on:', e.target.className);
+        // console.log('🖱️ Double-click detected on:', e.target.className);
         
         // 팬닝 모드에서는 더블클릭 비활성화
         if (document.querySelector('#canvas-container').classList.contains('panning')) {
-            console.log('⚠️ Double-click ignored - panning mode');
+            // console.log('⚠️ Double-click ignored - panning mode');
             return;
         }
 
         // 이미지를 더블클릭한 경우는 제외
         if (e.target.className === 'Image') {
-            console.log('⚠️ Double-click ignored - image clicked');
+            // console.log('⚠️ Double-click ignored - image clicked');
             return;
         }
 
@@ -315,7 +315,7 @@ function setupDoubleClickEvent() {
             const x = pointer.x + rect.left;
             const y = pointer.y + rect.top;
             
-            console.log('🎯 Background double-clicked, showing context menu at:', x, y);
+            // console.log('🎯 Background double-clicked, showing context menu at:', x, y);
             
             // 이벤트 전파 중지로 document 클릭 방지
             if (e.evt) {
@@ -335,11 +335,11 @@ function setupDoubleClickEvent() {
     setTimeout(() => {
         document.addEventListener('click', (e) => {
             if (isContextMenuVisible && backgroundContextMenu && !backgroundContextMenu.contains(e.target)) {
-                console.log('📋 Clicking outside menu - hiding context menu');
+                // console.log('📋 Clicking outside menu - hiding context menu');
                 hideBackgroundContextMenu();
             }
         });
-        console.log('📋 Global click listener registered');
+        // console.log('📋 Global click listener registered');
     }, 100); // 100ms 지연으로 더블클릭 이벤트와 분리
 }
 
@@ -659,14 +659,14 @@ function createBackgroundContextMenu() {
     // body에 추가
     document.body.appendChild(backgroundContextMenu);
     
-    console.log('✅ Context menu created successfully');
+    // console.log('✅ Context menu created successfully');
 }
 
 /**
  * 배경 컨텍스트 메뉴 표시 (단순하고 확실한 방법)
  */
 async function showBackgroundContextMenu(x, y) {
-    console.log('📋 Showing background context menu at:', x, y);
+    // console.log('📋 Showing background context menu at:', x, y);
     
     // 기존에 열린 엘리먼츠 메뉴가 있으면 닫기
     if (isElementsMenuOpen()) {
@@ -704,7 +704,7 @@ async function showBackgroundContextMenu(x, y) {
         backgroundContextMenu.style.left = newX + 'px';
         backgroundContextMenu.style.top = newY + 'px';
         
-        console.log('✅ Context menu positioned at:', newX, newY);
+        // console.log('✅ Context menu positioned at:', newX, newY);
     }, 0);
 }
 
@@ -715,7 +715,7 @@ function hideBackgroundContextMenu() {
     if (backgroundContextMenu) {
         backgroundContextMenu.style.display = 'none';
         isContextMenuVisible = false;
-        console.log('❌ Context menu hidden');
+        // console.log('❌ Context menu hidden');
     }
 }
 
@@ -727,7 +727,7 @@ async function openElementsMenu() {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
     
-    console.log('📦 Opening elements menu from context menu');
+    // console.log('📦 Opening elements menu from context menu');
     showElementsMenu(centerX, centerY);
 }
 
@@ -750,7 +750,7 @@ function openFileDialog() {
                     const centerX = 0; // 캔버스 좌표계에서의 중앙
                     const centerY = 0;
                     addImageToCanvas(img, centerX, centerY);
-                    console.log('🖼️ Image added from file dialog');
+                    // console.log('🖼️ Image added from file dialog');
                 };
             };
             reader.readAsDataURL(file);
@@ -764,7 +764,7 @@ function openFileDialog() {
  */
 function addTextElement() {
     // TODO: 텍스트 추가 기능 구현
-    console.log('📝 Text element addition - to be implemented');
+    // console.log('📝 Text element addition - to be implemented');
     // 임시로 알림 표시
     alert('텍스트 추가 기능은 추후 구현될 예정입니다.');
 }

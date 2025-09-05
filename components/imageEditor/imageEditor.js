@@ -29,7 +29,7 @@ export function init(konvaStage, konvaLayer) {
     setupDoubleClickHandler();
     createCropModeSelector(); // Create the selector on init, but keep it hidden
     
-    console.log('Image Editor initialized');
+    // console.log('Image Editor initialized');
 
     registerShortcut('Delete', deleteImage, {}, 'Delete selected image');
 }
@@ -49,7 +49,7 @@ function setupDoubleClickHandler() {
             selectedImage = clickedNode;
             // 캔버스의 선택 상태도 동기화
             setSelectedImage(clickedNode);
-            console.log('Image selected for editing:', selectedImage);
+            // console.log('Image selected for editing:', selectedImage);
             const pos = stage.getPointerPosition();
             showContextMenu(pos.x, pos.y);
         } else {

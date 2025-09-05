@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konva Test - Context Menu Debug</title>
+    <script src="assets/js/libs/konva.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        .context-menu {
+            position: fixed;
+            background: rgba(42, 48, 56, 0.95);
+            border: 1px solid rgba(134, 142, 150, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        .context-menu-item {
+            padding: 8px 12px;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .context-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <div id="konva-status">Konva Loading...</div>
+        <div id="stage-status">Stage: Not Created</div>
+        <div id="event-log">Events: None</div>
+    </div>
+    
+    <div id="container"></div>
+    
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="testAction('elements')">📦 Elements Menu</div>
+        <div class="context-menu-item" onclick="testAction('upload')">📁 Upload Image</div>
+        <div class="context-menu-item" onclick="testAction('text')">📝 Add Text</div>
+    </div>
+
+    <script>
+        let stage, layer;
+        let debugLog = [];
+        
+        function updateDebug(type, message) {
+            debugLog.push(`${new Date().toLocaleTimeString()}: ${type} - ${message}`);
+            if (debugLog.length > 5) debugLog.shift();
+            
+            document.getElementById('event-log').innerHTML = 'Events:<br>' + debugLog.join('<br>');
+        }
+        
+        function testAction(type) {
+            updateDebug('ACTION', `Context menu ${type} clicked`);
+            hideContextMenu();
+        }
+        
+        function showContextMenu(x, y) {
+            const menu = document.getElementById('contextMenu');
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.style.display = 'block';
+            updateDebug('MENU', `Context menu shown at ${x}, ${y}`);
+        }
+        
+        function hideContextMenu() {
+            const menu = document.getElementById('contextMenu');
+            menu.style.display = 'none';
+            updateDebug('MENU', 'Context menu hidden');
+        }
+        
+        // Check Konva loading
+        function checkKonva() {
+            if (typeof Konva !== 'undefined') {
+                document.getElementById('konva-status').textContent = `Konva: v${Konva.version || 'Unknown'} ✓`;
+                updateDebug('KONVA', `Loaded v${Konva.version || 'Unknown'}`);
+                initCanvas();
+            } else {
+                document.getElementById('konva-status').textContent = 'Konva: Failed to load ❌';
+                updateDebug('ERROR', 'Konva not found');
+                setTimeout(checkKonva, 100);
+            }
+        }
+        
+        function initCanvas() {
+            try {
+                stage = new Konva.Stage({
+                    container: 'container',
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                });
+                
+                layer = new Konva.Layer();
+                stage.add(layer);
+                
+                // Background rectangle
+                const background = new Konva.Rect({
+                    x: 0,
+                    y: 0,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    fill: '#e8e8e8'
+                });
+                layer.add(background);
+                
+                // Test circle
+                const circle = new Konva.Circle({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    radius: 50,
+                    fill: '#4CAF50',
+                    stroke: '#333',
+                    strokeWidth: 2
+                });
+                layer.add(circle);
+                
+                layer.draw();
+                
+                document.getElementById('stage-status').textContent = 'Stage: Created ✓';
+                updateDebug('STAGE', 'Stage and layer created successfully');
+                
+                // Double-click event
+                stage.on('dblclick dbltap', (e) => {
+                    const pointer = stage.getPointerPosition();
+                    updateDebug('DBLCLICK', `Double-click at ${pointer.x}, ${pointer.y}`);
+                    
+                    // Check if clicked on background
+                    const target = e.target;
+                    updateDebug('TARGET', `Clicked on: ${target.className}`);
+                    
+                    if (target.className === 'Rect') {
+                        const container = document.getElementById('container');
+                        const rect = container.getBoundingClientRect();
+                        const screenX = pointer.x + rect.left;
+                        const screenY = pointer.y + rect.top;
+                        
+                        showContextMenu(screenX, screenY);
+                    }
+                });
+                
+                // Click to hide menu
+                stage.on('click tap', (e) => {
+                    if (e.target.className !== 'Rect') return;
+                    hideContextMenu();
+                });
+                
+                updateDebug('EVENTS', 'Double-click events registered');
+                
+            } catch (error) {
+                document.getElementById('stage-status').textContent = 'Stage: Error ❌';
+                updateDebug('ERROR', `Canvas init failed: ${error.message}`);
+            }
+        }
+        
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('contextMenu');
+            if (!menu.contains(e.target)) {
+                hideContextMenu();
+            }
+        });
+        
+        // Start when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDebug('INIT', 'Page loaded, checking Konva...');
+            checkKonva();
+        });
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (stage) {
+                stage.width(window.innerWidth);
+                stage.height(window.innerHeight);
+                layer.draw();
+            }
+        });
+    </script>
+</body>
+</html>

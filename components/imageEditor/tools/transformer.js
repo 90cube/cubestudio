@@ -15,7 +15,7 @@ let isShiftPressed = false; // Shift 키 상태 추적
 export function init(konvaStage, konvaLayer) {
     stage = konvaStage;
     layer = konvaLayer;
-    console.log('Transformer tool initialized');
+    // console.log('Transformer tool initialized');
 }
 
 /**
@@ -28,7 +28,7 @@ export function startTransformMode(imageNode) {
         return;
     }
     
-    console.log('Starting transform mode for image:', imageNode);
+    // console.log('Starting transform mode for image:', imageNode);
     
     // 기존 트랜스폼이 있다면 정리 (중복 방지)
     if (transformer) {
@@ -41,7 +41,7 @@ export function startTransformMode(imageNode) {
     
     isTransformMode = true;
     
-    console.log('✅ Transform mode started with visible handles - Press T to toggle, ESC to exit');
+    // console.log('✅ Transform mode started with visible handles - Press T to toggle, ESC to exit');
     
     return {
         mode: 'transform',
@@ -75,12 +75,12 @@ function createTransformer() {
     
     // Transformer 이벤트 핸들러
     transformer.on('transformstart', () => {
-        console.log('Transform start');
+        // console.log('Transform start');
     });
     
     
     transformer.on('transformend', () => {
-        console.log('Transform end');
+        // console.log('Transform end');
     });
     
     // 이미지 이벤트 핸들러

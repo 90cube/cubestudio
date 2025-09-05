@@ -42,11 +42,11 @@ export class MultiDetailerComponent {
      */
     init() {
         if (this.isInitialized || !this.containerElement) {
-            console.log('MultiDetailer init skipped - already initialized or no container');
+            // console.log('MultiDetailer init skipped - already initialized or no container');
             return;
         }
         
-        console.log('MultiDetailer initializing for the first time...');
+        // console.log('MultiDetailer initializing for the first time...');
         this.isInitialized = true;
         
         // DOM이 마운트된 후에 이벤트 리스너 설정과 API 호출
@@ -54,7 +54,7 @@ export class MultiDetailerComponent {
             this.setupEventListeners();
             this.loadDetectionModels();
             this.updateTabContent();
-            console.log('MultiDetailer initialization complete');
+            // console.log('MultiDetailer initialization complete');
         }, 0);
     }
     

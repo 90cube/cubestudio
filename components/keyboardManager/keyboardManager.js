@@ -9,7 +9,7 @@ let isActive = false;
 let shortcutHandlers = new Map();
 
 export function init() {
-    console.log('Keyboard Manager initialized');
+    // console.log('Keyboard Manager initialized');
     activateKeyboardCapture();
 }
 
@@ -32,7 +32,7 @@ export function activateKeyboardCapture() {
     // document.addEventListener('selectstart', preventSelection, true);
     // document.addEventListener('dragstart', preventDragStart, true);
     
-    console.log('Keyboard capture activated - Waiting for user to specify blocked keys');
+    // console.log('Keyboard capture activated - Waiting for user to specify blocked keys');
 }
 
 /**
@@ -49,7 +49,7 @@ export function deactivateKeyboardCapture() {
     // document.removeEventListener('selectstart', preventSelection, true);
     // document.removeEventListener('dragstart', preventDragStart, true);
     
-    console.log('Keyboard capture deactivated - Web shortcuts restored');
+    // console.log('Keyboard capture deactivated - Web shortcuts restored');
 }
 
 /**
@@ -132,7 +132,7 @@ function handleKeyDown(e) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        console.log(`Blocked browser shortcut: ${e.key}${e.ctrlKey ? ' + Ctrl' : ''}${e.shiftKey ? ' + Shift' : ''}${e.altKey ? ' + Alt' : ''}`);
+        // console.log(`Blocked browser shortcut: ${e.key}${e.ctrlKey ? ' + Ctrl' : ''}${e.shiftKey ? ' + Shift' : ''}${e.altKey ? ' + Alt' : ''}`);
         return false;
     }
     
@@ -203,7 +203,7 @@ export function registerShortcut(key, callback, modifiers = {}, description = ''
         description
     });
     
-    console.log(`Registered shortcut: ${shortcutKey} - ${description}`);
+    // console.log(`Registered shortcut: ${shortcutKey} - ${description}`);
 }
 
 /**
@@ -216,7 +216,7 @@ export function unregisterShortcut(key, modifiers = {}) {
     
     if (shortcutHandlers.has(shortcutKey)) {
         shortcutHandlers.delete(shortcutKey);
-        console.log(`Unregistered shortcut: ${shortcutKey}`);
+        // console.log(`Unregistered shortcut: ${shortcutKey}`);
         return true;
     }
     
@@ -249,7 +249,7 @@ export function getRegisteredShortcuts() {
  */
 export function clearAllShortcuts() {
     shortcutHandlers.clear();
-    console.log('All shortcuts cleared');
+    // console.log('All shortcuts cleared');
 }
 
 /**

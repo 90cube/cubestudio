@@ -14,7 +14,7 @@ let sliders = {};
 
 export function init() {
     createSliderPanel();
-    console.log('Slider Panel initialized');
+    // console.log('Slider Panel initialized');
 }
 
 /**
@@ -41,7 +41,7 @@ export function showSliderPanel(imageNode, mode, imageRect) {
     updateSliderVisibility(mode);
     updateSliderValues();
     
-    console.log(`Slider panel shown in ${mode} mode`);
+    // console.log(`Slider panel shown in ${mode} mode`);
 }
 
 /**
@@ -288,7 +288,7 @@ function createActionButtons() {
         // Clear stored original values (accept changes)
         originalValues = {};
         hideSliderPanel();
-        console.log('Changes applied');
+        // console.log('Changes applied');
     });
 
     // Cancel button
@@ -322,7 +322,7 @@ function createActionButtons() {
     cancelButton.addEventListener('click', () => {
         restoreOriginalValues();
         hideSliderPanel();
-        console.log('Changes cancelled');
+        // console.log('Changes cancelled');
     });
 
     buttonsContainer.appendChild(applyButton);

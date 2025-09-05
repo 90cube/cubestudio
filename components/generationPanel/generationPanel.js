@@ -56,7 +56,7 @@ export class GenerationPanel {
         // 이벤트 핸들러들
         this.eventHandlers = new Map();
         
-        console.log('GenerationPanel initialized');
+        // console.log('GenerationPanel initialized');
     }
     
     /**
@@ -1017,7 +1017,7 @@ export class GenerationPanel {
             container.appendChild(button);
         });
         
-        console.log(`🔄 Rendered ${presetData.list.length} ${type} preset buttons`);
+        // console.log(`🔄 Rendered ${presetData.list.length} ${type} preset buttons`);
     }
     
     /**
@@ -1538,7 +1538,7 @@ export class GenerationPanel {
                 });
             }, 100);
             
-            console.log('✅ Presets loaded from JSON files');
+            // console.log('✅ Presets loaded from JSON files');
         } catch (error) {
             console.error('Failed to load presets:', error);
             // 실패 시 기본값 사용
@@ -1573,7 +1573,7 @@ export class GenerationPanel {
                             prompt: prompt
                         };
                         presets.push(preset);
-                        console.log(`📄 Loaded ${type} preset: "${preset.name}" - "${preset.prompt.substring(0, 50)}..."`);
+                        // console.log(`📄 Loaded ${type} preset: "${preset.name}" - "${preset.prompt.substring(0, 50)}..."`);
                     }
                 } catch (error) {
                     console.warn(`Failed to load preset ${filename}:`, error);

@@ -427,7 +427,7 @@ export class LoRASelectorComponent {
     
     async scanLocalLoRAModels() {
         // API 없이 직접 하드코딩된 목록 사용
-        console.log('Loading hardcoded LoRA list (API not available)');
+        // console.log('Loading hardcoded LoRA list (API not available)');
         return this.getHardcodedLoRAList();
     }
     
