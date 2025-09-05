@@ -286,24 +286,27 @@ function addImageToCanvas(imageObject, x, y) {
 }
 
 /**
- * 더블클릭 이벤트 설정 - 엘리먼츠 컨텍스트 메뉴 표시
+ * 더블클릭 이벤트 설정 - 배경 컨텍스트 메뉴 표시 (단순화된 버전)
  */
 function setupDoubleClickEvent() {
-    stage.on('dblclick dbltap', async (e) => {
+    stage.on('dblclick dbltap', (e) => {
+        console.log('🖱️ Double-click detected on:', e.target.className);
+        
         // 팬닝 모드에서는 더블클릭 비활성화
         if (document.querySelector('#canvas-container').classList.contains('panning')) {
+            console.log('⚠️ Double-click ignored - panning mode');
             return;
         }
 
-        // 이미지를 더블클릭한 경우는 제외 (이미지 편집 모드로 진입)
-        const clickedNode = e.target;
-        if (clickedNode.className === 'Image') {
+        // 이미지를 더블클릭한 경우는 제외
+        if (e.target.className === 'Image') {
+            console.log('⚠️ Double-click ignored - image clicked');
             return;
         }
 
-        // 배경을 더블클릭한 경우에만 엘리먼츠 메뉴 표시
-        if (clickedNode.className === 'Rect') {
-            // 마우스 포인터 위치 가져오기
+        // 배경을 더블클릭한 경우만 처리
+        if (e.target.className === 'Rect') {
+            // 마우스 포인터 위치 계산
             const pointer = stage.getPointerPosition();
             const canvasContainer = document.getElementById('canvas-container');
             const rect = canvasContainer.getBoundingClientRect();
@@ -312,17 +315,32 @@ function setupDoubleClickEvent() {
             const x = pointer.x + rect.left;
             const y = pointer.y + rect.top;
             
-            // 엘리먼츠 메뉴가 이미 열려있으면 닫고, 없으면 열기
-            if (isElementsMenuOpen()) {
-                console.log('📦 Elements menu already open - toggling');
-                const { hideElementsMenu } = await import('../elementsMenu/elementsMenu.js');
-                hideElementsMenu();
-            } else {
-                console.log('📦 Opening elements menu at:', { x, y });
-                showElementsMenu(x, y);
+            console.log('🎯 Background double-clicked, showing context menu at:', x, y);
+            
+            // 이벤트 전파 중지로 document 클릭 방지
+            if (e.evt) {
+                e.evt.preventDefault();
+                e.evt.stopPropagation();
+                e.evt.stopImmediatePropagation();
             }
+            
+            // 다음 프레임에서 메뉴 표시
+            requestAnimationFrame(() => {
+                showBackgroundContextMenu(x, y);
+            });
         }
     });
+    
+    // 전역 클릭 리스너 추가 (메뉴 외부 클릭시 메뉴 숨김) - 지연 등록
+    setTimeout(() => {
+        document.addEventListener('click', (e) => {
+            if (isContextMenuVisible && backgroundContextMenu && !backgroundContextMenu.contains(e.target)) {
+                console.log('📋 Clicking outside menu - hiding context menu');
+                hideBackgroundContextMenu();
+            }
+        });
+        console.log('📋 Global click listener registered');
+    }, 100); // 100ms 지연으로 더블클릭 이벤트와 분리
 }
 
 /**
@@ -420,6 +438,9 @@ function setupImageSelection() {
                 // console.log('🔄 Background clicked - exiting transform mode');
                 exitTransformMode();
             }
+            
+            // 배경 컨텍스트 메뉴 숨김
+            hideBackgroundContextMenu();
             
             clearImageHighlight();
             selectedImage = null;
@@ -562,5 +583,189 @@ function updateHighlightPosition() {
         selectionHighlight.strokeWidth(2 / getStage().scaleX());
         layer.batchDraw();
     }
+}
+
+// 배경 컨텍스트 메뉴 관련 변수들
+let backgroundContextMenu = null;
+let isContextMenuVisible = false;
+
+/**
+ * 배경 컨텍스트 메뉴 생성 (단순하고 확실한 방법)
+ */
+function createBackgroundContextMenu() {
+    // 기존 메뉴가 있으면 제거
+    if (backgroundContextMenu) {
+        backgroundContextMenu.remove();
+        backgroundContextMenu = null;
+    }
+
+    // 새 메뉴 생성
+    backgroundContextMenu = document.createElement('div');
+    backgroundContextMenu.id = 'canvas-context-menu';
+    
+    // 매우 단순하고 확실한 스타일링 (테스트용으로 높은 가시성)
+    backgroundContextMenu.style.position = 'fixed';
+    backgroundContextMenu.style.background = '#1e293b';
+    backgroundContextMenu.style.border = '2px solid #0ea5e9';
+    backgroundContextMenu.style.borderRadius = '12px';
+    backgroundContextMenu.style.padding = '12px';
+    backgroundContextMenu.style.zIndex = '99999';
+    backgroundContextMenu.style.display = 'none';
+    backgroundContextMenu.style.fontFamily = 'Arial, sans-serif';
+    backgroundContextMenu.style.fontSize = '16px';
+    backgroundContextMenu.style.color = '#ffffff';
+    backgroundContextMenu.style.minWidth = '180px';
+    backgroundContextMenu.style.boxShadow = '0 8px 25px rgba(0,0,0,0.7), 0 0 0 1px rgba(14, 165, 233, 0.3)';
+
+    // 메뉴 아이템 데이터
+    const menuItems = [
+        { icon: '📦', label: 'Add Elements', action: openElementsMenu },
+        { icon: '🖼️', label: 'Add Image', action: openFileDialog },
+        { icon: '📝', label: 'Add Text', action: addTextElement }
+    ];
+
+    // 메뉴 아이템 생성
+    menuItems.forEach(item => {
+        const button = document.createElement('div');
+        button.style.padding = '8px 12px';
+        button.style.cursor = 'pointer';
+        button.style.borderRadius = '4px';
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.gap = '8px';
+        
+        // 호버 효과
+        button.onmouseenter = () => {
+            button.style.background = '#3a4750';
+        };
+        button.onmouseleave = () => {
+            button.style.background = '';
+        };
+        
+        // 클릭 이벤트
+        button.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            hideBackgroundContextMenu();
+            item.action();
+        };
+        
+        // 아이콘과 텍스트 추가
+        button.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>`;
+        
+        backgroundContextMenu.appendChild(button);
+    });
+
+    // body에 추가
+    document.body.appendChild(backgroundContextMenu);
+    
+    console.log('✅ Context menu created successfully');
+}
+
+/**
+ * 배경 컨텍스트 메뉴 표시 (단순하고 확실한 방법)
+ */
+async function showBackgroundContextMenu(x, y) {
+    console.log('📋 Showing background context menu at:', x, y);
+    
+    // 기존에 열린 엘리먼츠 메뉴가 있으면 닫기
+    if (isElementsMenuOpen()) {
+        const { hideElementsMenu } = await import('../elementsMenu/elementsMenu.js');
+        hideElementsMenu();
+    }
+    
+    // 기존 메뉴 숨김
+    hideBackgroundContextMenu();
+    
+    // 메뉴 생성 또는 재생성
+    createBackgroundContextMenu();
+    
+    // 위치 설정
+    backgroundContextMenu.style.left = x + 'px';
+    backgroundContextMenu.style.top = y + 'px';
+    
+    // 표시
+    backgroundContextMenu.style.display = 'block';
+    isContextMenuVisible = true;
+    
+    // 화면 경계 체크 및 조정
+    setTimeout(() => {
+        const rect = backgroundContextMenu.getBoundingClientRect();
+        let newX = x;
+        let newY = y;
+        
+        if (rect.right > window.innerWidth) {
+            newX = window.innerWidth - rect.width - 10;
+        }
+        if (rect.bottom > window.innerHeight) {
+            newY = window.innerHeight - rect.height - 10;
+        }
+        
+        backgroundContextMenu.style.left = newX + 'px';
+        backgroundContextMenu.style.top = newY + 'px';
+        
+        console.log('✅ Context menu positioned at:', newX, newY);
+    }, 0);
+}
+
+/**
+ * 배경 컨텍스트 메뉴 숨김 (단순하고 확실한 방법)
+ */
+function hideBackgroundContextMenu() {
+    if (backgroundContextMenu) {
+        backgroundContextMenu.style.display = 'none';
+        isContextMenuVisible = false;
+        console.log('❌ Context menu hidden');
+    }
+}
+
+/**
+ * 엘리먼츠 메뉴 열기 (컨텍스트 메뉴에서 호출)
+ */
+async function openElementsMenu() {
+    // 현재 마우스 위치 또는 화면 중앙에 엘리먼츠 메뉴 표시
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    console.log('📦 Opening elements menu from context menu');
+    showElementsMenu(centerX, centerY);
+}
+
+/**
+ * 파일 다이얼로그 열기
+ */
+function openFileDialog() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new window.Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    // 화면 중앙에 이미지 추가
+                    const centerX = 0; // 캔버스 좌표계에서의 중앙
+                    const centerY = 0;
+                    addImageToCanvas(img, centerX, centerY);
+                    console.log('🖼️ Image added from file dialog');
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+/**
+ * 텍스트 엘리먼트 추가
+ */
+function addTextElement() {
+    // TODO: 텍스트 추가 기능 구현
+    console.log('📝 Text element addition - to be implemented');
+    // 임시로 알림 표시
+    alert('텍스트 추가 기능은 추후 구현될 예정입니다.');
 }
 

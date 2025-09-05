@@ -1,16 +1,26 @@
 {
   "name": "cubestudio",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "CUBE Studio - Web-based image generation and manipulation tool",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "live-server --port=9000 --ignore=renewal"
+    "start": "live-server --port=9000 --ignore=renewal",
+    "dev": "live-server --port=9000 --ignore=renewal --open=index.html",
+    "build": "echo \"No build process required - vanilla JS project\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["image-generation", "canvas", "ui", "web-app", "konva"],
+  "author": "Cube Studio",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
     "live-server": "^1.2.2"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
   }
 }
