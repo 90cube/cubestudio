@@ -88,20 +88,19 @@ function setupContextMenu() {
         color: #e8eaed;
     `;
     
-    // 트리 구조 메뉴 아이템들 생성
+    // 단일 기능 메뉴 아이템들 생성
     const menuItems = [
         {
-            category: 'Transform',
-            icon: '↻',
-            subcategories: [
-                {
-                    label: 'Flip',
-                    items: [
-                        { label: 'Flip Horizontal', action: () => flip(getCurrentSelectedImage(), 'horizontal') },
-                        { label: 'Flip Vertical', action: () => flip(getCurrentSelectedImage(), 'vertical') }
-                    ]
-                }
-            ]
+            category: 'Flip Horizontal',
+            icon: '↔',
+            action: () => flip(getCurrentSelectedImage(), 'horizontal'),
+            isDirectAction: true
+        },
+        {
+            category: 'Flip Vertical',
+            icon: '↕',
+            action: () => flip(getCurrentSelectedImage(), 'vertical'),
+            isDirectAction: true
         },
         {
             category: 'Adjust',
@@ -116,29 +115,24 @@ function setupContextMenu() {
             isDirectAction: true
         },
         {
-            category: 'Tools',
-            icon: '◉',
-            subcategories: [
-                {
-                    label: 'Edit Tools',
-                    items: [
-                        { label: 'Crop Image', action: () => startCropTool() }
-                    ]
-                },
-                {
-                    label: 'Actions',
-                    items: [
-                        { label: 'Delete Image', action: () => deleteImage(), style: 'color: #e74c3c; font-weight: 500;' }
-                    ]
-                }
-            ]
+            category: 'Crop Image',
+            icon: '⬚',
+            action: () => startCropTool(),
+            isDirectAction: true
+        },
+        {
+            category: 'Delete Image',
+            icon: '🗑',
+            action: () => deleteImage(),
+            isDirectAction: true,
+            style: 'color: #e74c3c; font-weight: 500;'
         }
     ];
 
-    // 트리 구조 메뉴 렌더링
+    // 단일 기능 메뉴 렌더링
     menuItems.forEach(category => {
-        const categoryHeader = document.createElement('div');
-        categoryHeader.style.cssText = `
+        const menuButton = document.createElement('div');
+        menuButton.style.cssText = `
             font-weight: 500;
             color: #e8eaed;
             padding: 10px 14px;
@@ -149,122 +143,31 @@ function setupContextMenu() {
             border-radius: 6px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            ${category.style || ''}
         `;
         
-        const headerText = document.createElement('span');
-        headerText.textContent = `${category.icon} ${category.category}`;
+        const buttonText = document.createElement('span');
+        buttonText.textContent = `${category.icon} ${category.category}`;
+        menuButton.appendChild(buttonText);
         
-        categoryHeader.appendChild(headerText);
+        menuButton.addEventListener('mouseenter', () => {
+            menuButton.style.background = 'rgba(108, 182, 255, 0.2)';
+            menuButton.style.transform = 'translateX(2px)';
+        });
         
-        // Direct action items (like Adjust and Filters)
-        if (category.isDirectAction) {
-            categoryHeader.addEventListener('mouseenter', () => {
-                categoryHeader.style.background = 'rgba(108, 182, 255, 0.2)';
-            });
-            
-            categoryHeader.addEventListener('mouseleave', () => {
-                categoryHeader.style.background = 'rgba(37, 42, 51, 0.6)';
-            });
-            
-            categoryHeader.addEventListener('click', (e) => {
-                e.stopPropagation();
-                category.action();
-            });
-        } else {
-            // Expandable items (like Transform and Tools)
-            const expandIcon = document.createElement('span');
-            expandIcon.textContent = '▼';
-            expandIcon.style.cssText = `
-                font-size: 12px;
-                color: #9aa0a6;
-                transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                transform: rotate(-90deg);
-            `;
-            categoryHeader.appendChild(expandIcon);
-            
-            const subcategoriesContainer = document.createElement('div');
-            subcategoriesContainer.style.cssText = `
-                margin-left: 12px;
-                border-left: 1px solid rgba(134, 142, 150, 0.2);
-                padding-left: 12px;
-                margin-bottom: 6px;
-                display: none;
-            `;
-            
-            let isExpanded = false;
-            
-            categoryHeader.addEventListener('mouseenter', () => {
-                categoryHeader.style.background = 'rgba(108, 182, 255, 0.2)';
-            });
-            
-            categoryHeader.addEventListener('mouseleave', () => {
-                categoryHeader.style.background = 'rgba(37, 42, 51, 0.6)';
-            });
-            
-            categoryHeader.addEventListener('click', (e) => {
-                e.stopPropagation();
-                isExpanded = !isExpanded;
-                subcategoriesContainer.style.display = isExpanded ? 'block' : 'none';
-                expandIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
-            });
-            
-            // 서브카테고리들 생성
-            if (category.subcategories) {
-                category.subcategories.forEach(subcategory => {
-                    const subcategoryHeader = document.createElement('div');
-                    subcategoryHeader.style.cssText = `
-                        font-weight: 500;
-                        color: #9aa0a6;
-                        padding: 6px 0;
-                        margin: 4px 0;
-                        font-size: 12px;
-                        letter-spacing: 0.3px;
-                    `;
-                    subcategoryHeader.textContent = subcategory.label;
-                    subcategoriesContainer.appendChild(subcategoryHeader);
-                    
-                    // 서브카테고리 아이템들 생성
-                    subcategory.items.forEach(item => {
-                        const menuItem = document.createElement('div');
-                        menuItem.style.cssText = `
-                            padding: 8px 16px;
-                            cursor: pointer;
-                            border-radius: 4px;
-                            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                            font-size: 12px;
-                            margin-left: 4px;
-                            color: #e8eaed;
-                            ${item.style || ''}
-                        `;
-                        menuItem.textContent = item.label;
-                        
-                        menuItem.addEventListener('mouseenter', () => {
-                            menuItem.style.backgroundColor = 'rgba(108, 182, 255, 0.15)';
-                            menuItem.style.transform = 'translateX(2px)';
-                        });
-                        
-                        menuItem.addEventListener('mouseleave', () => {
-                            menuItem.style.backgroundColor = '';
-                            menuItem.style.transform = 'translateX(0)';
-                        });
-                        
-                        menuItem.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            item.action();
-                            hideContextMenu();
-                        });
-                        
-                        subcategoriesContainer.appendChild(menuItem);
-                    });
-                });
-            }
-            
-            contextMenu.appendChild(subcategoriesContainer);
-        }
+        menuButton.addEventListener('mouseleave', () => {
+            menuButton.style.background = 'rgba(37, 42, 51, 0.6)';
+            menuButton.style.transform = 'translateX(0)';
+        });
         
-        contextMenu.appendChild(categoryHeader);
+        menuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            category.action();
+            hideContextMenu();
+        });
+        
+        contextMenu.appendChild(menuButton);
     });
     
     document.body.appendChild(contextMenu);
