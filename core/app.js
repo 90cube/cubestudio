@@ -116,7 +116,23 @@ function setupImageEditingShortcuts() {
     
     // Delete키 - 선택된 이미지 삭제
     registerShortcut('Delete', (e) => {
-        console.log('🗑️ Delete key pressed via keyboard manager');
+        // 텍스트 입력 모달이 열려있으면 키보드 매니저 개입 안함
+        const textInputModal = document.getElementById('text-input-modal');
+        if (textInputModal && textInputModal.style.display !== 'none') {
+            return; // 텍스트 입력 중에는 삭제 기능 비활성화
+        }
+        
+        // 포커스된 요소가 입력 필드인지 확인
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.contentEditable === 'true'
+        )) {
+            return; // 텍스트 입력 중에는 삭제 기능 비활성화
+        }
+        
+        // console.log('🗑️ Delete key pressed via keyboard manager');
         const selectedImage = getSelectedImage();
         
         if (selectedImage) {
@@ -124,13 +140,29 @@ function setupImageEditingShortcuts() {
             deleteSelectedImage();
             e.preventDefault();
         } else {
-            console.log('⚠️ No image selected for deletion');
+            // console.log('⚠️ No image selected for deletion');
         }
     }, {}, 'Delete selected image');
     
     // Backspace키 - 선택된 이미지 삭제 (대체 키)
     registerShortcut('Backspace', (e) => {
-        console.log('🗑️ Backspace key pressed via keyboard manager');
+        // 텍스트 입력 모달이 열려있으면 키보드 매니저 개입 안함
+        const textInputModal = document.getElementById('text-input-modal');
+        if (textInputModal && textInputModal.style.display !== 'none') {
+            return; // 텍스트 입력 중에는 삭제 기능 비활성화
+        }
+        
+        // 포커스된 요소가 입력 필드인지 확인
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.contentEditable === 'true'
+        )) {
+            return; // 텍스트 입력 중에는 삭제 기능 비활성화
+        }
+        
+        // console.log('🗑️ Backspace key pressed via keyboard manager');
         const selectedImage = getSelectedImage();
         
         if (selectedImage) {
@@ -138,7 +170,7 @@ function setupImageEditingShortcuts() {
             deleteSelectedImage();
             e.preventDefault();
         } else {
-            console.log('⚠️ No image selected for deletion');
+            // console.log('⚠️ No image selected for deletion');
         }
     }, {}, 'Delete selected image (alternative)');
     

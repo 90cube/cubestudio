@@ -136,6 +136,23 @@ function handleKeyDown(e) {
         return false;
     }
     
+    // 텍스트 입력 중인지 확인 - 입력 중이면 단축키 처리 안함
+    const activeElement = document.activeElement;
+    const isTextInput = activeElement && (
+        activeElement.tagName === 'INPUT' || 
+        activeElement.tagName === 'TEXTAREA' || 
+        activeElement.contentEditable === 'true'
+    );
+    
+    // 텍스트 입력 모달이 열려있는지 확인
+    const textInputModal = document.getElementById('text-input-modal');
+    const isModalOpen = textInputModal && textInputModal.style.display !== 'none';
+    
+    // 텍스트 입력 중이면 ESC 키만 허용 (모달 닫기용)
+    if ((isTextInput || isModalOpen) && e.key !== 'Escape') {
+        return; // 텍스트 입력 중에는 다른 단축키 비활성화
+    }
+    
     // 애플리케이션 단축키 처리
     const shortcutKey = createShortcutKey(e);
     if (shortcutHandlers.has(shortcutKey)) {

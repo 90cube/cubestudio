@@ -509,7 +509,7 @@ export function setSelectedImage(image) {
 export function deleteSelectedImage() {
     if (!selectedImage) return;
     
-    console.log('🗑️ Deleting selected image:', selectedImage.className, selectedImage.id());
+    console.log('🗑️ Deleting selected element:', selectedImage.className || selectedImage.name(), selectedImage.id());
     
     // 트랜스폼 모드가 활성화되어 있다면 먼저 종료
     if (isTransformModeActive()) {
@@ -668,6 +668,9 @@ function createBackgroundContextMenu() {
 async function showBackgroundContextMenu(x, y) {
     // console.log('📋 Showing background context menu at:', x, y);
     
+    // 더블클릭 위치를 저장 (텍스트 생성용)
+    lastDoubleClickPosition = { x, y };
+    
     // 기존에 열린 엘리먼츠 메뉴가 있으면 닫기
     if (isElementsMenuOpen()) {
         const { hideElementsMenu } = await import('../elementsMenu/elementsMenu.js');
@@ -759,13 +762,442 @@ function openFileDialog() {
     input.click();
 }
 
+// 마지막 더블클릭 위치 저장
+let lastDoubleClickPosition = { x: 0, y: 0 };
+
 /**
  * 텍스트 엘리먼트 추가
  */
-function addTextElement() {
-    // TODO: 텍스트 추가 기능 구현
-    // console.log('📝 Text element addition - to be implemented');
-    // 임시로 알림 표시
-    alert('텍스트 추가 기능은 추후 구현될 예정입니다.');
+function addTextElement(x, y) {
+    // 더블클릭 위치가 전달되면 저장
+    if (x !== undefined && y !== undefined) {
+        lastDoubleClickPosition = { x, y };
+    }
+    
+    // 텍스트 입력 모달 생성
+    createTextInputModal();
+}
+
+/**
+ * 텍스트 입력 모달 생성
+ */
+function createTextInputModal() {
+    // 기존 모달이 있으면 제거
+    const existingModal = document.getElementById('text-input-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // 모달 컨테이너 생성
+    const modal = document.createElement('div');
+    modal.id = 'text-input-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+    `;
+
+    // 모달 내용 컨테이너
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: #2a2a2a;
+        border-radius: 12px;
+        padding: 24px;
+        min-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+
+    // 제목
+    const title = document.createElement('h3');
+    title.textContent = '텍스트 추가';
+    title.style.cssText = `
+        margin: 0 0 20px 0;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 600;
+    `;
+
+    // 텍스트 입력 영역
+    const textInput = document.createElement('textarea');
+    textInput.placeholder = '텍스트를 입력하세요...';
+    textInput.style.cssText = `
+        width: 100%;
+        height: 100px;
+        background: #3a3a3a;
+        border: 1px solid #555;
+        border-radius: 6px;
+        padding: 12px;
+        color: #ffffff;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        outline: none;
+        box-sizing: border-box;
+        margin-bottom: 16px;
+    `;
+
+    // 폰트 선택 영역
+    const fontContainer = document.createElement('div');
+    fontContainer.style.cssText = `
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    `;
+
+    const fontLabel = document.createElement('label');
+    fontLabel.textContent = '폰트:';
+    fontLabel.style.cssText = `
+        color: #ccc;
+        font-size: 14px;
+        min-width: 50px;
+    `;
+
+    const fontSelect = document.createElement('select');
+    fontSelect.style.cssText = `
+        background: #3a3a3a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        padding: 6px 8px;
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;
+        min-width: 120px;
+    `;
+
+    // 폰트 옵션들 추가
+    const fonts = [
+        // 기본 시스템 폰트
+        { value: 'Arial', name: 'Arial' },
+        { value: 'Helvetica', name: 'Helvetica' },
+        { value: 'Times New Roman', name: 'Times New Roman' },
+        { value: 'Georgia', name: 'Georgia' },
+        { value: 'Verdana', name: 'Verdana' },
+        { value: 'Courier New', name: 'Courier New' },
+        { value: 'Impact', name: 'Impact' },
+        { value: 'Comic Sans MS', name: 'Comic Sans MS' },
+        { value: 'Trebuchet MS', name: 'Trebuchet MS' },
+        
+        // 한글 시스템 폰트
+        { value: 'Noto Sans KR', name: 'Noto Sans 한글' },
+        { value: 'Malgun Gothic', name: '맑은 고딕' },
+        { value: 'Nanum Gothic', name: '나눔고딕' },
+        
+        // 커스텀 TTF 폰트 (assets/fonts/에 TTF 파일 필요)
+        { value: 'Galmuri11', name: '갈무리11 (픽셀)' },
+        { value: 'NanumGothic Custom', name: '나눔고딕 (TTF)' },
+        { value: 'Pretendard', name: 'Pretendard' },
+        { value: 'Gmarket Sans', name: 'G마켓 산스' },
+        { value: 'Cafe24 Ssurround', name: 'Cafe24 써라운드' },
+        { value: 'Cafe24 Oneprettynight', name: 'Cafe24 원쁘띠나잇' },
+        { value: 'Binggrae', name: '빙그레체' },
+        { value: 'Jua', name: '주아' },
+        
+        // Google Fonts (웹 폰트)
+        { value: 'Roboto', name: 'Roboto' },
+        { value: 'Inter', name: 'Inter' },
+        { value: 'Poppins', name: 'Poppins' },
+        { value: 'Playfair Display', name: 'Playfair Display' },
+        { value: 'Dancing Script', name: 'Dancing Script' },
+        { value: 'Pacifico', name: 'Pacifico' },
+        { value: 'Lobster', name: 'Lobster' }
+    ];
+
+    fonts.forEach(font => {
+        const option = document.createElement('option');
+        option.value = font.value;
+        option.textContent = font.name;
+        fontSelect.appendChild(option);
+    });
+
+    // 폰트 크기 입력
+    const sizeLabel = document.createElement('label');
+    sizeLabel.textContent = '크기:';
+    sizeLabel.style.cssText = `
+        color: #ccc;
+        font-size: 14px;
+    `;
+
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'number';
+    sizeInput.value = '32';
+    sizeInput.min = '8';
+    sizeInput.max = '200';
+    sizeInput.style.cssText = `
+        background: #3a3a3a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        padding: 6px 8px;
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;
+        width: 80px;
+    `;
+
+    // 색상 선택
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = '색상:';
+    colorLabel.style.cssText = `
+        color: #ccc;
+        font-size: 14px;
+    `;
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = '#000000';
+    colorInput.style.cssText = `
+        background: #3a3a3a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        width: 50px;
+        height: 32px;
+        cursor: pointer;
+        outline: none;
+    `;
+
+    fontContainer.appendChild(fontLabel);
+    fontContainer.appendChild(fontSelect);
+    fontContainer.appendChild(sizeLabel);
+    fontContainer.appendChild(sizeInput);
+    fontContainer.appendChild(colorLabel);
+    fontContainer.appendChild(colorInput);
+
+    // 버튼 컨테이너
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    `;
+
+    // 취소 버튼
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = '취소';
+    cancelButton.style.cssText = `
+        background: #666;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.2s;
+    `;
+
+    cancelButton.addEventListener('mouseenter', () => {
+        cancelButton.style.background = '#777';
+    });
+
+    cancelButton.addEventListener('mouseleave', () => {
+        cancelButton.style.background = '#666';
+    });
+
+    // 추가 버튼
+    const addButton = document.createElement('button');
+    addButton.textContent = '추가';
+    addButton.style.cssText = `
+        background: #007acc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.2s;
+    `;
+
+    addButton.addEventListener('mouseenter', () => {
+        addButton.style.background = '#0066aa';
+    });
+
+    addButton.addEventListener('mouseleave', () => {
+        addButton.style.background = '#007acc';
+    });
+
+    buttonContainer.appendChild(cancelButton);
+    buttonContainer.appendChild(addButton);
+
+    // 모달 내용 구성
+    modalContent.appendChild(title);
+    modalContent.appendChild(textInput);
+    modalContent.appendChild(fontContainer);
+    modalContent.appendChild(buttonContainer);
+    modal.appendChild(modalContent);
+
+    // 이벤트 핸들러
+    cancelButton.addEventListener('click', () => {
+        modal.remove();
+    });
+
+    // 모달 배경 클릭 시 닫기
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    // ESC 키로 닫기
+    const handleKeyPress = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', handleKeyPress);
+        }
+    };
+    document.addEventListener('keydown', handleKeyPress);
+
+    addButton.addEventListener('click', () => {
+        const text = textInput.value.trim();
+        if (text) {
+            const font = fontSelect.value;
+            const size = parseInt(sizeInput.value) || 32;
+            const color = colorInput.value;
+            
+            addTextToCanvas(text, font, size, color);
+            modal.remove();
+            document.removeEventListener('keydown', handleKeyPress);
+        }
+    });
+
+    // Enter 키로 추가 (Shift+Enter는 줄바꿈)
+    textInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addButton.click();
+        }
+    });
+
+    document.body.appendChild(modal);
+    
+    // 텍스트 입력란에 포커스
+    setTimeout(() => {
+        textInput.focus();
+    }, 100);
+}
+
+/**
+ * 캔버스에 텍스트 추가
+ */
+function addTextToCanvas(text, fontFamily, fontSize, color) {
+    // 저장된 더블클릭 위치 사용 (스테이지 좌표계로 변환)
+    const stagePos = stage.getAbsolutePosition();
+    const stageScale = stage.scaleX();
+    
+    // 화면 좌표를 스테이지 좌표로 변환
+    const stageX = (lastDoubleClickPosition.x - stagePos.x) / stageScale;
+    const stageY = (lastDoubleClickPosition.y - stagePos.y) / stageScale;
+
+    const textNode = new Konva.Text({
+        x: stageX,
+        y: stageY,
+        text: text,
+        fontSize: fontSize,
+        fontFamily: fontFamily,
+        fill: color,
+        draggable: true,
+        name: 'text-element'
+    });
+
+    // 텍스트를 클릭 위치 중앙에 정렬
+    textNode.offsetX(textNode.width() / 2);
+    textNode.offsetY(textNode.height() / 2);
+
+    layer.add(textNode);
+    layer.batchDraw();
+
+    // 텍스트 선택 및 편집 가능하도록 이벤트 추가
+    setupTextEvents(textNode);
+
+    console.log(`Text added: "${text}" at position (${stageX.toFixed(1)}, ${stageY.toFixed(1)}) with font ${fontFamily} ${fontSize}px`);
+}
+
+/**
+ * 텍스트 노드 이벤트 설정
+ */
+function setupTextEvents(textNode) {
+    // 더블클릭으로 텍스트 편집
+    textNode.on('dblclick dbltap', () => {
+        editText(textNode);
+    });
+
+    // 클릭으로 선택
+    textNode.on('click tap', () => {
+        setSelectedImage(textNode);
+    });
+
+    // Delete 키로 삭제 가능하도록 선택 상태 관리
+    textNode.on('mouseenter', () => {
+        document.body.style.cursor = 'move';
+    });
+
+    textNode.on('mouseleave', () => {
+        document.body.style.cursor = 'default';
+    });
+}
+
+/**
+ * 텍스트 편집 모달
+ */
+function editText(textNode) {
+    const currentText = textNode.text();
+    const currentFont = textNode.fontFamily();
+    const currentSize = textNode.fontSize();
+    const currentColor = textNode.fill();
+
+    // 텍스트 입력 모달 생성 (기존 함수 재사용)
+    createTextInputModal();
+    
+    // 모달이 생성된 후 현재 값들로 설정
+    setTimeout(() => {
+        const modal = document.getElementById('text-input-modal');
+        if (modal) {
+            const textInput = modal.querySelector('textarea');
+            const fontSelect = modal.querySelector('select');
+            const sizeInput = modal.querySelector('input[type="number"]');
+            const colorInput = modal.querySelector('input[type="color"]');
+            const addButton = modal.querySelector('button:last-of-type');
+
+            textInput.value = currentText;
+            fontSelect.value = currentFont;
+            sizeInput.value = currentSize;
+            colorInput.value = currentColor;
+
+            addButton.textContent = '수정';
+
+            // 기존 이벤트 리스너 제거하고 새로운 것 추가
+            const newAddButton = addButton.cloneNode(true);
+            addButton.parentNode.replaceChild(newAddButton, addButton);
+
+            newAddButton.addEventListener('click', () => {
+                const newText = textInput.value.trim();
+                if (newText) {
+                    textNode.text(newText);
+                    textNode.fontFamily(fontSelect.value);
+                    textNode.fontSize(parseInt(sizeInput.value) || 32);
+                    textNode.fill(colorInput.value);
+                    
+                    // 텍스트 중앙 정렬 재조정
+                    textNode.offsetX(textNode.width() / 2);
+                    textNode.offsetY(textNode.height() / 2);
+                    
+                    layer.batchDraw();
+                    modal.remove();
+                }
+            });
+        }
+    }, 100);
 }
 
