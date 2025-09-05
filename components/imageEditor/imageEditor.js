@@ -5,6 +5,8 @@ import { init as initCrop, startCropMode, applyCrop, cancelCropMode, isCropMode,
 import { init as initTransformer, startTransformMode, exitTransformMode, isTransformModeActive } from './tools/transformer.js';
 import { setSelectedImage } from '../canvas/canvas.js';
 import { registerShortcut } from '../keyboardManager/keyboardManager.js';
+import { init as initSliderPanel, showSliderPanel, hideSliderPanel } from './sliderPanel.js';
+import { getNodeRect } from '../../core/coordinates.js';
 
 let stage;
 let layer;
@@ -21,6 +23,7 @@ export function init(konvaStage, konvaLayer) {
     initFilters(layer);
     initCrop(stage, layer);
     initTransformer(stage, layer);
+    initSliderPanel(); // Initialize slider panel
     
     setupContextMenu();
     setupDoubleClickHandler();
@@ -58,6 +61,7 @@ function setupDoubleClickHandler() {
     stage.on('click tap', (e) => {
         if (e.target === stage || e.target.className === 'Rect') {
             hideContextMenu();
+            hideSliderPanel(); // Also hide slider panel
         }
     });
 }
@@ -102,66 +106,14 @@ function setupContextMenu() {
         {
             category: 'Adjust',
             icon: '◐',
-            subcategories: [
-                {
-                    label: 'Brightness',
-                    items: [
-                        { label: 'Brighter (+20%)', action: () => {
-                            const img = getCurrentSelectedImage();
-                            adjustBrightness(img, (img.brightness() || 0) + 0.2);
-                        }},
-                        { label: 'Darker (-20%)', action: () => {
-                            const img = getCurrentSelectedImage();
-                            adjustBrightness(img, (img.brightness() || 0) - 0.2);
-                        }},
-                        { label: 'Reset Brightness', action: () => adjustBrightness(getCurrentSelectedImage(), 0) }
-                    ]
-                },
-                {
-                    label: 'Contrast',
-                    items: [
-                        { label: 'More Contrast (+20)', action: () => {
-                            const img = getCurrentSelectedImage();
-                            adjustContrast(img, (img.contrast() || 0) + 20);
-                        }},
-                        { label: 'Less Contrast (-20)', action: () => {
-                            const img = getCurrentSelectedImage();
-                            adjustContrast(img, (img.contrast() || 0) - 20);
-                        }},
-                        { label: 'Reset Contrast', action: () => adjustContrast(getCurrentSelectedImage(), 0) }
-                    ]
-                }
-            ]
+            action: () => openSliderPanel('adjust'),
+            isDirectAction: true
         },
         {
             category: 'Filters',
             icon: '◑',
-            subcategories: [
-                {
-                    label: 'Color Filters',
-                    items: [
-                        { label: 'Grayscale', action: () => applyColorFilter(getCurrentSelectedImage(), 'grayscale') },
-                        { label: 'Sepia', action: () => applyColorFilter(getCurrentSelectedImage(), 'sepia') },
-                        { label: 'Invert Colors', action: () => applyColorFilter(getCurrentSelectedImage(), 'invert') }
-                    ]
-                },
-                {
-                    label: 'Effects',
-                    items: [
-                        { label: 'Blur (Light)', action: () => applyBlur(getCurrentSelectedImage(), 1) },
-                        { label: 'Blur (Medium)', action: () => applyBlur(getCurrentSelectedImage(), 3) },
-                        { label: 'Blur (Heavy)', action: () => applyBlur(getCurrentSelectedImage(), 6) },
-                        { label: 'Sharpen', action: () => applySharpen(getCurrentSelectedImage(), 0.3) }
-                    ]
-                },
-                {
-                    label: 'Reset',
-                    items: [
-                        { label: 'Reset Filters', action: () => resetFilters(getCurrentSelectedImage()) },
-                        { label: 'Reset Effects', action: () => resetEffects() }
-                    ]
-                }
-            ]
+            action: () => openSliderPanel('filters'),
+            isDirectAction: true
         },
         {
             category: 'Tools',
@@ -204,96 +156,115 @@ function setupContextMenu() {
         const headerText = document.createElement('span');
         headerText.textContent = `${category.icon} ${category.category}`;
         
-        const expandIcon = document.createElement('span');
-        expandIcon.textContent = '▼';
-        expandIcon.style.cssText = `
-            font-size: 12px;
-            color: #9aa0a6;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: rotate(-90deg);
-        `;
-        
         categoryHeader.appendChild(headerText);
-        categoryHeader.appendChild(expandIcon);
         
-        const subcategoriesContainer = document.createElement('div');
-        subcategoriesContainer.style.cssText = `
-            margin-left: 12px;
-            border-left: 1px solid rgba(134, 142, 150, 0.2);
-            padding-left: 12px;
-            margin-bottom: 6px;
-            display: none;
-        `;
-        
-        let isExpanded = false;
-        
-        categoryHeader.addEventListener('mouseenter', () => {
-            categoryHeader.style.background = 'rgba(108, 182, 255, 0.2)';
-        });
-        
-        categoryHeader.addEventListener('mouseleave', () => {
-            categoryHeader.style.background = 'rgba(37, 42, 51, 0.6)';
-        });
-        
-        categoryHeader.addEventListener('click', (e) => {
-            e.stopPropagation();
-            isExpanded = !isExpanded;
-            subcategoriesContainer.style.display = isExpanded ? 'block' : 'none';
-            expandIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
-        });
+        // Direct action items (like Adjust and Filters)
+        if (category.isDirectAction) {
+            categoryHeader.addEventListener('mouseenter', () => {
+                categoryHeader.style.background = 'rgba(108, 182, 255, 0.2)';
+            });
+            
+            categoryHeader.addEventListener('mouseleave', () => {
+                categoryHeader.style.background = 'rgba(37, 42, 51, 0.6)';
+            });
+            
+            categoryHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                category.action();
+            });
+        } else {
+            // Expandable items (like Transform and Tools)
+            const expandIcon = document.createElement('span');
+            expandIcon.textContent = '▼';
+            expandIcon.style.cssText = `
+                font-size: 12px;
+                color: #9aa0a6;
+                transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                transform: rotate(-90deg);
+            `;
+            categoryHeader.appendChild(expandIcon);
+            
+            const subcategoriesContainer = document.createElement('div');
+            subcategoriesContainer.style.cssText = `
+                margin-left: 12px;
+                border-left: 1px solid rgba(134, 142, 150, 0.2);
+                padding-left: 12px;
+                margin-bottom: 6px;
+                display: none;
+            `;
+            
+            let isExpanded = false;
+            
+            categoryHeader.addEventListener('mouseenter', () => {
+                categoryHeader.style.background = 'rgba(108, 182, 255, 0.2)';
+            });
+            
+            categoryHeader.addEventListener('mouseleave', () => {
+                categoryHeader.style.background = 'rgba(37, 42, 51, 0.6)';
+            });
+            
+            categoryHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                isExpanded = !isExpanded;
+                subcategoriesContainer.style.display = isExpanded ? 'block' : 'none';
+                expandIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+            });
+            
+            // 서브카테고리들 생성
+            if (category.subcategories) {
+                category.subcategories.forEach(subcategory => {
+                    const subcategoryHeader = document.createElement('div');
+                    subcategoryHeader.style.cssText = `
+                        font-weight: 500;
+                        color: #9aa0a6;
+                        padding: 6px 0;
+                        margin: 4px 0;
+                        font-size: 12px;
+                        letter-spacing: 0.3px;
+                    `;
+                    subcategoryHeader.textContent = subcategory.label;
+                    subcategoriesContainer.appendChild(subcategoryHeader);
+                    
+                    // 서브카테고리 아이템들 생성
+                    subcategory.items.forEach(item => {
+                        const menuItem = document.createElement('div');
+                        menuItem.style.cssText = `
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            border-radius: 4px;
+                            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                            font-size: 12px;
+                            margin-left: 4px;
+                            color: #e8eaed;
+                            ${item.style || ''}
+                        `;
+                        menuItem.textContent = item.label;
+                        
+                        menuItem.addEventListener('mouseenter', () => {
+                            menuItem.style.backgroundColor = 'rgba(108, 182, 255, 0.15)';
+                            menuItem.style.transform = 'translateX(2px)';
+                        });
+                        
+                        menuItem.addEventListener('mouseleave', () => {
+                            menuItem.style.backgroundColor = '';
+                            menuItem.style.transform = 'translateX(0)';
+                        });
+                        
+                        menuItem.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            item.action();
+                            hideContextMenu();
+                        });
+                        
+                        subcategoriesContainer.appendChild(menuItem);
+                    });
+                });
+            }
+            
+            contextMenu.appendChild(subcategoriesContainer);
+        }
         
         contextMenu.appendChild(categoryHeader);
-        
-        // 서브카테고리들 생성
-        category.subcategories.forEach(subcategory => {
-            const subcategoryHeader = document.createElement('div');
-            subcategoryHeader.style.cssText = `
-                font-weight: 500;
-                color: #9aa0a6;
-                padding: 6px 0;
-                margin: 4px 0;
-                font-size: 12px;
-                letter-spacing: 0.3px;
-            `;
-            subcategoryHeader.textContent = subcategory.label;
-            subcategoriesContainer.appendChild(subcategoryHeader);
-            
-            // 서브카테고리 아이템들 생성
-            subcategory.items.forEach(item => {
-                const menuItem = document.createElement('div');
-                menuItem.style.cssText = `
-                    padding: 8px 16px;
-                    cursor: pointer;
-                    border-radius: 4px;
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    font-size: 12px;
-                    margin-left: 4px;
-                    color: #e8eaed;
-                    ${item.style || ''}
-                `;
-                menuItem.textContent = item.label;
-                
-                menuItem.addEventListener('mouseenter', () => {
-                    menuItem.style.backgroundColor = 'rgba(108, 182, 255, 0.15)';
-                    menuItem.style.transform = 'translateX(2px)';
-                });
-                
-                menuItem.addEventListener('mouseleave', () => {
-                    menuItem.style.backgroundColor = '';
-                    menuItem.style.transform = 'translateX(0)';
-                });
-                
-                menuItem.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    item.action();
-                    hideContextMenu();
-                });
-                
-                subcategoriesContainer.appendChild(menuItem);
-            });
-        });
-        
-        contextMenu.appendChild(subcategoriesContainer);
     });
     
     document.body.appendChild(contextMenu);
@@ -323,6 +294,29 @@ function hideContextMenu() {
 // 현재 선택된 이미지 반환
 function getCurrentSelectedImage() {
     return selectedImage;
+}
+
+// 슬라이더 패널 열기
+function openSliderPanel(mode) {
+    const image = getCurrentSelectedImage();
+    if (!image) return;
+
+    // 이미지의 화면상 위치 계산
+    const imageRect = getNodeRect(image);
+    
+    // Stage 변환 고려한 화면 좌표 계산
+    const stagePos = stage.getAbsolutePosition();
+    const stageScale = stage.scaleX();
+    
+    const screenRect = {
+        x: (imageRect.x * stageScale) + stagePos.x,
+        y: (imageRect.y * stageScale) + stagePos.y,
+        width: imageRect.width * stageScale,
+        height: imageRect.height * stageScale
+    };
+
+    hideContextMenu();
+    showSliderPanel(image, mode, screenRect);
 }
 
 // --- Crop Mode UI --- //
