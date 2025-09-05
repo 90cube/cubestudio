@@ -247,7 +247,9 @@ html, body {
 }
 
 .menu-icon {
-    font-size: 16px;
+    font-size: 12px;
+    color: var(--accent-blue);
+    font-weight: 600;
 }
 
 .elements-menu-controls {
@@ -256,12 +258,12 @@ html, body {
 }
 
 .control-btn {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border: none;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -270,22 +272,32 @@ html, body {
 }
 
 .control-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    transform: scale(1.05);
 }
 
 .control-btn:active {
     transform: scale(0.95);
 }
 
+.refresh-btn:hover {
+    color: var(--accent-blue);
+}
+
+.minimize-btn:hover {
+    color: #f39c12;
+}
+
 .close-btn:hover {
-    background: #ff4757;
-    color: white;
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
 }
 
 .control-icon {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1;
+    font-weight: 400;
 }
 
 .elements-menu-content {
@@ -311,7 +323,7 @@ html, body {
 .element-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-subtle);
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
     cursor: grab;
     transition: var(--transition-smooth);
@@ -319,9 +331,10 @@ html, body {
 }
 
 .element-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-soft);
-    border-color: var(--accent-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-color: rgba(108, 182, 255, 0.5);
+    background: rgba(42, 48, 56, 0.8);
 }
 
 .element-card:active,
@@ -357,15 +370,16 @@ html, body {
 .element-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    background: rgba(26, 29, 35, 0.85);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: var(--transition-smooth);
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 400;
+    backdrop-filter: blur(4px);
 }
 
 .element-card:hover .element-overlay {
@@ -373,20 +387,22 @@ html, body {
 }
 
 .element-name {
-    padding: 8px 6px;
-    font-size: 11px;
+    padding: 6px 8px;
+    font-size: 10px;
     text-align: center;
     color: var(--text-secondary);
-    font-weight: 500;
-    border-top: 1px solid var(--border-subtle);
-    background: rgba(0, 0, 0, 0.2);
+    font-weight: 400;
+    border-top: 1px solid rgba(134, 142, 150, 0.1);
+    background: rgba(26, 29, 35, 0.6);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: 0.2px;
 }
 
 .element-card:hover .element-name {
-    color: var(--accent-blue);
+    color: var(--text-primary);
+    background: rgba(26, 29, 35, 0.8);
 }
 
 .loading-message,

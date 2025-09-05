@@ -280,31 +280,47 @@ function applyCropToImage(imageNode, cropArea) {
     // initialNodeRect was stored when crop mode started
     if (!initialNodeRect) return;
 
-    const absScale = imageNode.getAbsoluteScale();
-
-    const cropDx = cropArea.x - initialNodeRect.x;
-    const cropDy = cropArea.y - initialNodeRect.y;
-
-    const localCropDx = cropDx / absScale.x;
-    const localCropDy = cropDy / absScale.y;
-
-    const currentCrop = imageNode.crop() || { x: 0, y: 0 };
-
+    // 정확한 좌표 변환을 위한 역변환 행렬 사용
+    const imageTransform = imageNode.getAbsoluteTransform();
+    const inverseTransform = imageTransform.copy().invert();
+    
+    // 크롭 영역의 각 모서리를 이미지 로컬 좌표계로 변환
+    const topLeft = inverseTransform.point({ x: cropArea.x, y: cropArea.y });
+    const bottomRight = inverseTransform.point({ 
+        x: cropArea.x + cropArea.width, 
+        y: cropArea.y + cropArea.height 
+    });
+    
+    // 현재 적용된 크롭 정보 가져오기
+    const currentCrop = imageNode.crop() || { x: 0, y: 0, width: imageNode.width(), height: imageNode.height() };
+    
+    // 새로운 크롭 영역을 이미지 로컬 좌표계에서 계산
     const newCrop = {
-        x: currentCrop.x + localCropDx,
-        y: currentCrop.y + localCropDy,
-        width: cropArea.width / absScale.x,
-        height: cropArea.height / absScale.y
+        x: currentCrop.x + Math.max(0, topLeft.x),
+        y: currentCrop.y + Math.max(0, topLeft.y),
+        width: Math.abs(bottomRight.x - topLeft.x),
+        height: Math.abs(bottomRight.y - topLeft.y)
     };
-
-    // Apply the new crop
+    
+    // 크롭 영역이 이미지 경계를 벗어나지 않도록 제한
+    const imageWidth = imageNode.width();
+    const imageHeight = imageNode.height();
+    
+    newCrop.x = Math.max(0, Math.min(newCrop.x, imageWidth - 1));
+    newCrop.y = Math.max(0, Math.min(newCrop.y, imageHeight - 1));
+    newCrop.width = Math.min(newCrop.width, imageWidth - newCrop.x);
+    newCrop.height = Math.min(newCrop.height, imageHeight - newCrop.y);
+    
+    // 크롭 적용
     imageNode.crop(newCrop);
-
-    // Update position and size to match the visual crop area
-    imageNode.offset({ x: 0, y: 0 }); // 기준점을 리셋하여 위치 계산 오류 방지
+    
+    // 이미지 위치와 크기를 크롭 영역에 맞게 조정
     imageNode.position({ x: cropArea.x, y: cropArea.y });
     imageNode.size({ width: cropArea.width, height: cropArea.height });
-    imageNode.scale({ x: 1, y: 1 }); // Reset scale
+    
+    // 스케일과 오프셋 초기화로 정확한 표시
+    imageNode.scale({ x: 1, y: 1 });
+    imageNode.offset({ x: 0, y: 0 });
 
     layer.batchDraw();
 }
@@ -735,14 +751,7 @@ function applyLassoClip(imageNode, line) {
             return;
         }
 
-        // 디버깅: 이미지 변환 정보
-        console.log('Image transform info:', {
-            position: { x: imageNode.x(), y: imageNode.y() },
-            scale: { x: imageNode.scaleX(), y: imageNode.scaleY() },
-            rotation: imageNode.rotation()
-        });
-
-        // 라소 라인의 경계 상자 계산 (클리핑된 결과의 위치 결정용)
+        // 라소 라인의 경계 상자 계산 (stage-space coordinates)
         let minX = linePoints[0], minY = linePoints[1];
         let maxX = linePoints[0], maxY = linePoints[1];
         
@@ -757,15 +766,29 @@ function applyLassoClip(imageNode, line) {
         
         console.log('Lasso bounds:', { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
 
-        // 클리핑 그룹 생성 - 라소 영역의 상단 왼쪽 모서리에 위치
+        // 이미지 변환 행렬을 이용한 정확한 좌표 변환
+        const imageTransform = imageNode.getAbsoluteTransform();
+        const inverseTransform = imageTransform.copy().invert();
+        
+        // 라소 포인트들을 이미지 로컬 좌표계로 변환
+        const localPoints = [];
+        for (let i = 0; i < linePoints.length; i += 2) {
+            const stagePoint = { x: linePoints[i], y: linePoints[i + 1] };
+            const localPoint = inverseTransform.point(stagePoint);
+            localPoints.push(localPoint.x, localPoint.y);
+        }
+
+        // 클리핑 그룹 생성 - 라소 영역의 경계 상자 위치에 생성
         const clipGroup = new Konva.Group({
             x: minX,
             y: minY,
+            width: maxX - minX,
+            height: maxY - minY,
             scaleX: 1,
             scaleY: 1,
             rotation: 0,
             draggable: originalDraggableState,
-            name: 'cropped-image',
+            name: 'lasso-cropped-image',
             clipFunc: function(ctx) {
                 // 라소 라인 포인트를 그룹의 로컬 좌표계로 조정
                 ctx.beginPath();
@@ -781,15 +804,21 @@ function applyLassoClip(imageNode, line) {
 
         // 이미지를 그룹의 로컬 좌표계에 맞게 조정하여 추가
         const newImage = imageNode.clone({
-            x: imageNode.x() - minX,  // 그룹 원점 기준으로 조정
-            y: imageNode.y() - minY
+            x: imageNode.x() - minX,  
+            y: imageNode.y() - minY,
+            // 기존 변환 속성 유지
+            scaleX: imageNode.scaleX(),
+            scaleY: imageNode.scaleY(),
+            rotation: imageNode.rotation(),
+            offset: imageNode.offset()
         });
+        
         clipGroup.add(newImage);
         
-        console.log('Created clip group at lasso position:', {
+        console.log('Created lasso clip group:', {
             groupPos: { x: minX, y: minY },
-            imageInGroup: { x: newImage.x(), y: newImage.y() },
-            clipBounds: { width: maxX - minX, height: maxY - minY }
+            groupSize: { width: maxX - minX, height: maxY - minY },
+            imageInGroup: { x: newImage.x(), y: newImage.y() }
         });
         
         // 부모에 그룹 추가
@@ -801,7 +830,7 @@ function applyLassoClip(imageNode, line) {
         // 레이어 다시 그리기
         layer.batchDraw();
         
-        console.log('Lasso clip applied successfully - result positioned at lasso selection');
+        console.log('Lasso clip applied successfully with precise coordinate transformation');
         return clipGroup;
         
     } catch (error) {

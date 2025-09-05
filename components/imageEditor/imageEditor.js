@@ -68,25 +68,27 @@ function setupContextMenu() {
     contextMenu.className = 'image-editor-context-menu';
     contextMenu.style.cssText = `
         position: fixed;
-        background: white;
-        border: 1px solid #ccc;
+        background: rgba(42, 48, 56, 0.95);
+        border: 1px solid rgba(134, 142, 150, 0.2);
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        padding: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(20px);
+        padding: 6px;
         z-index: 1000;
         display: none;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        min-width: 250px;
-        max-height: 80vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13px;
+        min-width: 240px;
+        max-height: 70vh;
         overflow-y: auto;
+        color: #e8eaed;
     `;
     
     // 트리 구조 메뉴 아이템들 생성
     const menuItems = [
         {
             category: 'Transform',
-            icon: '🔄',
+            icon: '↻',
             subcategories: [
                 {
                     label: 'Flip',
@@ -99,7 +101,7 @@ function setupContextMenu() {
         },
         {
             category: 'Adjust',
-            icon: '🎛️',
+            icon: '◐',
             subcategories: [
                 {
                     label: 'Brightness',
@@ -133,7 +135,7 @@ function setupContextMenu() {
         },
         {
             category: 'Filters',
-            icon: '🎨',
+            icon: '◑',
             subcategories: [
                 {
                     label: 'Color Filters',
@@ -163,7 +165,7 @@ function setupContextMenu() {
         },
         {
             category: 'Tools',
-            icon: '🛠️',
+            icon: '◉',
             subcategories: [
                 {
                     label: 'Edit Tools',
@@ -174,7 +176,7 @@ function setupContextMenu() {
                 {
                     label: 'Actions',
                     items: [
-                        { label: 'Delete Image', action: () => deleteImage(), style: 'color: #ff4444; font-weight: bold;' }
+                        { label: 'Delete Image', action: () => deleteImage(), style: 'color: #e74c3c; font-weight: 500;' }
                     ]
                 }
             ]
@@ -185,17 +187,18 @@ function setupContextMenu() {
     menuItems.forEach(category => {
         const categoryHeader = document.createElement('div');
         categoryHeader.style.cssText = `
-            font-weight: bold;
-            color: #333;
-            padding: 8px 12px;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 4px;
-            background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+            font-weight: 500;
+            color: #e8eaed;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(134, 142, 150, 0.1);
+            margin-bottom: 2px;
+            background: rgba(37, 42, 51, 0.6);
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         `;
         
         const headerText = document.createElement('span');
@@ -204,8 +207,9 @@ function setupContextMenu() {
         const expandIcon = document.createElement('span');
         expandIcon.textContent = '▼';
         expandIcon.style.cssText = `
-            font-size: 10px;
-            transition: transform 0.2s;
+            font-size: 12px;
+            color: #9aa0a6;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             transform: rotate(-90deg);
         `;
         
@@ -214,14 +218,22 @@ function setupContextMenu() {
         
         const subcategoriesContainer = document.createElement('div');
         subcategoriesContainer.style.cssText = `
-            margin-left: 8px;
-            border-left: 2px solid #eee;
-            padding-left: 8px;
-            margin-bottom: 8px;
+            margin-left: 12px;
+            border-left: 1px solid rgba(134, 142, 150, 0.2);
+            padding-left: 12px;
+            margin-bottom: 6px;
             display: none;
         `;
         
         let isExpanded = false;
+        
+        categoryHeader.addEventListener('mouseenter', () => {
+            categoryHeader.style.background = 'rgba(108, 182, 255, 0.2)';
+        });
+        
+        categoryHeader.addEventListener('mouseleave', () => {
+            categoryHeader.style.background = 'rgba(37, 42, 51, 0.6)';
+        });
         
         categoryHeader.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -236,11 +248,12 @@ function setupContextMenu() {
         category.subcategories.forEach(subcategory => {
             const subcategoryHeader = document.createElement('div');
             subcategoryHeader.style.cssText = `
-                font-weight: 600;
-                color: #555;
-                padding: 4px 8px;
-                margin: 2px 0;
-                font-size: 13px;
+                font-weight: 500;
+                color: #9aa0a6;
+                padding: 6px 0;
+                margin: 4px 0;
+                font-size: 12px;
+                letter-spacing: 0.3px;
             `;
             subcategoryHeader.textContent = subcategory.label;
             subcategoriesContainer.appendChild(subcategoryHeader);
@@ -249,22 +262,25 @@ function setupContextMenu() {
             subcategory.items.forEach(item => {
                 const menuItem = document.createElement('div');
                 menuItem.style.cssText = `
-                    padding: 4px 16px;
+                    padding: 8px 16px;
                     cursor: pointer;
-                    border-radius: 3px;
-                    transition: background-color 0.2s;
-                    font-size: 13px;
-                    margin-left: 8px;
+                    border-radius: 4px;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    font-size: 12px;
+                    margin-left: 4px;
+                    color: #e8eaed;
                     ${item.style || ''}
                 `;
                 menuItem.textContent = item.label;
                 
                 menuItem.addEventListener('mouseenter', () => {
-                    menuItem.style.backgroundColor = '#e3f2fd';
+                    menuItem.style.backgroundColor = 'rgba(108, 182, 255, 0.15)';
+                    menuItem.style.transform = 'translateX(2px)';
                 });
                 
                 menuItem.addEventListener('mouseleave', () => {
                     menuItem.style.backgroundColor = '';
+                    menuItem.style.transform = 'translateX(0)';
                 });
                 
                 menuItem.addEventListener('click', (e) => {

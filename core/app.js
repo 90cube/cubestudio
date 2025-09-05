@@ -1,4 +1,4 @@
-import { init as initCanvas, getStage, getLayer, getSelectedImage } from '../components/canvas/canvas.js';
+import { init as initCanvas, getStage, getLayer, getSelectedImage, deleteSelectedImage } from '../components/canvas/canvas.js';
 import { init as initCoords } from './coordinates.js';
 import { init as initImageEditor } from '../components/imageEditor/imageEditor.js';
 import { init as initKeyboardManager, registerShortcut } from '../components/keyboardManager/keyboardManager.js';
@@ -113,6 +113,34 @@ function setupImageEditingShortcuts() {
             // console.log('No image selected for transform');
         }
     }, {}, 'Transform selected image');
+    
+    // Delete키 - 선택된 이미지 삭제
+    registerShortcut('Delete', (e) => {
+        console.log('🗑️ Delete key pressed via keyboard manager');
+        const selectedImage = getSelectedImage();
+        
+        if (selectedImage) {
+            console.log('🗑️ Found selected image - deleting via keyboard manager');
+            deleteSelectedImage();
+            e.preventDefault();
+        } else {
+            console.log('⚠️ No image selected for deletion');
+        }
+    }, {}, 'Delete selected image');
+    
+    // Backspace키 - 선택된 이미지 삭제 (대체 키)
+    registerShortcut('Backspace', (e) => {
+        console.log('🗑️ Backspace key pressed via keyboard manager');
+        const selectedImage = getSelectedImage();
+        
+        if (selectedImage) {
+            console.log('🗑️ Found selected image - deleting via keyboard manager');
+            deleteSelectedImage();
+            e.preventDefault();
+        } else {
+            console.log('⚠️ No image selected for deletion');
+        }
+    }, {}, 'Delete selected image (alternative)');
     
     // console.log('Image editing shortcuts registered');
 }

@@ -31,25 +31,25 @@ export function showElementsMenu(x = 100, y = 100) {
         <div class="elements-menu-window">
             <div class="elements-menu-header">
                 <div class="elements-menu-title">
-                    <span class="menu-icon">🧩</span>
+                    <span class="menu-icon">●</span>
                     <span>Elements</span>
                 </div>
                 <div class="elements-menu-controls">
                     <button class="control-btn refresh-btn" title="새로고침">
-                        <span class="control-icon">🔄</span>
+                        <span class="control-icon">↻</span>
                     </button>
                     <button class="control-btn minimize-btn" title="접기">
-                        <span class="control-icon">➖</span>
+                        <span class="control-icon">−</span>
                     </button>
                     <button class="control-btn close-btn" title="닫기">
-                        <span class="control-icon">✖</span>
+                        <span class="control-icon">×</span>
                     </button>
                 </div>
             </div>
             <div class="elements-menu-content">
                 <div class="elements-grid-container panel-scrollbar">
                     <div class="elements-grid" id="elements-grid">
-                        <div class="loading-message">엘리먼츠를 로딩 중...</div>
+                        <div class="loading-message">로딩 중...</div>
                     </div>
                 </div>
             </div>
@@ -105,7 +105,7 @@ function setupElementsMenuEvents() {
         isMinimized = !isMinimized;
         content.style.display = isMinimized ? 'none' : 'block';
         minimizeBtn.title = isMinimized ? '펼치기' : '접기';
-        minimizeBtn.querySelector('.control-icon').textContent = isMinimized ? '➕' : '➖';
+        minimizeBtn.querySelector('.control-icon').textContent = isMinimized ? '+' : '−';
         console.log('📦 Elements menu', isMinimized ? 'minimized' : 'restored');
     });
     

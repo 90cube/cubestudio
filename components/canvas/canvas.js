@@ -81,11 +81,25 @@ function setupKeyboardEvents(container) {
     let spacePressed = false;
 
     document.addEventListener('keydown', (e) => {
+        console.log('🎹 Key pressed:', e.code, 'selectedImage:', !!selectedImage);
+        
         if (e.code === 'Space' && !spacePressed) {
             e.preventDefault();
             spacePressed = true;
             container.classList.add('panning');
         }
+        
+        // Delete 키로 선택된 이미지 삭제
+        if (e.code === 'Delete' || e.code === 'Backspace') {
+            console.log('🗑️ Delete/Backspace key detected, selectedImage:', selectedImage);
+            if (selectedImage) {
+                e.preventDefault();
+                deleteSelectedImage();
+            } else {
+                console.log('⚠️ No image selected for deletion');
+            }
+        }
+        
         // T키와 Escape 키 처리는 app.js의 키보드 매니저에서 담당
     });
 
@@ -470,6 +484,40 @@ export function setSelectedImage(image) {
     selectedImage = image;
 }
 
+// 선택된 이미지 삭제 (외부에서 호출 가능)
+export function deleteSelectedImage() {
+    if (!selectedImage) return;
+    
+    console.log('🗑️ Deleting selected image:', selectedImage.className, selectedImage.id());
+    
+    // 트랜스폼 모드가 활성화되어 있다면 먼저 종료
+    if (isTransformModeActive()) {
+        exitTransformMode();
+    }
+    
+    // 하이라이트 제거
+    clearImageHighlight();
+    
+    // 이미지 삭제
+    selectedImage.destroy();
+    
+    // 선택 상태 초기화
+    selectedImage = null;
+    stateManager.updateState('isImageSelected', false);
+    
+    // 디버깅용 선택 히스토리 추가
+    selectionHistory.push({
+        timestamp: Date.now(),
+        action: 'deleted',
+        reason: 'delete-key-pressed'
+    });
+    
+    // 레이어 다시 그리기
+    layer.batchDraw();
+    
+    console.log('✅ Selected image deleted successfully');
+}
+
 // 이미지 하이라이트 함수들
 function highlightSelectedImage(image) {
     if (!image) return;
@@ -515,3 +563,4 @@ function updateHighlightPosition() {
         layer.batchDraw();
     }
 }
+
