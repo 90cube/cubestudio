@@ -455,7 +455,7 @@ export class FloatingPanel {
         this.height = options.height || 400;
         // 초기 위치와 크기를 그리드에 스냅
         this.x = snapPanelToGrid(options.x || 100);
-        this.y = snapPanelToGrid(options.y || 100);
+        this.y = snapPanelToGrid(options.y || 30);
         this.width = snapPanelToGrid(this.width);
         this.height = snapPanelHeight(this.height);
         this.markingColor = options.markingColor || '#3498db';

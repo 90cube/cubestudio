@@ -261,17 +261,17 @@ function calculateSymmetricPositions() {
     // 화면 가장자리 여백
     const edgeMargin = 30;
     
-    // 수직 중앙 위치 계산 (패널 2개가 세로로 배치)
-    const centerY = (viewportHeight - (panelHeight * 2 + 20)) / 2; // 20px 간격
+    // 상단에서 30px 떨어뜨려서 배치
+    const topMargin = 30;
     
     // 좌측 패널들 (화면 왼쪽 끝)
     const leftX = edgeMargin;
-    const leftTop = Math.max(50, centerY);
+    const leftTop = topMargin;
     const leftBottom = leftTop + panelHeight + 20;
     
     // 우측 패널들 (화면 오른쪽 끝)
     const rightX = viewportWidth - panelWidth - edgeMargin;
-    const rightTop = Math.max(50, centerY);
+    const rightTop = topMargin;
     const rightBottom = rightTop + panelHeight + 20;
     
     return {

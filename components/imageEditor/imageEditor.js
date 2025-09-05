@@ -121,6 +121,13 @@ function setupContextMenu() {
             isDirectAction: true
         },
         {
+            category: 'ControlNet 전처리',
+            icon: '🎛️',
+            action: () => openControlNetPreprocessing(),
+            isDirectAction: true,
+            style: 'color: #3498db; font-weight: 500;'
+        },
+        {
             category: 'Delete Image',
             icon: '🗑',
             action: () => deleteImage(),
@@ -345,6 +352,29 @@ export function applyBrightnessContrast(imageNode, brightness, contrast) {
 export function rotateImageByAngle(imageNode, angle) {
     imageNode.rotation(imageNode.rotation() + (angle * Math.PI / 180));
     layer.batchDraw();
+}
+
+/**
+ * ControlNet 전처리 패널 열기
+ */
+function openControlNetPreprocessing() {
+    const image = getCurrentSelectedImage();
+    if (!image) {
+        console.warn('No image selected for ControlNet preprocessing');
+        return;
+    }
+    
+    console.log('Opening ControlNet preprocessing for image:', image);
+    
+    // ControlNet 전처리 패널을 동적으로 생성
+    import('../controlnet/controlNetManager.js').then(module => {
+        const { openControlNetPanel } = module;
+        openControlNetPanel(image);
+    }).catch(error => {
+        console.error('Failed to load ControlNet module:', error);
+        // 모듈이 아직 없으면 임시 알림 표시
+        alert('ControlNet 전처리 기능을 준비 중입니다...');
+    });
 }
 
 export { showContextMenu, hideContextMenu };
