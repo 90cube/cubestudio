@@ -15,11 +15,38 @@ import {
 // 활성화된 ControlNet 모달들
 const activeControlNetModals = new Map();
 
+// 사용 가능한 전처리기 모델 목록
+let availablePreprocessors = [];
+
+/**
+ * 전처리기 모델 목록 로드
+ */
+async function loadPreprocessorModels() {
+    try {
+        // 백엔드 API에서 사용 가능한 전처리기 목록 가져오기
+        const response = await fetch('http://localhost:5000/api/preprocessors');
+        if (response.ok) {
+            availablePreprocessors = await response.json();
+            console.log('✅ 전처리기 모델 로드 완료:', availablePreprocessors.length, '개');
+        } else {
+            throw new Error(`API response error: ${response.status}`);
+        }
+    } catch (error) {
+        console.warn('⚠️  백엔드 API 연결 실패, 폴백 모델 사용:', error);
+        
+        // 폴백으로 내장 + OpenCV 사용
+        availablePreprocessors = [
+            { id: 'builtin', name: '내장 알고리즘 (JavaScript)', type: 'builtin', available: true },
+            { id: 'opencv_canny', name: 'OpenCV Canny (백엔드 필요)', type: 'opencv', available: false }
+        ];
+    }
+}
+
 /**
  * 이미지용 ControlNet 전처리 패널 열기
  * @param {Konva.Image} imageNode - 전처리할 이미지 노드
  */
-export function openControlNetPanel(imageNode) {
+export async function openControlNetPanel(imageNode) {
     const imageId = imageNode.id() || `image-${Date.now()}`;
     
     // 이미 해당 이미지의 모달이 열려있으면 포커스만 이동
@@ -27,6 +54,11 @@ export function openControlNetPanel(imageNode) {
         const existingModal = activeControlNetModals.get(imageId);
         existingModal.focus();
         return existingModal;
+    }
+    
+    // 전처리기 모델 목록 로드 (아직 로드되지 않았다면)
+    if (availablePreprocessors.length === 0) {
+        await loadPreprocessorModels();
     }
     
     // 모달 생성
@@ -315,8 +347,45 @@ function createCannyUI(imageNode) {
         <p style="color: #ccc; margin: 0;">윤곽선을 검출하여 구조적 정보를 추출합니다.</p>
     `;
     
+    // 모델 선택 영역
+    const modelSelectorDiv = document.createElement('div');
+    modelSelectorDiv.style.cssText = 'padding: 0 20px 16px 20px;';
+    
+    const modelLabel = document.createElement('label');
+    modelLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #ddd; font-size: 13px; font-weight: 500;';
+    modelLabel.textContent = '전처리기 모델 선택';
+    
+    const modelSelect = document.createElement('select');
+    modelSelect.id = 'model-selector';
+    modelSelect.style.cssText = `
+        width: 100%;
+        background: #3a3a3a;
+        color: #fff;
+        border: 1px solid #555;
+        border-radius: 5px;
+        padding: 8px;
+        font-size: 13px;
+        cursor: pointer;
+    `;
+    
+    // 모델 옵션 추가
+    availablePreprocessors.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.name;
+        option.dataset.type = model.type;
+        if (model.type === 'builtin') {
+            option.selected = true; // 기본값: 내장 알고리즘
+        }
+        modelSelect.appendChild(option);
+    });
+    
+    modelSelectorDiv.appendChild(modelLabel);
+    modelSelectorDiv.appendChild(modelSelect);
+    
     // 파라미터 컨트롤
     const controlsDiv = document.createElement('div');
+    controlsDiv.id = 'canny-controls';
     controlsDiv.style.cssText = 'padding: 0 20px; text-align: left;';
     
     // 임계값 하한
@@ -426,8 +495,60 @@ function createCannyUI(imageNode) {
         applyButton.style.background = '#3498db';
     });
     
+    // 오버레이 제거 버튼 생성
+    const removeOverlayButton = document.createElement('button');
+    removeOverlayButton.textContent = '오버레이 제거';
+    removeOverlayButton.style.cssText = `
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        margin: 0 5px;
+        transition: background-color 0.3s;
+    `;
+    
+    // 오버레이 제거 버튼 이벤트
+    removeOverlayButton.addEventListener('click', () => {
+        const imageNode = container._imageNode;
+        if (imageNode && imageNode.controlNetOverlay) {
+            const overlay = imageNode.controlNetOverlay;
+            
+            // 이벤트 리스너 제거
+            if (overlay._syncHandler) {
+                imageNode.off('dragmove transform', overlay._syncHandler);
+            }
+            
+            // 오버레이 제거
+            overlay.destroy();
+            imageNode.controlNetOverlay = null;
+            imageNode.getLayer().batchDraw();
+            
+            // 상태 메시지 업데이트
+            const statusDiv = container.querySelector('#status-message');
+            if (statusDiv) {
+                statusDiv.textContent = '오버레이가 제거되었습니다 (원본만 표시됨)';
+                statusDiv.style.color = '#e67e22';
+                statusDiv.style.background = 'rgba(230, 126, 34, 0.1)';
+                statusDiv.style.borderColor = 'rgba(230, 126, 34, 0.3)';
+            }
+        }
+    });
+    
+    // 오버레이 제거 버튼 호버 효과
+    removeOverlayButton.addEventListener('mouseenter', () => {
+        removeOverlayButton.style.background = '#c0392b';
+    });
+    removeOverlayButton.addEventListener('mouseleave', () => {
+        removeOverlayButton.style.background = '#e74c3c';
+    });
+    
     buttonsDiv.appendChild(previewButton);
     buttonsDiv.appendChild(applyButton);
+    buttonsDiv.appendChild(removeOverlayButton);
     
     // 상태 메시지 영역
     const statusDiv = document.createElement('div');
@@ -446,12 +567,37 @@ function createCannyUI(imageNode) {
     `;
     statusDiv.textContent = '미리보기 후 적용하여 전처리를 완료하세요';
     
+    // 모델 선택 변경 이벤트 리스너
+    modelSelect.addEventListener('change', (e) => {
+        const selectedModel = availablePreprocessors.find(m => m.id === e.target.value);
+        const isBuiltin = selectedModel && selectedModel.type === 'builtin';
+        
+        // 상태 메시지 업데이트 (파라미터 컨트롤은 항상 활성화 유지)
+        const statusDiv = container.querySelector('#status-message');
+        if (statusDiv) {
+            if (isBuiltin) {
+                statusDiv.textContent = '미리보기 후 적용하여 전처리를 완료하세요';
+                statusDiv.style.color = '#ccc';
+                statusDiv.style.background = 'rgba(52, 152, 219, 0.1)';
+                statusDiv.style.borderColor = 'rgba(52, 152, 219, 0.3)';
+            } else {
+                statusDiv.textContent = `선택됨: ${selectedModel.name} (임계값 파라미터도 전송됨)`;
+                statusDiv.style.color = '#27ae60';
+                statusDiv.style.background = 'rgba(46, 204, 113, 0.1)';
+                statusDiv.style.borderColor = 'rgba(46, 204, 113, 0.3)';
+            }
+        }
+        
+        console.log('Selected preprocessor:', selectedModel);
+    });
+    
     // 모든 요소 조립
     controlsDiv.appendChild(lowThresholdDiv);
     controlsDiv.appendChild(highThresholdDiv);
     controlsDiv.appendChild(gradientDiv);
     
     container.appendChild(header);
+    container.appendChild(modelSelectorDiv);
     container.appendChild(controlsDiv);
     container.appendChild(previewDiv);
     container.appendChild(buttonsDiv);
@@ -505,18 +651,27 @@ async function handleCannyPreview(container, previewDiv) {
     const imageNode = container._imageNode;
     if (!imageNode) return;
     
+    // 선택된 모델 확인
+    const modelSelect = container.querySelector('#model-selector');
+    const selectedModelId = modelSelect ? modelSelect.value : 'builtin';
+    const selectedModel = availablePreprocessors.find(m => m.id === selectedModelId);
+    
     // 로딩 상태 표시
-    previewDiv.innerHTML = '<div>처리 중...</div>';
+    previewDiv.innerHTML = `<div style="color: #ccc; text-align: center; padding: 20px;">처리 중... (${selectedModel ? selectedModel.name : '내장 알고리즘'})</div>`;
     
     try {
-        // 파라미터 수집
-        const params = getCannyParameters(container);
+        let processedCanvas;
         
-        // Konva 이미지를 HTML 이미지로 변환
-        const htmlImage = await konvaImageToHTMLImage(imageNode);
-        
-        // Canny 처리
-        const processedCanvas = processCannyEdge(htmlImage, params);
+        if (selectedModel && selectedModel.type === 'builtin') {
+            // 내장 알고리즘 사용
+            const params = getCannyParameters(container);
+            const htmlImage = await konvaImageToHTMLImage(imageNode);
+            processedCanvas = processCannyEdge(htmlImage, params);
+        } else {
+            // 외부 모델 사용 - 백엔드 API 호출
+            const params = getCannyParameters(container);
+            processedCanvas = await processWithExternalModel(imageNode, selectedModel, params);
+        }
         
         // 미리보기 영역에 결과 표시
         processedCanvas.style.cssText = `
@@ -536,6 +691,119 @@ async function handleCannyPreview(container, previewDiv) {
         console.error('Canny preview failed:', error);
         previewDiv.innerHTML = '<div style="color: #e74c3c;">처리 중 오류 발생</div>';
     }
+}
+
+/**
+ * 외부 모델을 사용한 전처리
+ * @param {Konva.Image} imageNode - 처리할 이미지 노드
+ * @param {Object} model - 선택된 모델 정보
+ * @param {Object} params - 전처리 파라미터
+ * @returns {HTMLCanvasElement} 처리된 캔버스
+ */
+async function processWithExternalModel(imageNode, model, params = {}) {
+    try {
+        // Konva 이미지를 데이터 URL로 변환
+        const imageDataUrl = await konvaImageToDataUrl(imageNode);
+        
+        console.log(`🎛️  ${model.name} 전처리 시작...`);
+        
+        // 백엔드 API 호출
+        const response = await fetch('http://localhost:5000/api/preprocess', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: imageDataUrl,
+                model: model.id,
+                params: params
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(`API request failed: ${response.status} - ${error.error || 'Unknown error'}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Processing failed');
+        }
+        
+        console.log(`✅ ${model.name} 전처리 완료`);
+        
+        // 결과 이미지를 캔버스로 변환
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        return new Promise((resolve, reject) => {
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas);
+            };
+            img.onerror = () => reject(new Error('Failed to load processed image'));
+            img.src = result.processed_image; // Base64 데이터 URL
+        });
+        
+    } catch (error) {
+        console.error(`❌ ${model.name} 전처리 실패:`, error);
+        
+        // 폴백: 에러 메시지가 포함된 플레이스홀더 캔버스 반환
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+        
+        // 배경
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, 400, 300);
+        
+        // 에러 아이콘
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('❌', 200, 80);
+        
+        // 에러 메시지
+        ctx.fillStyle = '#ccc';
+        ctx.font = '16px Arial';
+        ctx.fillText('전처리 실패', 200, 120);
+        ctx.fillText(model.name, 200, 145);
+        
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = '12px Arial';
+        const errorMsg = error.message.length > 40 ? error.message.substring(0, 37) + '...' : error.message;
+        ctx.fillText(errorMsg, 200, 180);
+        
+        ctx.fillStyle = '#95a5a6';
+        ctx.fillText('백엔드 서버 확인 필요', 200, 220);
+        ctx.fillText('python preprocess_server.py', 200, 240);
+        
+        return canvas;
+    }
+}
+
+/**
+ * Konva 이미지를 데이터 URL로 변환
+ * @param {Konva.Image} imageNode - 변환할 이미지 노드
+ * @returns {Promise<string>} 데이터 URL
+ */
+async function konvaImageToDataUrl(imageNode) {
+    // 임시 캔버스에 이미지 그리기
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const originalImage = imageNode.image();
+    canvas.width = originalImage.width || imageNode.width();
+    canvas.height = originalImage.height || imageNode.height();
+    
+    ctx.drawImage(originalImage, 0, 0);
+    
+    return canvas.toDataURL('image/png');
 }
 
 /**
@@ -601,37 +869,95 @@ async function handleCannyApply(container) {
 }
 
 /**
- * 전처리된 이미지를 캔버스의 원본 이미지 위에 덮어쓰기
+ * 전처리된 이미지를 원본 이미지 위에 오버레이로 추가
  * @param {Konva.Image} imageNode - 대상 이미지 노드
  * @param {HTMLCanvasElement} processedCanvas - 전처리된 캔버스
  */
 async function applyProcessedImageToCanvas(imageNode, processedCanvas) {
     try {
+        const layer = imageNode.getLayer();
+        
         // 전처리된 캔버스를 이미지로 변환
         const processedImageSrc = processedCanvas.toDataURL();
         
-        // 새 이미지 객체 생성
-        const newImage = new Image();
-        
         return new Promise((resolve, reject) => {
-            newImage.onload = () => {
-                // Konva 이미지 노드의 이미지를 교체
-                imageNode.image(newImage);
-                imageNode.getLayer().batchDraw();
+            const processedImage = new Image();
+            
+            processedImage.onload = () => {
+                // 기존 ControlNet 오버레이 제거 (있다면)
+                const existingOverlay = imageNode.controlNetOverlay;
+                if (existingOverlay) {
+                    // 기존 이벤트 리스너 제거
+                    if (existingOverlay._syncHandler) {
+                        imageNode.off('dragmove transform', existingOverlay._syncHandler);
+                    }
+                    existingOverlay.destroy();
+                }
                 
-                console.log('Processed image applied to canvas successfully');
+                // 원본 이미지의 현재 변형 상태 가져오기
+                const imageTransform = imageNode.getAbsoluteTransform();
+                const imageAttrs = imageNode.attrs;
+                
+                // 새 전처리 오버레이 이미지 생성
+                const overlayImage = new Konva.Image({
+                    x: imageNode.x(),
+                    y: imageNode.y(),
+                    image: processedImage,
+                    width: imageNode.width(),
+                    height: imageNode.height(),
+                    scaleX: imageNode.scaleX(),
+                    scaleY: imageNode.scaleY(),
+                    rotation: imageNode.rotation(),
+                    skewX: imageNode.skewX(),
+                    skewY: imageNode.skewY(),
+                    offsetX: imageNode.offsetX(),
+                    offsetY: imageNode.offsetY(),
+                    opacity: 0.8, // 반투명으로 설정하여 원본도 보이게 함
+                    listening: false, // 마우스 이벤트 비활성화
+                    name: 'controlnet-overlay'
+                });
+                
+                // 이미지 노드에 오버레이 참조 저장
+                imageNode.controlNetOverlay = overlayImage;
+                
+                // 원본 이미지 바로 위에 오버레이 추가
+                const imageIndex = imageNode.getZIndex();
+                layer.add(overlayImage);
+                overlayImage.setZIndex(imageIndex + 1);
+                
+                // 원본 이미지 변형 시 오버레이도 함께 업데이트
+                const syncOverlay = () => {
+                    if (overlayImage && !overlayImage.isDestroyed()) {
+                        overlayImage.position(imageNode.position());
+                        overlayImage.scale(imageNode.scale());
+                        overlayImage.rotation(imageNode.rotation());
+                        overlayImage.skew(imageNode.skew());
+                        overlayImage.offset(imageNode.offset());
+                        overlayImage.setZIndex(imageNode.getZIndex() + 1);
+                    }
+                };
+                
+                // 이벤트 리스너 추가 (이미지 변형 시 오버레이 동기화)
+                imageNode.on('dragmove transform', syncOverlay);
+                
+                // 기존 이벤트 리스너 제거를 위한 참조 저장
+                overlayImage._syncHandler = syncOverlay;
+                
+                layer.batchDraw();
+                
+                console.log('ControlNet overlay applied successfully (원본 보존됨)');
                 resolve();
             };
             
-            newImage.onerror = () => {
+            processedImage.onerror = () => {
                 reject(new Error('Failed to load processed image'));
             };
             
-            newImage.src = processedImageSrc;
+            processedImage.src = processedImageSrc;
         });
         
     } catch (error) {
-        console.error('Failed to apply processed image to canvas:', error);
+        console.error('Failed to apply processed overlay to canvas:', error);
         throw error;
     }
 }
