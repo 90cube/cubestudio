@@ -1,0 +1,128 @@
+2025-09-06 22:03:42,081 - __main__ - INFO - PyTorch available for ControlNet processing
+2025-09-06 22:03:42,081 - backend.services.model_explorer_service - INFO - Model Explorer Service initialized with base path: models
+2025-09-06 22:03:42,082 - backend.services.controlnet_service - INFO - Initializing ControlNet model registry...
+2025-09-06 22:03:42,082 - backend.services.controlnet_service - INFO - Initialized 6 ControlNet models
+2025-09-06 22:03:42,082 - backend.services.controlnet_service - INFO - ControlNet Service initialized with path: models\preprocessors
+2025-09-06 22:03:42,082 - backend.services.controlnet_service - INFO - PyTorch available: True
+2025-09-06 22:03:42,082 - backend.utils.image_utils - INFO - ImageSaveManager initialized with base path: output
+2025-09-06 22:03:42,084 - __main__ - INFO - Modular Backend Service v4.0.0-modular initialized
+2025-09-06 22:03:42,084 - __main__ - INFO - Model Explorer: models
+2025-09-06 22:03:42,084 - __main__ - INFO - ControlNet: models\preprocessors
+2025-09-06 22:03:42,084 - __main__ - INFO - Output: output
+2025-09-06 22:03:44,507 - __mp_main__ - INFO - PyTorch available for ControlNet processing
+2025-09-06 22:03:44,508 - backend.services.model_explorer_service - INFO - Model Explorer Service initialized with base path: models
+2025-09-06 22:03:44,508 - backend.services.controlnet_service - INFO - Initializing ControlNet model registry...
+2025-09-06 22:03:44,508 - backend.services.controlnet_service - INFO - Initialized 6 ControlNet models
+2025-09-06 22:03:44,508 - backend.services.controlnet_service - INFO - ControlNet Service initialized with path: models\preprocessors
+2025-09-06 22:03:44,508 - backend.services.controlnet_service - INFO - PyTorch available: True
+2025-09-06 22:03:44,508 - backend.utils.image_utils - INFO - ImageSaveManager initialized with base path: output
+2025-09-06 22:03:44,508 - __mp_main__ - INFO - Modular Backend Service v4.0.0-modular initialized
+2025-09-06 22:03:44,509 - __mp_main__ - INFO - Model Explorer: models
+2025-09-06 22:03:44,509 - __mp_main__ - INFO - ControlNet: models\preprocessors
+2025-09-06 22:03:44,509 - __mp_main__ - INFO - Output: output
+2025-09-06 22:03:44,534 - backend.main_backend - INFO - PyTorch available for ControlNet processing
+2025-09-06 22:03:44,535 - backend.services.model_explorer_service - INFO - Model Explorer Service initialized with base path: models
+2025-09-06 22:03:44,535 - backend.services.controlnet_service - INFO - Initializing ControlNet model registry...
+2025-09-06 22:03:44,535 - backend.services.controlnet_service - INFO - Initialized 6 ControlNet models
+2025-09-06 22:03:44,535 - backend.services.controlnet_service - INFO - ControlNet Service initialized with path: models\preprocessors
+2025-09-06 22:03:44,535 - backend.services.controlnet_service - INFO - PyTorch available: True
+2025-09-06 22:03:44,536 - backend.utils.image_utils - INFO - ImageSaveManager initialized with base path: output
+2025-09-06 22:03:44,536 - backend.main_backend - INFO - Modular Backend Service v4.0.0-modular initialized
+2025-09-06 22:03:44,536 - backend.main_backend - INFO - Model Explorer: models
+2025-09-06 22:03:44,536 - backend.main_backend - INFO - ControlNet: models\preprocessors
+2025-09-06 22:03:44,536 - backend.main_backend - INFO - Output: output
+2025-09-06 22:04:13,599 - backend.services.model_explorer_service - INFO - Fetching checkpoint models
+2025-09-06 22:04:13,600 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\checkpoints
+2025-09-06 22:04:13,604 - backend.services.model_explorer_service - INFO - Found 20 model files in models\checkpoints
+2025-09-06 22:04:13,605 - backend.services.model_explorer_service - INFO - Fetching VAE models
+2025-09-06 22:04:13,605 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\vae
+2025-09-06 22:04:13,607 - backend.services.model_explorer_service - INFO - Found 6 model files in models\vae
+2025-09-06 22:04:13,607 - backend.main_backend - INFO - GET /api/models/checkpoints - 200 - 0.008s
+2025-09-06 22:04:13,608 - backend.main_backend - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-07 02:10:12,491 - __main__ - INFO - PyTorch available for ControlNet processing
+2025-09-07 02:10:12,492 - backend.services.model_explorer_service - INFO - Model Explorer Service initialized with base path: models
+2025-09-07 02:10:12,492 - backend.services.controlnet_service - INFO - Initializing ControlNet model registry...
+2025-09-07 02:10:12,492 - backend.services.controlnet_service - INFO - Initialized 6 ControlNet models
+2025-09-07 02:10:12,492 - backend.services.controlnet_service - INFO - ControlNet Service initialized with path: models\preprocessors
+2025-09-07 02:10:12,492 - backend.services.controlnet_service - INFO - PyTorch available: True
+2025-09-07 02:10:12,492 - backend.utils.image_utils - INFO - ImageSaveManager initialized with base path: output
+2025-09-07 02:10:12,492 - __main__ - INFO - Modular Backend Service v4.0.0-modular initialized
+2025-09-07 02:10:12,492 - __main__ - INFO - Model Explorer: models
+2025-09-07 02:10:12,492 - __main__ - INFO - ControlNet: models\preprocessors
+2025-09-07 02:10:12,492 - __main__ - INFO - Output: output
+2025-09-07 02:10:14,577 - __mp_main__ - INFO - PyTorch available for ControlNet processing
+2025-09-07 02:10:14,577 - backend.services.model_explorer_service - INFO - Model Explorer Service initialized with base path: models
+2025-09-07 02:10:14,577 - backend.services.controlnet_service - INFO - Initializing ControlNet model registry...
+2025-09-07 02:10:14,577 - backend.services.controlnet_service - INFO - Initialized 6 ControlNet models
+2025-09-07 02:10:14,577 - backend.services.controlnet_service - INFO - ControlNet Service initialized with path: models\preprocessors
+2025-09-07 02:10:14,577 - backend.services.controlnet_service - INFO - PyTorch available: True
+2025-09-07 02:10:14,577 - backend.utils.image_utils - INFO - ImageSaveManager initialized with base path: output
+2025-09-07 02:10:14,577 - __mp_main__ - INFO - Modular Backend Service v4.0.0-modular initialized
+2025-09-07 02:10:14,577 - __mp_main__ - INFO - Model Explorer: models
+2025-09-07 02:10:14,577 - __mp_main__ - INFO - ControlNet: models\preprocessors
+2025-09-07 02:10:14,577 - __mp_main__ - INFO - Output: output
+2025-09-07 02:10:14,598 - backend.main_backend - INFO - PyTorch available for ControlNet processing
+2025-09-07 02:10:14,598 - backend.services.model_explorer_service - INFO - Model Explorer Service initialized with base path: models
+2025-09-07 02:10:14,598 - backend.services.controlnet_service - INFO - Initializing ControlNet model registry...
+2025-09-07 02:10:14,598 - backend.services.controlnet_service - INFO - Initialized 6 ControlNet models
+2025-09-07 02:10:14,598 - backend.services.controlnet_service - INFO - ControlNet Service initialized with path: models\preprocessors
+2025-09-07 02:10:14,598 - backend.services.controlnet_service - INFO - PyTorch available: True
+2025-09-07 02:10:14,598 - backend.utils.image_utils - INFO - ImageSaveManager initialized with base path: output
+2025-09-07 02:10:14,598 - backend.main_backend - INFO - Modular Backend Service v4.0.0-modular initialized
+2025-09-07 02:10:14,598 - backend.main_backend - INFO - Model Explorer: models
+2025-09-07 02:10:14,598 - backend.main_backend - INFO - ControlNet: models\preprocessors
+2025-09-07 02:10:14,598 - backend.main_backend - INFO - Output: output
+2025-09-07 02:10:56,240 - backend.services.model_explorer_service - INFO - Calculating model statistics
+2025-09-07 02:10:56,240 - backend.services.model_explorer_service - INFO - Fetching checkpoint models
+2025-09-07 02:10:56,240 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\checkpoints
+2025-09-07 02:10:56,246 - backend.services.model_explorer_service - INFO - Found 20 model files in models\checkpoints
+2025-09-07 02:10:56,246 - backend.services.model_explorer_service - INFO - Fetching VAE models
+2025-09-07 02:10:56,246 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\vae
+2025-09-07 02:10:56,248 - backend.services.model_explorer_service - INFO - Found 6 model files in models\vae
+2025-09-07 02:10:56,248 - backend.services.model_explorer_service - INFO - Fetching LoRA models
+2025-09-07 02:10:56,248 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\loras
+2025-09-07 02:10:56,258 - backend.services.model_explorer_service - INFO - Found 33 model files in models\loras
+2025-09-07 02:10:56,258 - backend.services.model_explorer_service - INFO - Model statistics: {'checkpoints': 20, 'vaes': 6, 'loras': 33, 'total_models': 59, 'paths': {'checkpoints': 'models\\checkpoints', 'vaes': 'models\\vae', 'loras': 'models\\loras'}, 'path_exists': {'checkpoints': True, 'vaes': True, 'loras': True}}
+2025-09-07 02:10:56,259 - backend.main_backend - INFO - GET /health - 200 - 0.019s
+2025-09-07 02:11:20,563 - backend.services.model_explorer_service - INFO - Fetching checkpoint models
+2025-09-07 02:11:20,563 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\checkpoints
+2025-09-07 02:11:20,568 - backend.services.model_explorer_service - INFO - Found 20 model files in models\checkpoints
+2025-09-07 02:11:20,568 - backend.main_backend - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 02:11:25,797 - backend.services.model_explorer_service - INFO - Fetching VAE models
+2025-09-07 02:11:25,798 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\vae
+2025-09-07 02:11:25,799 - backend.services.model_explorer_service - INFO - Found 6 model files in models\vae
+2025-09-07 02:11:25,800 - backend.main_backend - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 02:11:47,434 - backend.main_backend - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 07:48:45,486 - backend.services.model_explorer_service - INFO - Fetching checkpoint models
+2025-09-07 07:48:45,486 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\checkpoints
+2025-09-07 07:48:45,491 - backend.services.model_explorer_service - INFO - Found 20 model files in models\checkpoints
+2025-09-07 07:48:45,491 - backend.services.model_explorer_service - INFO - Fetching VAE models
+2025-09-07 07:48:45,491 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\vae
+2025-09-07 07:48:45,493 - backend.services.model_explorer_service - INFO - Found 6 model files in models\vae
+2025-09-07 07:48:45,493 - backend.main_backend - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 07:48:45,494 - backend.main_backend - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 07:48:46,848 - backend.services.model_explorer_service - INFO - Fetching checkpoint models
+2025-09-07 07:48:46,848 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\checkpoints
+2025-09-07 07:48:46,854 - backend.services.model_explorer_service - INFO - Found 20 model files in models\checkpoints
+2025-09-07 07:48:46,854 - backend.services.model_explorer_service - INFO - Fetching VAE models
+2025-09-07 07:48:46,855 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\vae
+2025-09-07 07:48:46,857 - backend.services.model_explorer_service - INFO - Found 6 model files in models\vae
+2025-09-07 07:48:46,857 - backend.main_backend - INFO - GET /api/models/checkpoints - 200 - 0.009s
+2025-09-07 07:48:46,857 - backend.main_backend - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-07 07:48:48,778 - backend.services.model_explorer_service - INFO - Fetching checkpoint models
+2025-09-07 07:48:48,778 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\checkpoints
+2025-09-07 07:48:48,782 - backend.services.model_explorer_service - INFO - Found 20 model files in models\checkpoints
+2025-09-07 07:48:48,783 - backend.services.model_explorer_service - INFO - Fetching VAE models
+2025-09-07 07:48:48,783 - backend.services.model_explorer_service - INFO - Scanning for model files in: models\vae
+2025-09-07 07:48:48,785 - backend.services.model_explorer_service - INFO - Found 6 model files in models\vae
+2025-09-07 07:48:48,785 - backend.main_backend - INFO - GET /api/models/checkpoints - 200 - 0.008s
+2025-09-07 07:48:48,786 - backend.main_backend - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-07 07:49:11,918 - backend.main_backend - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 07:49:16,209 - backend.main_backend - INFO - OPTIONS /api/depth - 200 - 0.000s
+2025-09-07 07:49:16,252 - backend.services.controlnet_service - INFO - Loading ControlNet model dpt_hybrid from models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-07 07:49:16,981 - backend.services.controlnet_service - INFO - Loaded state dict for ControlNet model dpt_hybrid
+2025-09-07 07:49:17,027 - backend.services.controlnet_service - INFO - Successfully loaded ControlNet model dpt_hybrid
+2025-09-07 07:49:17,040 - backend.services.controlnet_service - INFO - ControlNet fallback successful with builtin_depth
+2025-09-07 07:49:17,131 - backend.main_backend - INFO - POST /api/depth - 200 - 0.921s
+2025-09-07 07:49:21,009 - backend.services.controlnet_service - INFO - ControlNet fallback successful with builtin_depth
+2025-09-07 07:49:21,096 - backend.main_backend - INFO - POST /api/depth - 200 - 0.111s

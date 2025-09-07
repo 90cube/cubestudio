@@ -35,7 +35,7 @@ let availablePreprocessors = [];
 async function loadPreprocessorModels() {
     try {
         // 백엔드 API에서 사용 가능한 전처리기 목록 가져오기
-        const response = await fetch('http://localhost:9001/api/preprocessors');
+        const response = await fetch('http://localhost:9004/api/preprocessors');
         if (response.ok) {
             availablePreprocessors = await response.json();
             console.log('✅ 전처리기 모델 로드 완료:', availablePreprocessors.length, '개');
@@ -364,14 +364,21 @@ function createDepthUI(imageNode) {
         cursor: pointer;
     `;
     
-    // Depth 전용 모델 옵션 추가
-    const depthModels = [
-        { id: 'builtin_depth', name: '내장 알고리즘 (JavaScript)', type: 'builtin', available: true },
-        { id: 'midas_v3', name: 'MiDaS v3.1 (DPT-Large)', type: 'ai_model', available: true },
-        { id: 'midas_v2', name: 'MiDaS v2.1 (ResNet)', type: 'ai_model', available: true },
-        { id: 'dpt_hybrid', name: 'DPT-Hybrid', type: 'ai_model', available: true },
-        { id: 'depth_anything', name: 'Depth Anything V2', type: 'ai_model', available: true }
-    ];
+    // Depth 전용 모델 필터링 (백엔드에서 가져온 모델 중 depth 관련만)
+    const depthModels = availablePreprocessors.filter(model => 
+        model.id.includes('depth') || 
+        model.id.includes('midas') || 
+        model.id.includes('dpt') || 
+        model.id.includes('zoedepth') ||
+        model.id === 'builtin_depth'
+    );
+    
+    // 폴백으로 내장 모델 추가 (백엔드에서 못 가져온 경우)
+    if (depthModels.length === 0) {
+        depthModels.push(
+            { id: 'builtin_depth', name: '내장 알고리즘 (JavaScript)', type: 'builtin', available: true }
+        );
+    }
     
     depthModels.forEach(model => {
         const option = document.createElement('option');
@@ -673,8 +680,24 @@ function createCannyUI(imageNode) {
         cursor: pointer;
     `;
     
-    // 모델 옵션 추가
-    availablePreprocessors.forEach(model => {
+    // Canny/Edge Detection 전용 모델 필터링 (백엔드에서 가져온 모델 중 edge detection 관련만)
+    const cannyModels = availablePreprocessors.filter(model => 
+        model.id.includes('canny') || 
+        model.id.includes('edge') || 
+        model.id.includes('network-bsds500') ||
+        model.id.includes('pidinet') ||
+        model.id === 'builtin'
+    );
+    
+    // 폴백으로 내장 모델 추가 (백엔드에서 못 가져온 경우)
+    if (cannyModels.length === 0) {
+        cannyModels.push(
+            { id: 'builtin', name: '내장 알고리즘 (JavaScript)', type: 'builtin', available: true }
+        );
+    }
+    
+    // Canny 전용 모델 옵션 추가
+    cannyModels.forEach(model => {
         const option = document.createElement('option');
         option.value = model.id;
         option.textContent = model.name;
@@ -874,7 +897,7 @@ function createCannyUI(imageNode) {
     
     // 모델 선택 변경 이벤트 리스너
     modelSelect.addEventListener('change', (e) => {
-        const selectedModel = availablePreprocessors.find(m => m.id === e.target.value);
+        const selectedModel = cannyModels.find(m => m.id === e.target.value);
         const isBuiltin = selectedModel && selectedModel.type === 'builtin';
         
         // 상태 메시지 업데이트 (파라미터 컨트롤은 항상 활성화 유지)
@@ -893,7 +916,7 @@ function createCannyUI(imageNode) {
             }
         }
         
-        console.log('Selected preprocessor:', selectedModel);
+        console.log('Selected Canny preprocessor:', selectedModel);
     });
     
     // 모든 요소 조립
@@ -916,13 +939,109 @@ function createCannyUI(imageNode) {
  */
 function createOpenPoseUI() {
     const container = document.createElement('div');
-    container.innerHTML = `
-        <div style="text-align: center; padding: 20px; color: #999;">
-            <h3 style="margin: 0 0 10px 0;">🤸 OpenPose</h3>
-            <p>사람의 포즈와 골격 구조를 인식합니다.</p>
-            <p style="font-size: 12px; margin-top: 20px;">준비 중...</p>
-        </div>
+    
+    // UI 구성
+    const header = document.createElement('div');
+    header.style.cssText = 'text-align: center; padding: 20px 20px 10px 20px;';
+    header.innerHTML = `
+        <h3 style="margin: 0 0 10px 0; color: #9b59b6;">🤸 OpenPose</h3>
+        <p style="color: #ccc; margin: 0;">사람의 포즈와 골격 구조를 인식합니다.</p>
     `;
+    
+    // 모델 선택 영역
+    const modelSelectorDiv = document.createElement('div');
+    modelSelectorDiv.style.cssText = 'padding: 0 20px 16px 20px;';
+    
+    const modelLabel = document.createElement('label');
+    modelLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #ddd; font-size: 13px; font-weight: 500;';
+    modelLabel.textContent = 'OpenPose 모델 선택';
+    
+    const modelSelect = document.createElement('select');
+    modelSelect.id = 'openpose-model-selector';
+    modelSelect.style.cssText = `
+        width: 100%;
+        background: #3a3a3a;
+        color: #fff;
+        border: 1px solid #555;
+        border-radius: 5px;
+        padding: 8px;
+        font-size: 13px;
+        cursor: pointer;
+    `;
+    
+    // OpenPose 전용 모델 필터링
+    const openposeModels = availablePreprocessors.filter(model => 
+        model.id.includes('openpose') || 
+        model.id.includes('pose') || 
+        model.id.includes('human') ||
+        model.id.includes('body')
+    );
+    
+    // 폴백으로 내장 모델 추가 (백엔드에서 못 가져온 경우)
+    if (openposeModels.length === 0) {
+        openposeModels.push(
+            { id: 'builtin_openpose', name: '내장 알고리즘 (준비중)', type: 'builtin', available: false }
+        );
+    }
+    
+    // OpenPose 전용 모델 옵션 추가
+    openposeModels.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.name;
+        option.dataset.type = model.type;
+        if (model.available) {
+            option.selected = true; // 사용 가능한 첫 번째 모델 선택
+        } else {
+            option.disabled = true; // 사용 불가능한 모델은 비활성화
+        }
+        modelSelect.appendChild(option);
+    });
+    
+    modelSelectorDiv.appendChild(modelLabel);
+    modelSelectorDiv.appendChild(modelSelect);
+    
+    // 상태 메시지 영역
+    const statusDiv = document.createElement('div');
+    statusDiv.style.cssText = `
+        margin: 16px 20px 8px 20px;
+        padding: 12px;
+        background: rgba(155, 89, 182, 0.1);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 6px;
+        color: #ccc;
+        font-size: 13px;
+        text-align: center;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    `;
+    
+    if (openposeModels.some(m => m.available)) {
+        statusDiv.innerHTML = `
+            <div style="font-size: 16px; margin-bottom: 8px;">🤸</div>
+            <div>OpenPose 모델이 준비되었습니다</div>
+            <div style="font-size: 11px; margin-top: 8px; opacity: 0.7;">
+                현재 ${openposeModels.filter(m => m.available).length}개의 모델이 사용 가능합니다
+            </div>
+        `;
+    } else {
+        statusDiv.innerHTML = `
+            <div style="font-size: 16px; margin-bottom: 8px;">⚠️</div>
+            <div>OpenPose 모델 준비 중</div>
+            <div style="font-size: 11px; margin-top: 8px; opacity: 0.7;">
+                백엔드에서 OpenPose 모델을 로드하고 있습니다<br>
+                잠시만 기다려 주세요
+            </div>
+        `;
+    }
+    
+    container.appendChild(header);
+    container.appendChild(modelSelectorDiv);
+    container.appendChild(statusDiv);
+    
     return container;
 }
 
@@ -956,10 +1075,17 @@ async function handleCannyPreview(container, previewDiv) {
     const imageNode = container._imageNode;
     if (!imageNode) return;
     
-    // 선택된 모델 확인
+    // 선택된 모델 확인 (Canny 전용 모델에서 찾기)
     const modelSelect = container.querySelector('#model-selector');
     const selectedModelId = modelSelect ? modelSelect.value : 'builtin';
-    const selectedModel = availablePreprocessors.find(m => m.id === selectedModelId);
+    const cannyModels = availablePreprocessors.filter(model => 
+        model.id.includes('canny') || 
+        model.id.includes('edge') || 
+        model.id.includes('network-bsds500') ||
+        model.id.includes('pidinet') ||
+        model.id === 'builtin'
+    );
+    const selectedModel = cannyModels.find(m => m.id === selectedModelId);
     
     // 로딩 상태 표시
     previewDiv.innerHTML = `<div style="color: #ccc; text-align: center; padding: 20px;">처리 중... (${selectedModel ? selectedModel.name : '내장 알고리즘'})</div>`;
@@ -1013,7 +1139,7 @@ async function processWithExternalModel(imageNode, model, params = {}) {
         console.log(`🎛️  ${model.name} 전처리 시작...`);
         
         // 백엔드 API 호출
-        const response = await fetch('http://localhost:9001/api/preprocess', {
+        const response = await fetch('http://localhost:9004/api/preprocess', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1579,7 +1705,7 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
         console.log(`🏔️  ${model.name} Depth 전처리 시작...`);
         
         // 백엔드 API 호출 (Depth 전용 엔드포인트)
-        const response = await fetch('http://localhost:9001/api/depth', {
+        const response = await fetch('http://localhost:9004/api/depth', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1604,7 +1730,13 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
         const result = await response.json();
         
         if (!result.success) {
+            console.error('❌ Depth API error:', result.error);
             throw new Error(result.error || 'Depth processing failed');
+        }
+        
+        if (!result.processed_image) {
+            console.error('❌ No processed_image in response:', result);
+            throw new Error('No processed image returned from API');
         }
         
         console.log(`✅ ${model.name} Depth 전처리 완료`);
@@ -1622,7 +1754,7 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
                 resolve(canvas);
             };
             img.onerror = () => reject(new Error('Failed to load processed depth image'));
-            img.src = result.depth_map; // Base64 데이터 URL
+            img.src = result.processed_image || result.depth_map; // Base64 데이터 URL
         });
         
     } catch (error) {

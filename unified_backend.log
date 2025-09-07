@@ -1,0 +1,625 @@
+2025-09-06 19:28:58,302 - __main__ - INFO - Initializing model registry...
+2025-09-06 19:28:58,303 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:29:18,482 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:29:18,483 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:29:40,676 - __main__ - INFO - Initializing model registry...
+2025-09-06 19:29:40,677 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:29:43,169 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 19:29:43,169 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:29:43,195 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:29:43,198 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:29:46,951 - unified_backend_service - INFO - GET /health - 200 - 0.000s
+2025-09-06 19:29:51,476 - unified_backend_service - INFO - GET /api/v3/models - 200 - 0.000s
+2025-09-06 19:34:49,544 - unified_backend_service - INFO - GET /health - 200 - 0.000s
+2025-09-06 19:34:54,237 - unified_backend_service - INFO - GET /api/v3/models - 200 - 0.000s
+2025-09-06 19:34:58,648 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 19:35:03,390 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-06 19:35:13,146 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:35:13,149 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:35:34,055 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:35:39,338 - unified_backend_service - INFO - POST /api/v3/models/load/builtin_canny - 404 - 0.000s
+2025-09-06 19:35:44,807 - unified_backend_service - INFO - GET /docs - 200 - 0.000s
+2025-09-06 19:35:54,229 - unified_backend_service - INFO - POST /api/v3/models/builtin_canny/load - 404 - 0.000s
+2025-09-06 19:35:58,454 - unified_backend_service - INFO - GET /api/v3/ - 404 - 0.000s
+2025-09-06 19:36:03,600 - unified_backend_service - INFO - GET /api/v3/models/status - 422 - 0.000s
+2025-09-06 19:36:07,551 - unified_backend_service - INFO - GET /api/v3/models/edge_detection - 200 - 0.000s
+2025-09-06 19:39:11,998 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 19:39:11,998 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:39:17,090 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:39:17,093 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:40:44,328 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.008s
+2025-09-06 19:40:44,328 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:41:26,614 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:41:26,617 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:41:34,601 - unified_backend_service - INFO - GET /health - 200 - 0.000s
+2025-09-06 19:43:25,087 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:43:25,090 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:43:26,718 - __main__ - INFO - Initializing model registry...
+2025-09-06 19:43:26,719 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:43:29,522 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 19:43:29,523 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:43:29,551 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:43:29,551 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:43:30,071 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.009s
+2025-09-06 19:43:30,075 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 19:43:30,459 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 19:43:30,459 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:48:13,902 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-06 19:48:19,313 - unified_backend_service - INFO - OPTIONS /api/preprocess - 200 - 0.000s
+2025-09-06 19:48:19,340 - unified_backend_service - INFO - Loading model network-bsds500 from models\preprocessors\network-bsds500.pth
+2025-09-06 19:48:19,493 - unified_backend_service - ERROR - Failed to load model network-bsds500: 'collections.OrderedDict' object has no attribute 'eval'
+2025-09-06 19:48:19,501 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:48:19,514 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.200s
+2025-09-06 19:48:22,769 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:48:22,782 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.035s
+2025-09-06 19:48:28,423 - unified_backend_service - INFO - OPTIONS /api/depth - 200 - 0.000s
+2025-09-06 19:48:28,424 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:48:30,840 - unified_backend_service - INFO - POST /api/depth - 404 - 0.001s
+2025-09-06 19:48:34,987 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:48:36,800 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:48:37,528 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:48:38,347 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:48:43,096 - unified_backend_service - INFO - Loading model midas_v21 from models\preprocessors\midas_v21_384.pt
+2025-09-06 19:48:44,209 - unified_backend_service - ERROR - Failed to load model midas_v21: 'collections.OrderedDict' object has no attribute 'eval'
+2025-09-06 19:48:44,212 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:48:44,271 - unified_backend_service - INFO - POST /api/preprocess - 200 - 1.192s
+2025-09-06 19:48:50,091 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:48:50,150 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.080s
+2025-09-06 19:48:52,442 - unified_backend_service - INFO - Loading model dpt_hybrid from models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-06 19:48:53,807 - unified_backend_service - ERROR - Failed to load model dpt_hybrid: 'collections.OrderedDict' object has no attribute 'eval'
+2025-09-06 19:48:53,810 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:48:53,869 - unified_backend_service - INFO - POST /api/preprocess - 200 - 1.444s
+2025-09-06 19:48:57,223 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:48:57,235 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.033s
+2025-09-06 19:49:00,087 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:49:00,099 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.033s
+2025-09-06 19:49:02,078 - unified_backend_service - INFO - Loading model table5_pidinet from models\preprocessors\table5_pidinet.pth
+2025-09-06 19:49:02,124 - unified_backend_service - ERROR - Failed to load model table5_pidinet: 'dict' object has no attribute 'eval'
+2025-09-06 19:49:02,128 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:49:02,140 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.079s
+2025-09-06 19:49:05,713 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:49:05,725 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.033s
+2025-09-06 19:49:08,001 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:49:08,061 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.081s
+2025-09-06 19:49:11,098 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:49:11,156 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.078s
+2025-09-06 19:49:13,586 - unified_backend_service - INFO - Loading model zoedepth from models\preprocessors\ZoeD_M12_N.pt
+2025-09-06 19:49:17,199 - unified_backend_service - ERROR - Failed to load model zoedepth: 'dict' object has no attribute 'eval'
+2025-09-06 19:49:17,202 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:49:17,263 - unified_backend_service - INFO - POST /api/preprocess - 200 - 3.694s
+2025-09-06 19:54:37,465 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:54:37,465 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:55:04,779 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 19:55:04,781 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 19:55:22,107 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:55:22,109 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:55:41,287 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:55:41,289 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 19:55:53,574 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:55:53,577 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 19:56:14,105 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 19:56:14,108 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 19:56:28,756 - __main__ - INFO - Initializing model registry...
+2025-09-06 19:56:28,756 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:56:28,927 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:56:28,929 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 19:56:31,349 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 19:56:31,349 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:56:31,383 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:56:31,383 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:56:31,509 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 19:56:31,509 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:56:38,949 - unified_backend_service - INFO - GET /health - 200 - 0.000s
+2025-09-06 19:56:45,566 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:56:56,261 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:56:56,261 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:57:03,108 - __main__ - INFO - Initializing model registry...
+2025-09-06 19:57:03,108 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:57:03,276 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:57:03,278 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 19:57:05,646 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 19:57:05,647 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 19:57:05,672 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:57:05,673 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:57:05,806 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:57:05,807 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:57:14,140 - unified_backend_service - INFO - POST /api/depth - 404 - 0.000s
+2025-09-06 19:57:19,702 - unified_backend_service - INFO - GET /docs - 200 - 0.000s
+2025-09-06 19:57:27,156 - unified_backend_service - INFO - GET /openapi.json - 200 - 0.009s
+2025-09-06 19:57:43,140 - unified_backend_service - INFO - GET /openapi.json - 200 - 0.000s
+2025-09-06 19:57:48,523 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:57:48,523 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:57:53,145 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 19:57:53,146 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:58:01,454 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:58:01,454 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:58:01,627 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:58:01,630 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:58:57,023 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 19:58:57,024 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 19:58:57,185 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 19:58:57,188 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 19:59:10,880 - unified_backend_service - INFO - GET /openapi.json - 200 - 0.007s
+2025-09-06 19:59:17,036 - unified_backend_service - INFO - POST /api/depth - 200 - 0.011s
+2025-09-06 19:59:23,649 - unified_backend_service - INFO - Loading model midas_v21 from models\preprocessors\midas_v21_384.pt
+2025-09-06 19:59:24,177 - unified_backend_service - INFO - Loaded state dict for midas_v21 (strict=False)
+2025-09-06 19:59:24,181 - unified_backend_service - INFO - Successfully loaded model midas_v21
+2025-09-06 19:59:24,436 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 19:59:24,437 - unified_backend_service - INFO - POST /api/depth - 200 - 0.788s
+2025-09-06 19:59:39,110 - unified_backend_service - INFO - Loading model table5_pidinet from models\preprocessors\table5_pidinet.pth
+2025-09-06 19:59:39,134 - unified_backend_service - INFO - Loaded state dict for table5_pidinet (strict=False)
+2025-09-06 19:59:39,134 - unified_backend_service - INFO - Successfully loaded model table5_pidinet
+2025-09-06 19:59:39,238 - unified_backend_service - INFO - Fallback successful with opencv_canny
+2025-09-06 19:59:39,239 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.129s
+2025-09-06 20:00:03,821 - unified_backend_service - INFO - Loading model dpt_hybrid from models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-06 20:00:04,439 - unified_backend_service - INFO - Loaded state dict for dpt_hybrid (strict=False)
+2025-09-06 20:00:04,440 - unified_backend_service - INFO - Successfully loaded model dpt_hybrid
+2025-09-06 20:00:04,442 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 20:00:04,442 - unified_backend_service - INFO - POST /api/v3/process - 200 - 0.622s
+2025-09-06 20:01:50,068 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 20:01:50,069 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:02:00,660 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 20:02:00,662 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 20:02:23,196 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 20:02:23,199 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 20:02:45,326 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 20:02:45,329 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 20:02:53,641 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 20:02:53,644 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 20:03:09,621 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 20:03:09,624 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 20:03:09,866 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 20:03:09,869 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:05:17,286 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 20:05:17,286 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:05:19,278 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 20:05:19,278 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 20:05:19,473 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 20:05:19,473 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:06:21,769 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 20:06:21,769 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:07:15,274 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 20:07:15,277 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:08:25,123 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 20:08:25,123 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 20:08:40,623 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-06 20:08:43,936 - unified_backend_service - INFO - OPTIONS /api/preprocess - 200 - 0.000s
+2025-09-06 20:08:43,970 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.033s
+2025-09-06 21:10:01,600 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:10:01,600 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:11:11,910 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 21:11:11,910 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:11:15,027 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:11:15,027 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:11:22,361 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:11:22,364 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:11:24,768 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.008s
+2025-09-06 21:11:24,769 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 21:11:30,486 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:11:30,486 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:23:18,730 - __main__ - INFO - Initializing model registry...
+2025-09-06 21:23:18,730 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:23:20,846 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 21:23:20,846 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:23:20,877 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 21:23:20,878 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 21:23:21,244 - unified_backend_service - INFO - HEAD /health - 405 - 0.000s
+2025-09-06 21:23:25,846 - unified_backend_service - INFO - GET /health - 200 - 0.000s
+2025-09-06 21:23:32,410 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:23:48,431 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:23:48,433 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:24:00,263 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:24:00,266 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:24:26,867 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-06 21:24:29,930 - unified_backend_service - INFO - OPTIONS /api/preprocess - 200 - 0.000s
+2025-09-06 21:24:30,077 - unified_backend_service - INFO - Loading model network-bsds500 from models\preprocessors\network-bsds500.pth
+2025-09-06 21:24:30,242 - unified_backend_service - INFO - Loaded state dict for network-bsds500 (strict=False)
+2025-09-06 21:24:30,247 - unified_backend_service - INFO - Successfully loaded model network-bsds500
+2025-09-06 21:24:30,951 - unified_backend_service - INFO - POST /api/preprocess - 200 - 1.021s
+2025-09-06 21:24:33,819 - unified_backend_service - INFO - Model network-bsds500 loaded from cache
+2025-09-06 21:24:34,053 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.332s
+2025-09-06 21:24:36,724 - unified_backend_service - INFO - Loading model table5_pidinet from models\preprocessors\table5_pidinet.pth
+2025-09-06 21:24:36,743 - unified_backend_service - INFO - Loaded state dict for table5_pidinet (strict=False)
+2025-09-06 21:24:36,744 - unified_backend_service - INFO - Successfully loaded model table5_pidinet
+2025-09-06 21:24:36,962 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.336s
+2025-09-06 21:24:39,520 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-06 21:24:39,764 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.342s
+2025-09-06 21:24:42,225 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.412s
+2025-09-06 21:24:45,277 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.467s
+2025-09-06 21:24:48,837 - unified_backend_service - INFO - OPTIONS /api/depth - 200 - 0.000s
+2025-09-06 21:24:48,940 - unified_backend_service - INFO - Loading model dpt_hybrid from models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-06 21:24:49,757 - unified_backend_service - INFO - Loaded state dict for dpt_hybrid (strict=False)
+2025-09-06 21:24:49,859 - unified_backend_service - INFO - Successfully loaded model dpt_hybrid
+2025-09-06 21:24:49,924 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 21:24:50,525 - unified_backend_service - INFO - POST /api/depth - 200 - 1.687s
+2025-09-06 21:24:52,081 - unified_backend_service - INFO - Model dpt_hybrid loaded from cache
+2025-09-06 21:24:52,141 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 21:24:52,743 - unified_backend_service - INFO - POST /api/depth - 200 - 0.763s
+2025-09-06 21:40:13,001 - __main__ - INFO - Initializing model registry...
+2025-09-06 21:40:13,001 - __main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:40:15,141 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 21:40:15,141 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:40:15,167 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 21:40:15,168 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 21:40:15,507 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:40:15,509 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 21:40:30,853 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-06 21:40:33,253 - unified_backend_service - INFO - OPTIONS /api/preprocess - 200 - 0.000s
+2025-09-06 21:40:33,546 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.292s
+2025-09-06 21:40:49,661 - unified_backend_service - INFO - OPTIONS /api/depth - 200 - 0.000s
+2025-09-06 21:40:49,771 - unified_backend_service - INFO - Loading model dpt_hybrid from models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-06 21:40:50,492 - unified_backend_service - INFO - Loaded state dict for dpt_hybrid (strict=False)
+2025-09-06 21:40:50,541 - unified_backend_service - INFO - Successfully loaded model dpt_hybrid
+2025-09-06 21:40:50,569 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 21:40:51,145 - unified_backend_service - INFO - POST /api/depth - 200 - 1.483s
+2025-09-06 21:40:53,856 - unified_backend_service - INFO - Model dpt_hybrid loaded from cache
+2025-09-06 21:40:53,883 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-06 21:40:54,445 - unified_backend_service - INFO - POST /api/depth - 200 - 0.695s
+2025-09-06 21:42:37,976 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 21:42:37,977 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:43:40,716 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:43:40,717 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:43:47,720 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 21:43:47,722 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 21:44:16,410 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:44:16,413 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.001s
+2025-09-06 21:45:27,731 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:45:27,732 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:45:30,906 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 21:45:30,906 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:45:30,940 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 21:45:30,941 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 21:45:30,952 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:45:30,953 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.005s
+2025-09-06 21:45:31,100 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:45:31,101 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:45:42,639 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 21:45:42,640 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:45:42,674 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 21:45:42,675 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 21:45:42,691 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.009s
+2025-09-06 21:45:42,691 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.009s
+2025-09-06 21:45:42,692 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.009s
+2025-09-06 21:45:42,692 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.010s
+2025-09-06 21:45:42,828 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:45:42,828 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:45:46,024 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 21:45:46,024 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:45:49,025 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 21:45:49,026 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:45:49,059 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 21:45:49,059 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 21:45:49,071 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:45:49,071 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.005s
+2025-09-06 21:45:49,213 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:45:49,216 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:46:00,490 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:46:00,493 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:46:03,449 - __mp_main__ - INFO - Initializing model registry...
+2025-09-06 21:46:03,449 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-06 21:46:03,483 - unified_backend_service - INFO - Initializing model registry...
+2025-09-06 21:46:03,483 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-06 21:46:03,496 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.006s
+2025-09-06 21:46:03,496 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 21:46:03,629 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 21:46:03,630 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 21:48:05,654 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,654 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/illustriousPixel_v20.png - 500 - 0.001s
+2025-09-06 21:48:05,670 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,670 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/illustriousFLAT2DFrom_v2SeriesV201Flat2d.png - 500 - 0.001s
+2025-09-06 21:48:05,685 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,686 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,686 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/hassakuXLIllustrious_v30.png - 500 - 0.001s
+2025-09-06 21:48:05,686 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/geminiIlmix_v10.png - 500 - 0.001s
+2025-09-06 21:48:05,701 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,701 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.000s
+2025-09-06 21:48:05,762 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,763 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:48:05,967 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:05,968 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/astralbloom_v10.png - 500 - 0.001s
+2025-09-06 21:48:06,172 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:06,173 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:48:06,452 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:06,452 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.001s
+2025-09-06 21:48:06,529 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:06,530 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/geminiIlmix_v10.png - 500 - 0.001s
+2025-09-06 21:48:06,544 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:06,545 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/hassakuXLIllustrious_v30.png - 500 - 0.000s
+2025-09-06 21:48:06,591 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:48:06,592 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/illustriousFLAT2DFrom_v2SeriesV201Flat2d.png - 500 - 0.001s
+2025-09-06 21:48:39,548 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 21:48:39,549 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 21:49:04,415 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:49:04,418 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:49:04,813 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:04,813 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/astralbloom_v10.png - 500 - 0.001s
+2025-09-06 21:49:05,161 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:05,161 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/animagineXLV31_v30Base.png - 500 - 0.001s
+2025-09-06 21:49:05,429 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:05,429 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/astralbloom_v10.png - 500 - 0.001s
+2025-09-06 21:49:05,507 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:05,507 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:49:05,615 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:05,615 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.001s
+2025-09-06 21:49:05,982 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:05,983 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/geminiIlmix_v10.png - 500 - 0.001s
+2025-09-06 21:49:07,358 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:07,358 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.001s
+2025-09-06 21:49:07,578 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:07,579 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:49:07,684 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:07,684 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/astralbloom_v10.png - 500 - 0.001s
+2025-09-06 21:49:08,474 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:08,474 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/animagineXLV31_v30Base.png - 500 - 0.001s
+2025-09-06 21:49:09,357 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:09,358 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/astralbloom_v10.png - 500 - 0.001s
+2025-09-06 21:49:10,540 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:10,541 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:49:11,878 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:11,878 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.001s
+2025-09-06 21:49:12,262 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:12,263 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/geminiIlmix_v10.png - 500 - 0.001s
+2025-09-06 21:49:12,673 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:12,673 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/hassakuXLIllustrious_v30.png - 500 - 0.001s
+2025-09-06 21:49:13,027 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:13,027 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/illustriousFLAT2DFrom_v2SeriesV201Flat2d.png - 500 - 0.001s
+2025-09-06 21:49:13,291 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:13,291 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/illustriousPixel_v20.png - 500 - 0.001s
+2025-09-06 21:49:25,494 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:49:25,521 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:49:34,501 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:34,501 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:49:34,843 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:34,843 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/astralbloom_v10.png - 500 - 0.001s
+2025-09-06 21:49:35,158 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:35,158 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:49:35,715 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:35,715 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.001s
+2025-09-06 21:49:36,398 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 21:49:36,399 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:49:36,734 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:36,734 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/beretMixFlat_v20.png - 500 - 0.001s
+2025-09-06 21:49:38,007 - unified_backend_service - ERROR - Preview image error: 404: Preview image not found
+2025-09-06 21:49:38,007 - unified_backend_service - INFO - GET /api/models/preview/SDXL/ILXL/flatbreadIL_v10.png - 500 - 0.001s
+2025-09-06 21:50:41,745 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.008s
+2025-09-06 21:50:41,746 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 21:50:58,200 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:50:58,203 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:51:11,513 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:51:11,516 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:51:36,919 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-06 21:51:45,427 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 21:51:45,430 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:52:02,528 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 21:52:02,530 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:55:00,050 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.012s
+2025-09-06 21:55:00,051 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 21:56:04,832 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 21:56:04,833 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:58:16,976 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 21:58:16,977 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 21:59:09,317 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 21:59:09,321 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 22:00:58,054 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.008s
+2025-09-06 22:00:58,054 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 22:01:52,609 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-06 22:01:52,612 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 22:02:56,631 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.009s
+2025-09-06 22:02:56,631 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.004s
+2025-09-06 22:03:39,802 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-06 22:03:39,805 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-06 22:03:42,273 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-06 22:03:42,276 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-06 22:03:44,711 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.009s
+2025-09-06 22:03:44,712 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-07 02:11:04,524 - unified_backend_service - INFO - GET /health - 200 - 0.000s
+2025-09-07 02:11:30,794 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.004s
+2025-09-07 07:48:46,451 - __main__ - INFO - Initializing model registry...
+2025-09-07 07:48:46,451 - __main__ - INFO - Initialized 8 models in registry
+2025-09-07 07:48:48,617 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 07:48:48,617 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-07 07:48:48,643 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 07:48:48,644 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-07 07:59:46,255 - __main__ - INFO - Initializing model registry...
+2025-09-07 07:59:46,255 - __main__ - INFO - Initialized 8 models in registry
+2025-09-07 07:59:48,324 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 07:59:48,325 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-07 07:59:48,350 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 07:59:48,350 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-07 07:59:48,752 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 07:59:48,753 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.007s
+2025-09-07 07:59:59,998 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 08:00:11,759 - unified_backend_service - INFO - OPTIONS /api/preprocess - 200 - 0.000s
+2025-09-07 08:00:11,816 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.056s
+2025-09-07 08:00:13,925 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.030s
+2025-09-07 08:00:16,097 - unified_backend_service - INFO - Loading model network-bsds500 from models\preprocessors\network-bsds500.pth
+2025-09-07 08:00:16,235 - unified_backend_service - INFO - Loaded state dict for network-bsds500 (strict=False)
+2025-09-07 08:00:16,238 - unified_backend_service - INFO - Successfully loaded model network-bsds500
+2025-09-07 08:00:16,399 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.313s
+2025-09-07 08:00:18,534 - unified_backend_service - INFO - Model network-bsds500 loaded from cache
+2025-09-07 08:00:18,549 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.027s
+2025-09-07 08:00:20,942 - unified_backend_service - INFO - Loading model table5_pidinet from models\preprocessors\table5_pidinet.pth
+2025-09-07 08:00:20,965 - unified_backend_service - INFO - Loaded state dict for table5_pidinet (strict=False)
+2025-09-07 08:00:20,966 - unified_backend_service - INFO - Successfully loaded model table5_pidinet
+2025-09-07 08:00:20,985 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.055s
+2025-09-07 08:00:23,262 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-07 08:00:23,288 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.038s
+2025-09-07 08:00:25,308 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-07 08:00:25,359 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.064s
+2025-09-07 08:00:27,086 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-07 08:00:27,136 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.062s
+2025-09-07 08:00:28,413 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-07 08:00:28,460 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.059s
+2025-09-07 08:00:30,148 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-07 08:00:30,190 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.054s
+2025-09-07 08:00:31,744 - unified_backend_service - INFO - Model table5_pidinet loaded from cache
+2025-09-07 08:00:31,791 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.059s
+2025-09-07 11:02:10,618 - __main__ - INFO - Initializing model registry...
+2025-09-07 11:02:10,619 - __main__ - INFO - Initialized 8 models in registry
+2025-09-07 11:02:12,776 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:02:12,777 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-07 11:02:12,803 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:02:12,803 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-07 11:02:12,890 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:02:12,893 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:02:12,956 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:02:12,959 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:02:22,063 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 11:05:49,480 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:05:49,480 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:05:56,962 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:05:56,966 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:05:58,065 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:05:58,066 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-07 11:06:34,960 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:06:34,960 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:07:17,169 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:07:17,172 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:12:26,308 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:12:26,308 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:12:50,082 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:12:50,086 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.003s
+2025-09-07 11:12:59,029 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:12:59,032 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:13:40,250 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:13:40,254 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:13:56,616 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.006s
+2025-09-07 11:13:56,619 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:13:56,906 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:13:56,909 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:17:39,193 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:17:39,194 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:17:50,207 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 11:17:54,757 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.005s
+2025-09-07 11:17:54,760 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:17:55,105 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:17:55,106 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:18:02,799 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:18:02,799 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:28:23,346 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:28:23,346 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:28:28,644 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 11:29:25,638 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:29:25,639 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.002s
+2025-09-07 11:45:24,539 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:45:24,540 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-07 11:45:24,564 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:45:24,565 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-07 11:46:00,981 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:46:00,982 - __mp_main__ - INFO - Initialized 8 models in registry
+2025-09-07 11:46:01,016 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:46:01,016 - unified_backend_service - INFO - Initialized 8 models in registry
+2025-09-07 11:46:54,669 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:47:03,540 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:47:23,039 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:47:36,267 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:48:38,196 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:48:49,535 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:50:03,252 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:50:25,026 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:50:25,027 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:50:25,027 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:50:25,028 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:50:25,028 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:50:25,028 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:50:25,028 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:50:45,351 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:50:45,352 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:50:45,352 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:50:45,353 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:50:45,353 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:50:45,353 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:50:45,353 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:50:55,893 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:50:55,893 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:50:55,893 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:50:55,894 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:50:55,894 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:50:55,894 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:50:55,894 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:51:08,859 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:51:08,859 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:51:08,859 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:51:08,860 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:51:08,860 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:51:08,860 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:51:08,860 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:51:20,600 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:51:20,601 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:51:20,601 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:51:20,602 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:51:20,602 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:51:20,602 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:51:20,602 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:51:20,619 - unified_backend_service - INFO - Loading model normal_midas from models\preprocessors\midas_v21_384.pt
+2025-09-07 11:51:20,733 - unified_backend_service - INFO - Loaded state dict for normal_midas (strict=False)
+2025-09-07 11:51:20,734 - unified_backend_service - INFO - Successfully loaded model normal_midas
+2025-09-07 11:51:20,832 - unified_backend_service - INFO - Loading model normal_bae from models\preprocessors\scannet.pt
+2025-09-07 11:51:21,644 - unified_backend_service - INFO - Loaded state dict for normal_bae (strict=False)
+2025-09-07 11:51:21,644 - unified_backend_service - INFO - Successfully loaded model normal_bae
+2025-09-07 11:51:21,685 - unified_backend_service - INFO - Fallback successful with normal_bae
+2025-09-07 11:51:21,686 - unified_backend_service - INFO - Loading model scribble_hed from models\preprocessors\ControlNetHED.pth
+2025-09-07 11:51:21,769 - unified_backend_service - INFO - Loaded state dict for scribble_hed (strict=False)
+2025-09-07 11:51:21,770 - unified_backend_service - INFO - Successfully loaded model scribble_hed
+2025-09-07 11:51:21,960 - unified_backend_service - INFO - Loading model pidinet_softedge from models\preprocessors\table5_pidinet.pth
+2025-09-07 11:51:21,968 - unified_backend_service - INFO - Loaded state dict for pidinet_softedge (strict=False)
+2025-09-07 11:51:21,968 - unified_backend_service - INFO - Successfully loaded model pidinet_softedge
+2025-09-07 11:51:22,047 - unified_backend_service - INFO - Loading model hed_softedge from models\preprocessors\ControlNetHED.pth
+2025-09-07 11:51:22,059 - unified_backend_service - INFO - Loaded state dict for hed_softedge (strict=False)
+2025-09-07 11:51:22,059 - unified_backend_service - INFO - Successfully loaded model hed_softedge
+2025-09-07 11:51:22,267 - unified_backend_service - INFO - Loading model mlsd from models\preprocessors\mlsd_large_512_fp32.pth
+2025-09-07 11:51:22,337 - unified_backend_service - INFO - Loaded state dict for mlsd (strict=False)
+2025-09-07 11:51:22,338 - unified_backend_service - INFO - Evicted model normal_midas from cache
+2025-09-07 11:51:22,338 - unified_backend_service - INFO - Successfully loaded model mlsd
+2025-09-07 11:51:54,942 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:51:54,943 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:51:54,943 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:51:54,944 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:51:54,944 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:51:54,944 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:51:54,944 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:57:57,925 - __main__ - INFO - Initializing model registry...
+2025-09-07 11:57:57,926 - __main__ - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:57:57,926 - __main__ - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:57:57,927 - __main__ - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:57:57,927 - __main__ - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:57:57,927 - __main__ - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:57:57,927 - __main__ - INFO - Initialized 32 models in registry
+2025-09-07 11:58:00,067 - __mp_main__ - INFO - Initializing model registry...
+2025-09-07 11:58:00,068 - __mp_main__ - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:58:00,069 - __mp_main__ - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:58:00,070 - __mp_main__ - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:58:00,070 - __mp_main__ - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:58:00,070 - __mp_main__ - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:58:00,070 - __mp_main__ - INFO - Initialized 32 models in registry
+2025-09-07 11:58:00,096 - unified_backend_service - INFO - Initializing model registry...
+2025-09-07 11:58:00,096 - unified_backend_service - WARNING - Model depth_anything not found at models\preprocessors\depth_anything_vitl14.pth
+2025-09-07 11:58:00,096 - unified_backend_service - WARNING - Model depth_anything_v2 not found at models\preprocessors\depth_anything_v2_vitl.pth
+2025-09-07 11:58:00,098 - unified_backend_service - WARNING - Model seg_anime_face not found at models\preprocessors\face_parsing.farl.lapa.main_ema_136500_jit191.pt
+2025-09-07 11:58:00,098 - unified_backend_service - WARNING - Model seg_ofade20k not found at models\preprocessors\oneformer_ade20k_dinat_large.pth
+2025-09-07 11:58:00,098 - unified_backend_service - WARNING - Model seg_ofcoco not found at models\preprocessors\oneformer_coco_dinat_large.pth
+2025-09-07 11:58:00,098 - unified_backend_service - INFO - Initialized 32 models in registry
+2025-09-07 11:58:00,415 - unified_backend_service - INFO - GET /api/models/checkpoints - 200 - 0.007s
+2025-09-07 11:58:00,415 - unified_backend_service - INFO - GET /api/models/vaes - 200 - 0.007s
+2025-09-07 11:58:24,377 - unified_backend_service - INFO - GET /api/preprocessors - 200 - 0.000s
+2025-09-07 11:58:35,490 - unified_backend_service - INFO - OPTIONS /api/depth - 200 - 0.000s
+2025-09-07 11:58:35,595 - unified_backend_service - INFO - Loading model dpt_hybrid from models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-07 11:58:36,328 - unified_backend_service - INFO - Loaded state dict for dpt_hybrid (strict=False)
+2025-09-07 11:58:36,376 - unified_backend_service - INFO - Successfully loaded model dpt_hybrid
+2025-09-07 11:58:36,411 - unified_backend_service - INFO - Fallback successful with builtin_depth
+2025-09-07 11:58:36,933 - unified_backend_service - INFO - POST /api/depth - 200 - 1.441s
+2025-09-07 11:59:30,536 - unified_backend_service - INFO - OPTIONS /api/preprocess - 200 - 0.000s
+2025-09-07 11:59:30,616 - unified_backend_service - INFO - Loading model network-bsds500 from models\preprocessors\network-bsds500.pth
+2025-09-07 11:59:30,690 - unified_backend_service - INFO - Loaded state dict for network-bsds500 (strict=False)
+2025-09-07 11:59:30,700 - unified_backend_service - INFO - Successfully loaded model network-bsds500
+2025-09-07 11:59:30,983 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.446s
+2025-09-07 11:59:33,077 - unified_backend_service - INFO - Model network-bsds500 loaded from cache
+2025-09-07 11:59:33,312 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.316s
+2025-09-07 11:59:34,793 - unified_backend_service - INFO - Model network-bsds500 loaded from cache
+2025-09-07 11:59:34,909 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.194s
+2025-09-07 12:00:00,165 - unified_backend_service - INFO - Loading model hed_softedge from models\preprocessors\ControlNetHED.pth
+2025-09-07 12:00:00,198 - unified_backend_service - INFO - Loaded state dict for hed_softedge (strict=False)
+2025-09-07 12:00:00,205 - unified_backend_service - INFO - Successfully loaded model hed_softedge
+2025-09-07 12:00:00,356 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.269s
+2025-09-07 12:00:03,635 - unified_backend_service - INFO - Model network-bsds500 loaded from cache
+2025-09-07 12:00:03,786 - unified_backend_service - INFO - POST /api/preprocess - 200 - 0.228s

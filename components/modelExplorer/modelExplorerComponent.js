@@ -4,7 +4,7 @@ import { Tooltip } from '../ui/tooltip/tooltip.js';
 
 /**
  * 모델 탐색기 컴포넌트 - 플로팅 패널에서 사용
- * FastAPI 백엔드(포트 9001)와 통신하여 모델 목록을 표시
+ * FastAPI 백엔드(포트 9003)와 통신하여 모델 목록을 표시
  */
 
 export class ModelExplorerComponent {
@@ -13,7 +13,7 @@ export class ModelExplorerComponent {
         this.vaeList = [];
         this.selectedModel = null;
         this.selectedFolderPath = null; // 선택된 모델의 폴더 경로 추적
-        this.apiUrl = 'http://localhost:9001/api';
+        this.apiUrl = 'http://localhost:9004/api';
         this.tooltip = new Tooltip();
         this.containerElement = null;
         this.isInitialized = false;
@@ -408,16 +408,20 @@ export class ModelExplorerComponent {
             }
         });
         
-        // 툴팁 이벤트 - 새로운 Tooltip 컴포넌트 사용
+        // 툴팁 이벤트 - LoRA Selector와 완전히 동일한 패턴 사용
         this.containerElement.addEventListener('mouseover', (e) => {
-            if (e.target.classList.contains('file') && e.target.dataset.preview) {
-                const filename = e.target.textContent;
-                const previewPath = e.target.dataset.preview;
-                const imageUrl = `${this.apiUrl}/models/preview/${previewPath}`;
+            if (e.target.closest('.file') && e.target.closest('.file').dataset.preview) {
+                const fileElement = e.target.closest('.file');
+                const filename = fileElement.textContent;
+                const previewImage = fileElement.dataset.preview;
+                const subfolder = fileElement.dataset.subfolder || '';
+                
+                // 로컬 파일 시스템 경로로 이미지 URL 구성 (preview_image에 이미 전체 경로 포함됨)
+                const imageUrl = `models/checkpoints/${previewImage}`.replace(/\\/g, '/').replace(/\/+/g, '/');
                 
                 const content = `
                     <div class="tooltip-caption">${filename}</div>
-                    <img src="${imageUrl}" alt="Preview" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <img src="${imageUrl}" alt="Preview" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
                     <div style="display: none; text-align: center; padding: 20px; color: #999;">
                         이미지를 불러올 수 없습니다
                     </div>
@@ -428,7 +432,7 @@ export class ModelExplorerComponent {
         });
         
         this.containerElement.addEventListener('mouseout', (e) => {
-            if (e.target.classList.contains('file')) {
+            if (e.target.closest('.file')) {
                 this.tooltip.hide();
             }
         });
@@ -513,7 +517,7 @@ export class ModelExplorerComponent {
             // 안전한 DOM 업데이트
             if (checkpointsElement) {
                 checkpointsElement.innerHTML = 
-                    '<div class="error">모델을 불러올 수 없습니다.<br>백엔드 서버(포트 9001)가 실행 중인지 확인해주세요.</div>';
+                    '<div class="error">모델을 불러올 수 없습니다.<br>백엔드 서버(포트 9004)가 실행 중인지 확인해주세요.</div>';
             }
             
             return Promise.reject(error);
