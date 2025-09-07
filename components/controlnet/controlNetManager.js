@@ -240,14 +240,16 @@ function createControlNetUI(imageNode) {
         border-radius: 8px 8px 0 0;
     `;
     
-    // 탭 버튼들
+    // 5개 전문 탭 시스템
     const tabs = [
-        { id: 'depth', name: 'Depth', icon: '🏔️' },
-        { id: 'canny', name: 'Canny', icon: '📐' },
-        { id: 'openpose', name: 'OpenPose', icon: '🤸' }
+        { id: 'edges', name: 'Edge & Lines', icon: '📐', category: 'structural' },
+        { id: 'depth', name: 'Depth & Normals', icon: '🏔️', category: 'spatial' },
+        { id: 'pose', name: 'Pose & Human', icon: '🤸', category: 'human' },
+        { id: 'segment', name: 'Segmentation', icon: '🎯', category: 'semantic' },
+        { id: 'advanced', name: 'Advanced', icon: '⚡', category: 'specialized' }
     ];
     
-    let activeTab = 'canny'; // 기본 활성 탭
+    let activeTab = 'edges'; // 기본 활성 탭
     
     tabs.forEach(tab => {
         const tabButton = document.createElement('button');
@@ -314,336 +316,469 @@ function switchTab(tabId, container, imageNode) {
     contentArea.innerHTML = '';
     
     switch(tabId) {
+        case 'edges':
+            contentArea.appendChild(createEdgeUI(imageNode));
+            break;
         case 'depth':
             contentArea.appendChild(createDepthUI(imageNode));
             break;
-        case 'canny':
-            contentArea.appendChild(createCannyUI(imageNode));
+        case 'pose':
+            contentArea.appendChild(createPoseUI(imageNode));
             break;
-        case 'openpose':
-            contentArea.appendChild(createOpenPoseUI());
+        case 'segment':
+            contentArea.appendChild(createSegmentationUI(imageNode));
+            break;
+        case 'advanced':
+            contentArea.appendChild(createAdvancedUI(imageNode));
             break;
     }
 }
 
 /**
- * Depth 전처리 UI 생성
+ * Edge & Lines 전처리 UI 생성 (Canny, HED, PiDiNet, Line Art, Scribble)
  */
-function createDepthUI(imageNode) {
+function createEdgeUI(imageNode) {
     const container = document.createElement('div');
-    
-    // 현재 이미지 참조 저장
     container._imageNode = imageNode;
     
-    // UI 구성
+    // 헤더
     const header = document.createElement('div');
-    header.style.cssText = 'text-align: center; padding: 20px 20px 10px 20px;';
+    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
     header.innerHTML = `
-        <h3 style="margin: 0 0 10px 0; color: #e67e22;">🏔️ Depth Map</h3>
-        <p style="color: #ccc; margin: 0;">깊이 정보를 추출하여 3D 구조를 파악합니다.</p>
+        <h3 style="margin: 0 0 8px 0; color: #3498db; font-size: 18px;">📐 Edge & Lines Detection</h3>
+        <p style="color: #bbb; margin: 0; font-size: 13px;">윤곽선, 라인아트, 스케치 검출을 통한 구조적 정보 추출</p>
     `;
     
-    // 모델 선택 영역
-    const modelSelectorDiv = document.createElement('div');
-    modelSelectorDiv.style.cssText = 'padding: 0 20px 16px 20px;';
-    
-    const modelLabel = document.createElement('label');
-    modelLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #ddd; font-size: 13px; font-weight: 500;';
-    modelLabel.textContent = 'Depth 모델 선택';
-    
-    const modelSelect = document.createElement('select');
-    modelSelect.id = 'depth-model-selector';
-    modelSelect.style.cssText = `
-        width: 100%;
-        background: #3a3a3a;
-        color: #fff;
-        border: 1px solid #555;
-        border-radius: 5px;
-        padding: 8px;
-        font-size: 13px;
-        cursor: pointer;
-    `;
-    
-    // Depth 전용 모델 필터링 (백엔드에서 가져온 모델 중 depth 관련만)
-    const depthModels = availablePreprocessors.filter(model => 
-        model.id.includes('depth') || 
-        model.id.includes('midas') || 
-        model.id.includes('dpt') || 
-        model.id.includes('zoedepth') ||
-        model.id === 'builtin_depth'
-    );
-    
-    // 폴백으로 내장 모델 추가 (백엔드에서 못 가져온 경우)
-    if (depthModels.length === 0) {
-        depthModels.push(
-            { id: 'builtin_depth', name: '내장 알고리즘 (JavaScript)', type: 'builtin', available: true }
-        );
-    }
-    
-    depthModels.forEach(model => {
-        const option = document.createElement('option');
-        option.value = model.id;
-        option.textContent = model.name;
-        option.dataset.type = model.type;
-        if (model.type === 'builtin') {
-            option.selected = true; // 기본값: 내장 알고리즘
+    // 모델 선택 카드 영역
+    const modelSection = createModelSelectionSection('edge', [
+        { 
+            id: 'canny', 
+            name: 'Canny Edge', 
+            description: '클래식한 엣지 검출 알고리즘',
+            capabilities: ['빠른 처리', '정확한 윤곽선'],
+            requirements: '낮음',
+            icon: '📐'
+        },
+        { 
+            id: 'hed', 
+            name: 'Holistically-Nested Edge Detection', 
+            description: '딥러닝 기반 전체적 엣지 검출',
+            capabilities: ['자연스러운 윤곽', '세밀한 디테일'],
+            requirements: 'GPU 권장',
+            icon: '🎨'
+        },
+        { 
+            id: 'pidinet', 
+            name: 'PiDiNet', 
+            description: '픽셀 차분 네트워크 기반 엣지 검출',
+            capabilities: ['고품질 엣지', '노이즈 저항성'],
+            requirements: 'GPU 필요',
+            icon: '⚡'
+        },
+        { 
+            id: 'lineart', 
+            name: 'Line Art', 
+            description: '라인아트 스타일 변환',
+            capabilities: ['깔끔한 선화', '일러스트 최적화'],
+            requirements: 'GPU 권장',
+            icon: '✏️'
+        },
+        { 
+            id: 'scribble', 
+            name: 'Scribble', 
+            description: '스케치/낙서 스타일 검출',
+            capabilities: ['자유로운 스케치', '손그림 느낌'],
+            requirements: '중간',
+            icon: '✨'
         }
-        modelSelect.appendChild(option);
+    ]);
+    
+    // 파라미터 섹션
+    const parametersSection = createParametersSection('edge', {
+        basic: [
+            { id: 'threshold_low', name: '하위 임계값', type: 'range', min: 0, max: 255, value: 100, step: 1 },
+            { id: 'threshold_high', name: '상위 임계값', type: 'range', min: 0, max: 255, value: 200, step: 1 },
+            { id: 'edge_strength', name: '엣지 강도', type: 'range', min: 0.1, max: 3.0, value: 1.0, step: 0.1 }
+        ],
+        advanced: [
+            { id: 'blur_radius', name: '블러 반경', type: 'range', min: 0, max: 10, value: 1.4, step: 0.1 },
+            { id: 'l2_gradient', name: 'L2 Gradient 사용', type: 'checkbox', value: true },
+            { id: 'safe_mode', name: '안전 모드 (노이즈 감소)', type: 'checkbox', value: false },
+            { id: 'resolution', name: '처리 해상도', type: 'select', options: [
+                { value: 'original', label: '원본 해상도' },
+                { value: '512', label: '512px' },
+                { value: '768', label: '768px' },
+                { value: '1024', label: '1024px' }
+            ], value: '512' }
+        ]
     });
     
-    modelSelectorDiv.appendChild(modelLabel);
-    modelSelectorDiv.appendChild(modelSelect);
+    // 미리보기 섹션
+    const previewSection = createAdvancedPreviewSection();
     
-    // 파라미터 컨트롤
-    const controlsDiv = document.createElement('div');
-    controlsDiv.id = 'depth-controls';
-    controlsDiv.style.cssText = 'padding: 0 20px; text-align: left;';
-    
-    // 대비 조절
-    const contrastDiv = document.createElement('div');
-    contrastDiv.style.cssText = 'margin-bottom: 16px;';
-    contrastDiv.innerHTML = `
-        <label style="display: block; margin-bottom: 8px; color: #ddd; font-size: 13px;">
-            대비 (Contrast): <span id="contrast-value">1.2</span>
-        </label>
-        <input type="range" id="contrast" min="0.5" max="3.0" step="0.1" value="1.2" 
-               style="width: 100%;">
-    `;
-    
-    // 밝기 조절
-    const brightnessDiv = document.createElement('div');
-    brightnessDiv.style.cssText = 'margin-bottom: 16px;';
-    brightnessDiv.innerHTML = `
-        <label style="display: block; margin-bottom: 8px; color: #ddd; font-size: 13px;">
-            밝기 (Brightness): <span id="brightness-value">0.1</span>
-        </label>
-        <input type="range" id="brightness" min="-0.5" max="0.5" step="0.05" value="0.1" 
-               style="width: 100%;">
-    `;
-    
-    // 스무딩 정도
-    const smoothingDiv = document.createElement('div');
-    smoothingDiv.style.cssText = 'margin-bottom: 16px;';
-    smoothingDiv.innerHTML = `
-        <label style="display: block; margin-bottom: 8px; color: #ddd; font-size: 13px;">
-            스무딩 정도: <span id="smoothing-value">2</span>
-        </label>
-        <input type="range" id="smoothing" min="0" max="5" value="2" 
-               style="width: 100%;">
-    `;
-    
-    // 깊이 강도
-    const depthStrengthDiv = document.createElement('div');
-    depthStrengthDiv.style.cssText = 'margin-bottom: 16px;';
-    depthStrengthDiv.innerHTML = `
-        <label style="display: block; margin-bottom: 8px; color: #ddd; font-size: 13px;">
-            깊이 강도: <span id="depth-strength-value">1.0</span>
-        </label>
-        <input type="range" id="depth-strength" min="0.1" max="2.0" step="0.1" value="1.0" 
-               style="width: 100%;">
-    `;
-    
-    // 미리보기 영역
-    const previewDiv = document.createElement('div');
-    previewDiv.style.cssText = `
-        margin: 20px;
-        min-height: 150px;
-        border: 2px dashed #444;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #999;
-        font-size: 14px;
-        background: #111;
-    `;
-    previewDiv.innerHTML = '<div>미리보기가 여기에 표시됩니다</div>';
-    
-    // 버튼들
-    const buttonsDiv = document.createElement('div');
-    buttonsDiv.style.cssText = 'display: flex; gap: 8px; padding: 0 20px 20px 20px;';
-    
-    const previewButton = document.createElement('button');
-    previewButton.textContent = '미리보기';
-    previewButton.style.cssText = `
-        flex: 1; padding: 10px; background: #e67e22; color: white; 
-        border: none; border-radius: 4px; cursor: pointer;
-        transition: background 0.2s;
-    `;
-    
-    const applyButton = document.createElement('button');
-    applyButton.textContent = '저장하기';
-    applyButton.style.cssText = `
-        flex: 1; padding: 10px; background: #3498db; color: white; 
-        border: none; border-radius: 4px; cursor: pointer;
-        transition: background 0.2s;
-    `;
-    
-    // 이벤트 리스너들
-    const contrastSlider = contrastDiv.querySelector('#contrast');
-    const brightnessSlider = brightnessDiv.querySelector('#brightness');
-    const smoothingSlider = smoothingDiv.querySelector('#smoothing');
-    const depthStrengthSlider = depthStrengthDiv.querySelector('#depth-strength');
-    const contrastValueSpan = contrastDiv.querySelector('#contrast-value');
-    const brightnessValueSpan = brightnessDiv.querySelector('#brightness-value');
-    const smoothingValueSpan = smoothingDiv.querySelector('#smoothing-value');
-    const depthStrengthValueSpan = depthStrengthDiv.querySelector('#depth-strength-value');
-    
-    contrastSlider.addEventListener('input', (e) => {
-        contrastValueSpan.textContent = e.target.value;
-    });
-    
-    brightnessSlider.addEventListener('input', (e) => {
-        brightnessValueSpan.textContent = e.target.value;
-    });
-    
-    smoothingSlider.addEventListener('input', (e) => {
-        smoothingValueSpan.textContent = e.target.value;
-    });
-    
-    depthStrengthSlider.addEventListener('input', (e) => {
-        depthStrengthValueSpan.textContent = e.target.value;
-    });
-    
-    // 미리보기 버튼 이벤트
-    previewButton.addEventListener('click', async () => {
-        await handleDepthPreview(container, previewDiv);
-    });
-    
-    // 적용 버튼 이벤트
-    applyButton.addEventListener('click', async () => {
-        await handleDepthApply(container);
-    });
-    
-    // 호버 효과
-    previewButton.addEventListener('mouseenter', () => {
-        previewButton.style.background = '#d35400';
-    });
-    previewButton.addEventListener('mouseleave', () => {
-        previewButton.style.background = '#e67e22';
-    });
-    
-    applyButton.addEventListener('mouseenter', () => {
-        applyButton.style.background = '#2980b9';
-    });
-    applyButton.addEventListener('mouseleave', () => {
-        applyButton.style.background = '#3498db';
-    });
-    
-    // 오버레이 제거 버튼 생성
-    const removeOverlayButton = document.createElement('button');
-    removeOverlayButton.textContent = '오버레이 제거';
-    removeOverlayButton.style.cssText = `
-        background: #e74c3c;
-        color: white;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        margin: 0 5px;
-        transition: background-color 0.3s;
-    `;
-    
-    // 오버레이 제거 버튼 이벤트
-    removeOverlayButton.addEventListener('click', () => {
-        const imageNode = container._imageNode;
-        if (imageNode && imageNode.depthOverlay) {
-            const overlay = imageNode.depthOverlay;
-            
-            // 이벤트 리스너 제거
-            if (overlay._syncHandler) {
-                imageNode.off('dragmove transform', overlay._syncHandler);
-            }
-            
-            // 오버레이 제거
-            overlay.destroy();
-            imageNode.depthOverlay = null;
-            imageNode.getLayer().batchDraw();
-            
-            // 상태 메시지 업데이트
-            const statusDiv = container.querySelector('#depth-status-message');
-            if (statusDiv) {
-                statusDiv.textContent = '오버레이가 제거되었습니다 (원본만 표시됨)';
-                statusDiv.style.color = '#e67e22';
-                statusDiv.style.background = 'rgba(230, 126, 34, 0.1)';
-                statusDiv.style.borderColor = 'rgba(230, 126, 34, 0.3)';
-            }
-        }
-    });
-    
-    // 오버레이 제거 버튼 호버 효과
-    removeOverlayButton.addEventListener('mouseenter', () => {
-        removeOverlayButton.style.background = '#c0392b';
-    });
-    removeOverlayButton.addEventListener('mouseleave', () => {
-        removeOverlayButton.style.background = '#e74c3c';
-    });
-    
-    buttonsDiv.appendChild(previewButton);
-    buttonsDiv.appendChild(applyButton);
-    buttonsDiv.appendChild(removeOverlayButton);
-    
-    // 상태 메시지 영역
-    const statusDiv = document.createElement('div');
-    statusDiv.id = 'depth-status-message';
-    statusDiv.style.cssText = `
-        margin: 16px 20px 8px 20px;
-        padding: 12px;
-        background: rgba(230, 126, 34, 0.1);
-        border: 1px solid rgba(230, 126, 34, 0.3);
-        border-radius: 6px;
-        color: #ccc;
-        font-size: 13px;
-        text-align: center;
-        min-height: 20px;
-        transition: all 0.3s;
-    `;
-    statusDiv.textContent = '미리보기 후 적용하여 Depth Map을 완료하세요';
-    
-    // 모델 선택 변경 이벤트 리스너
-    modelSelect.addEventListener('change', (e) => {
-        const selectedModel = depthModels.find(m => m.id === e.target.value);
-        const isBuiltin = selectedModel && selectedModel.type === 'builtin';
-        
-        // 상태 메시지 업데이트
-        const statusDiv = container.querySelector('#depth-status-message');
-        if (statusDiv) {
-            if (isBuiltin) {
-                statusDiv.textContent = '미리보기 후 적용하여 Depth Map을 완료하세요';
-                statusDiv.style.color = '#ccc';
-                statusDiv.style.background = 'rgba(230, 126, 34, 0.1)';
-                statusDiv.style.borderColor = 'rgba(230, 126, 34, 0.3)';
-            } else {
-                statusDiv.textContent = `선택됨: ${selectedModel.name} (AI 모델 - 백엔드 필요)`;
-                statusDiv.style.color = '#e67e22';
-                statusDiv.style.background = 'rgba(230, 126, 34, 0.1)';
-                statusDiv.style.borderColor = 'rgba(230, 126, 34, 0.3)';
-            }
-        }
-        
-        console.log('Selected depth model:', selectedModel);
-    });
-    
-    // 모든 요소 조립
-    controlsDiv.appendChild(contrastDiv);
-    controlsDiv.appendChild(brightnessDiv);
-    controlsDiv.appendChild(smoothingDiv);
-    controlsDiv.appendChild(depthStrengthDiv);
+    // 버튼 섹션
+    const buttonSection = createActionButtonsSection('edge', container);
     
     container.appendChild(header);
-    container.appendChild(modelSelectorDiv);
-    container.appendChild(controlsDiv);
-    container.appendChild(previewDiv);
-    container.appendChild(buttonsDiv);
-    container.appendChild(statusDiv);
+    container.appendChild(modelSection);
+    container.appendChild(parametersSection);
+    container.appendChild(previewSection);
+    container.appendChild(buttonSection);
     
     return container;
 }
 
 /**
- * Canny 전처리 UI 생성
+ * Enhanced Depth & Normals 전처리 UI 생성 (MiDaS, LeReS, ZoeDepth, Normal Maps)
+ */
+function createDepthUI(imageNode) {
+    const container = document.createElement('div');
+    container._imageNode = imageNode;
+    
+    // 헤더
+    const header = document.createElement('div');
+    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
+    header.innerHTML = `
+        <h3 style="margin: 0 0 8px 0; color: #e67e22; font-size: 18px;">🏔️ Depth & Normals</h3>
+        <p style="color: #bbb; margin: 0; font-size: 13px;">깊이 맵, 법선 맵을 통한 3D 공간 정보 추출</p>
+    `;
+    
+    // 모델 선택 카드 영역
+    const modelSection = createModelSelectionSection('depth', [
+        { 
+            id: 'midas_v3', 
+            name: 'MiDaS v3.1 (DPT-Large)', 
+            description: '최신 비전 트랜스포머 기반 깊이 추정',
+            capabilities: ['고정밀도', '실외/실내 범용'],
+            requirements: 'GPU 필요',
+            icon: '🏔️'
+        },
+        { 
+            id: 'midas_v2', 
+            name: 'MiDaS v2.1 (ResNet)', 
+            description: 'ResNet 기반 안정적인 깊이 추정',
+            capabilities: ['균형잡힌 성능', '빠른 처리'],
+            requirements: 'GPU 권장',
+            icon: '⛰️'
+        },
+        { 
+            id: 'dpt_hybrid', 
+            name: 'DPT-Hybrid', 
+            description: 'CNN + Transformer 하이브리드 모델',
+            capabilities: ['세밀한 디테일', '경계 보존'],
+            requirements: 'GPU 필요',
+            icon: '🗻'
+        },
+        { 
+            id: 'zoedepth', 
+            name: 'ZoeDepth', 
+            description: '영상 기하학 기반 제로샷 깊이 추정',
+            capabilities: ['실내 특화', '메트릭 깊이'],
+            requirements: 'GPU 필요',
+            icon: '🏠'
+        },
+        { 
+            id: 'normal_map', 
+            name: 'Normal Map', 
+            description: '표면 법선 벡터 추출',
+            capabilities: ['라이팅 정보', '표면 디테일'],
+            requirements: 'GPU 권장',
+            icon: '🎯'
+        }
+    ]);
+    
+    // 파라미터 섹션
+    const parametersSection = createParametersSection('depth', {
+        basic: [
+            { id: 'depth_strength', name: '깊이 강도', type: 'range', min: 0.1, max: 3.0, value: 1.0, step: 0.1 },
+            { id: 'contrast', name: '대비', type: 'range', min: 0.5, max: 3.0, value: 1.2, step: 0.1 },
+            { id: 'brightness', name: '밝기', type: 'range', min: -0.5, max: 0.5, value: 0.1, step: 0.05 }
+        ],
+        advanced: [
+            { id: 'smoothing', name: '스무딩 정도', type: 'range', min: 0, max: 10, value: 2, step: 1 },
+            { id: 'invert_depth', name: '깊이 반전', type: 'checkbox', value: false },
+            { id: 'remove_background', name: '배경 제거', type: 'checkbox', value: false },
+            { id: 'depth_range', name: '깊이 범위', type: 'select', options: [
+                { value: 'auto', label: '자동 감지' },
+                { value: 'near', label: '근거리 (0-10m)' },
+                { value: 'medium', label: '중거리 (0-50m)' },
+                { value: 'far', label: '원거리 (0-1000m)' }
+            ], value: 'auto' },
+            { id: 'output_format', name: '출력 형식', type: 'select', options: [
+                { value: 'disparity', label: 'Disparity Map' },
+                { value: 'depth', label: 'Depth Map' },
+                { value: 'normal', label: 'Normal Map' },
+                { value: 'both', label: 'Depth + Normal' }
+            ], value: 'depth' }
+        ]
+    });
+    
+    // 미리보기 섹션
+    const previewSection = createAdvancedPreviewSection();
+    
+    // 버튼 섹션
+    const buttonSection = createActionButtonsSection('depth', container);
+    
+    container.appendChild(header);
+    container.appendChild(modelSection);
+    container.appendChild(parametersSection);
+    container.appendChild(previewSection);
+    container.appendChild(buttonSection);
+    
+    return container;
+}
+
+/**
+ * Pose & Human 전처리 UI 생성 (OpenPose, DWPose, MediaPipe)
+ */
+function createPoseUI(imageNode) {
+    const container = document.createElement('div');
+    container._imageNode = imageNode;
+    
+    const header = document.createElement('div');
+    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
+    header.innerHTML = `
+        <h3 style="margin: 0 0 8px 0; color: #9b59b6; font-size: 18px;">🤸 Pose & Human</h3>
+        <p style="color: #bbb; margin: 0; font-size: 13px;">인체 포즈, 골격, 얼굴 랜드마크 인식 및 추출</p>
+    `;
+    
+    const modelSection = createModelSelectionSection('pose', [
+        { 
+            id: 'openpose', 
+            name: 'OpenPose', 
+            description: '클래식한 멀티퍼슨 포즈 추정',
+            capabilities: ['다중 인물', '18개 골격점'],
+            requirements: 'GPU 필요',
+            icon: '🤸'
+        },
+        { 
+            id: 'openpose_face', 
+            name: 'OpenPose + Face', 
+            description: 'OpenPose + 얼굴 랜드마크',
+            capabilities: ['얼굴 디테일', '70개 얼굴점'],
+            requirements: 'GPU 필요',
+            icon: '😊'
+        },
+        { 
+            id: 'openpose_hand', 
+            name: 'OpenPose + Hand', 
+            description: 'OpenPose + 손 골격 추출',
+            capabilities: ['손가락 디테일', '21개 손 골격점'],
+            requirements: 'GPU 필요',
+            icon: '✋'
+        },
+        { 
+            id: 'dwpose', 
+            name: 'DWPose', 
+            description: '분산 가중치 포즈 추정',
+            capabilities: ['높은 정확도', '실시간 처리'],
+            requirements: 'GPU 권장',
+            icon: '🎭'
+        },
+        { 
+            id: 'mediapipe', 
+            name: 'MediaPipe Pose', 
+            description: 'Google MediaPipe 포즈 솔루션',
+            capabilities: ['빠른 처리', '경량화'],
+            requirements: '낮음',
+            icon: '⚡'
+        }
+    ]);
+    
+    const parametersSection = createParametersSection('pose', {
+        basic: [
+            { id: 'confidence_threshold', name: '신뢰도 임계값', type: 'range', min: 0.1, max: 1.0, value: 0.5, step: 0.05 },
+            { id: 'keypoint_thickness', name: '키포인트 두께', type: 'range', min: 1, max: 10, value: 3, step: 1 },
+            { id: 'skeleton_thickness', name: '골격선 두께', type: 'range', min: 1, max: 8, value: 2, step: 1 }
+        ],
+        advanced: [
+            { id: 'detect_face', name: '얼굴 검출', type: 'checkbox', value: false },
+            { id: 'detect_hands', name: '손 검출', type: 'checkbox', value: false },
+            { id: 'multi_person', name: '다중 인물 검출', type: 'checkbox', value: true },
+            { id: 'pose_model', name: '포즈 모델', type: 'select', options: [
+                { value: 'COCO', label: 'COCO (18 points)' },
+                { value: 'BODY_25', label: 'BODY_25 (25 points)' },
+                { value: 'MPII', label: 'MPII (15 points)' }
+            ], value: 'COCO' }
+        ]
+    });
+    
+    const previewSection = createAdvancedPreviewSection();
+    const buttonSection = createActionButtonsSection('pose', container);
+    
+    container.appendChild(header);
+    container.appendChild(modelSection);
+    container.appendChild(parametersSection);
+    container.appendChild(previewSection);
+    container.appendChild(buttonSection);
+    
+    return container;
+}
+
+/**
+ * Segmentation 전처리 UI 생성 (ADE20K, COCO)
+ */
+function createSegmentationUI(imageNode) {
+    const container = document.createElement('div');
+    container._imageNode = imageNode;
+    
+    const header = document.createElement('div');
+    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
+    header.innerHTML = `
+        <h3 style="margin: 0 0 8px 0; color: #f39c12; font-size: 18px;">🎯 Segmentation</h3>
+        <p style="color: #bbb; margin: 0; font-size: 13px;">의미론적 분할을 통한 객체 및 영역 구분</p>
+    `;
+    
+    const modelSection = createModelSelectionSection('segment', [
+        { 
+            id: 'ade20k', 
+            name: 'ADE20K', 
+            description: '150개 클래스 실내외 장면 분할',
+            capabilities: ['세밀한 분류', '실내외 범용'],
+            requirements: 'GPU 필요',
+            icon: '🏠'
+        },
+        { 
+            id: 'coco_stuff', 
+            name: 'COCO-Stuff', 
+            description: 'COCO 데이터셋 기반 객체/배경 분할',
+            capabilities: ['객체 중심', '80개 클래스'],
+            requirements: 'GPU 권장',
+            icon: '🐱'
+        },
+        { 
+            id: 'cityscapes', 
+            name: 'Cityscapes', 
+            description: '도시 환경 특화 분할',
+            capabilities: ['차량/도로 특화', '자율주행'],
+            requirements: 'GPU 필요',
+            icon: '🚗'
+        },
+        { 
+            id: 'oneformer', 
+            name: 'OneFormer', 
+            description: '범용 세그멘테이션 모델',
+            capabilities: ['다목적', '고성능'],
+            requirements: 'GPU 필요',
+            icon: '🎯'
+        }
+    ]);
+    
+    const parametersSection = createParametersSection('segment', {
+        basic: [
+            { id: 'mask_opacity', name: '마스크 투명도', type: 'range', min: 0.1, max: 1.0, value: 0.7, step: 0.05 },
+            { id: 'outline_thickness', name: '외곽선 두께', type: 'range', min: 0, max: 5, value: 1, step: 1 }
+        ],
+        advanced: [
+            { id: 'color_mode', name: '색상 모드', type: 'select', options: [
+                { value: 'category', label: '카테고리별 색상' },
+                { value: 'instance', label: '인스턴스별 색상' },
+                { value: 'depth', label: '깊이별 색상' }
+            ], value: 'category' },
+            { id: 'show_labels', name: '레이블 표시', type: 'checkbox', value: true },
+            { id: 'merge_small', name: '작은 영역 병합', type: 'checkbox', value: false }
+        ]
+    });
+    
+    const previewSection = createAdvancedPreviewSection();
+    const buttonSection = createActionButtonsSection('segment', container);
+    
+    container.appendChild(header);
+    container.appendChild(modelSection);
+    container.appendChild(parametersSection);
+    container.appendChild(previewSection);
+    container.appendChild(buttonSection);
+    
+    return container;
+}
+
+/**
+ * Advanced 전처리 UI 생성 (MLSD, Shuffle, Threshold 등)
+ */
+function createAdvancedUI(imageNode) {
+    const container = document.createElement('div');
+    container._imageNode = imageNode;
+    
+    const header = document.createElement('div');
+    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
+    header.innerHTML = `
+        <h3 style="margin: 0 0 8px 0; color: #e74c3c; font-size: 18px;">⚡ Advanced</h3>
+        <p style="color: #bbb; margin: 0; font-size: 13px;">특수 목적 전처리 및 실험적 기능</p>
+    `;
+    
+    const modelSection = createModelSelectionSection('advanced', [
+        { 
+            id: 'mlsd', 
+            name: 'M-LSD', 
+            description: 'Mobile Line Segment Detection',
+            capabilities: ['직선 검출', '모바일 최적화'],
+            requirements: '낮음',
+            icon: '📏'
+        },
+        { 
+            id: 'shuffle', 
+            name: 'Shuffle', 
+            description: '이미지 셔플링 및 재배열',
+            capabilities: ['텍스처 변형', '패턴 변화'],
+            requirements: '낮음',
+            icon: '🔀'
+        },
+        { 
+            id: 'threshold', 
+            name: 'Threshold', 
+            description: '임계값 기반 이진화',
+            capabilities: ['이진 변환', '윤곽 강조'],
+            requirements: '낮음',
+            icon: '⚫'
+        },
+        { 
+            id: 'inpaint', 
+            name: 'Inpainting Guide', 
+            description: '인페인팅 가이드 생성',
+            capabilities: ['마스크 생성', '영역 지정'],
+            requirements: 'GPU 권장',
+            icon: '🎨'
+        },
+        { 
+            id: 'tile', 
+            name: 'Tile Resample', 
+            description: '타일 기반 리샘플링',
+            capabilities: ['해상도 향상', '디테일 보존'],
+            requirements: 'GPU 권장',
+            icon: '🧩'
+        }
+    ]);
+    
+    const parametersSection = createParametersSection('advanced', {
+        basic: [
+            { id: 'intensity', name: '효과 강도', type: 'range', min: 0.1, max: 2.0, value: 1.0, step: 0.1 }
+        ],
+        advanced: [
+            { id: 'experimental', name: '실험적 기능', type: 'checkbox', value: false },
+            { id: 'custom_params', name: '사용자 정의 파라미터', type: 'text', placeholder: '{"param": "value"}' }
+        ]
+    });
+    
+    const previewSection = createAdvancedPreviewSection();
+    const buttonSection = createActionButtonsSection('advanced', container);
+    
+    container.appendChild(header);
+    container.appendChild(modelSection);
+    container.appendChild(parametersSection);
+    container.appendChild(previewSection);
+    container.appendChild(buttonSection);
+    
+    return container;
+}
+
+// ============================================================================
+// LEGACY FUNCTIONS (TO BE REMOVED)
+// ============================================================================
+// The old Canny UI function is no longer used but kept for reference
+// Remove this section after confirming the new system works properly
+
+/**
+ * LEGACY: Canny 전처리 UI 생성 (구 버전 - 사용안함)
  */
 function createCannyUI(imageNode) {
     const container = document.createElement('div');
@@ -935,7 +1070,7 @@ function createCannyUI(imageNode) {
 }
 
 /**
- * OpenPose 전처리 UI 생성
+ * LEGACY: OpenPose 전처리 UI 생성 (구 버전 - 사용안함)
  */
 function createOpenPoseUI() {
     const container = document.createElement('div');
@@ -1829,5 +1964,719 @@ function getCannyParameters(container) {
         highThreshold,
         useL2Gradient
     };
+}
+
+// ============================================================================
+// PROFESSIONAL UI HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * 프로페셔널 모델 선택 섹션 생성
+ * @param {string} category - 카테고리 ('edge', 'depth', 'pose', etc.)
+ * @param {Array} models - 모델 정보 배열
+ * @returns {HTMLElement} 모델 선택 섹션
+ */
+function createModelSelectionSection(category, models) {
+    const section = document.createElement('div');
+    section.className = `model-selection-section ${category}-models`;
+    section.style.cssText = `
+        padding: 0 16px 20px 16px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin: 0 16px 20px 16px;
+    `;
+    
+    // 섹션 헤더
+    const header = document.createElement('div');
+    header.style.cssText = 'padding: 16px 0 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 16px;';
+    header.innerHTML = `
+        <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 14px; font-weight: 600;">모델 선택</h4>
+        <p style="margin: 0; color: #bbb; font-size: 12px;">사용할 AI 모델을 선택하세요. 각 모델은 다른 특징과 요구사항을 가집니다.</p>
+    `;
+    
+    // 모델 카드 그리드
+    const grid = document.createElement('div');
+    grid.className = 'model-cards-grid';
+    grid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    `;
+    
+    let selectedModelId = models[0]?.id || '';
+    
+    models.forEach((model, index) => {
+        const card = document.createElement('div');
+        card.className = `model-card ${index === 0 ? 'selected' : ''}`;
+        card.dataset.modelId = model.id;
+        card.style.cssText = `
+            background: ${index === 0 ? 'linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1))' : 'rgba(255, 255, 255, 0.05)'};
+            border: 1px solid ${index === 0 ? 'rgba(52, 152, 219, 0.5)' : 'rgba(255, 255, 255, 0.1)'};
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-height: 120px;
+        `;
+        
+        // 요구사항 색상
+        const reqColor = model.requirements === 'GPU 필요' ? '#e74c3c' : 
+                        model.requirements === 'GPU 권장' ? '#f39c12' : '#27ae60';
+        
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 20px; margin-right: 8px;">${model.icon}</span>
+                <div style="flex: 1;">
+                    <h5 style="margin: 0 0 2px 0; color: #fff; font-size: 13px; font-weight: 600;">${model.name}</h5>
+                    <span style="color: ${reqColor}; font-size: 10px; font-weight: 500;">${model.requirements}</span>
+                </div>
+            </div>
+            <p style="margin: 0 0 8px 0; color: #bbb; font-size: 11px; line-height: 1.4;">${model.description}</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                ${model.capabilities.map(cap => 
+                    `<span style="background: rgba(255, 255, 255, 0.1); color: #ddd; font-size: 10px; padding: 2px 6px; border-radius: 3px;">${cap}</span>`
+                ).join('')}
+            </div>
+        `;
+        
+        card.addEventListener('click', () => {
+            // 다른 카드들 선택 해제
+            grid.querySelectorAll('.model-card').forEach(c => {
+                c.classList.remove('selected');
+                c.style.background = 'rgba(255, 255, 255, 0.05)';
+                c.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            });
+            
+            // 현재 카드 선택
+            card.classList.add('selected');
+            card.style.background = 'linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1))';
+            card.style.borderColor = 'rgba(52, 152, 219, 0.5)';
+            
+            selectedModelId = model.id;
+            console.log(`Selected ${category} model:`, model.name);
+        });
+        
+        // 호버 효과
+        card.addEventListener('mouseenter', () => {
+            if (!card.classList.contains('selected')) {
+                card.style.background = 'rgba(255, 255, 255, 0.08)';
+                card.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            if (!card.classList.contains('selected')) {
+                card.style.background = 'rgba(255, 255, 255, 0.05)';
+                card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            }
+        });
+        
+        grid.appendChild(card);
+    });
+    
+    section.appendChild(header);
+    section.appendChild(grid);
+    
+    // 선택된 모델 ID를 섹션에 저장
+    section._selectedModelId = selectedModelId;
+    
+    return section;
+}
+
+/**
+ * 파라미터 섹션 생성 (Basic/Advanced 구분)
+ * @param {string} category - 카테고리
+ * @param {Object} parameterGroups - {basic: [], advanced: []}
+ * @returns {HTMLElement} 파라미터 섹션
+ */
+function createParametersSection(category, parameterGroups) {
+    const section = document.createElement('div');
+    section.className = `parameters-section ${category}-parameters`;
+    section.style.cssText = `
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin: 0 16px 20px 16px;
+        overflow: hidden;
+    `;
+    
+    // Basic Parameters (항상 표시)
+    if (parameterGroups.basic && parameterGroups.basic.length > 0) {
+        const basicSection = createParameterGroup('Basic', parameterGroups.basic, true);
+        section.appendChild(basicSection);
+    }
+    
+    // Advanced Parameters (접을 수 있음)
+    if (parameterGroups.advanced && parameterGroups.advanced.length > 0) {
+        const advancedSection = createParameterGroup('Advanced', parameterGroups.advanced, false);
+        section.appendChild(advancedSection);
+    }
+    
+    return section;
+}
+
+/**
+ * 파라미터 그룹 생성
+ * @param {string} groupName - 그룹 이름
+ * @param {Array} parameters - 파라미터 배열
+ * @param {boolean} expanded - 초기 확장 상태
+ * @returns {HTMLElement} 파라미터 그룹
+ */
+function createParameterGroup(groupName, parameters, expanded = true) {
+    const group = document.createElement('div');
+    group.className = `parameter-group ${groupName.toLowerCase()}-group`;
+    group.style.cssText = `border-bottom: 1px solid rgba(255, 255, 255, 0.1);`;
+    
+    // 헤더 (클릭해서 접기/펼치기)
+    const header = document.createElement('div');
+    header.style.cssText = `
+        padding: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.02);
+        transition: background 0.2s;
+    `;
+    
+    header.innerHTML = `
+        <div>
+            <h4 style="margin: 0 0 2px 0; color: #fff; font-size: 14px; font-weight: 600;">${groupName} Parameters</h4>
+            <p style="margin: 0; color: #bbb; font-size: 11px;">${parameters.length}개 파라미터</p>
+        </div>
+        <span class="expand-icon" style="color: #bbb; font-size: 18px; transition: transform 0.3s;">${expanded ? '−' : '+'}</span>
+    `;
+    
+    // 파라미터 컨테이너
+    const container = document.createElement('div');
+    container.className = 'parameters-container';
+    container.style.cssText = `
+        padding: ${expanded ? '16px' : '0'};
+        max-height: ${expanded ? 'none' : '0'};
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(0, 0, 0, 0.1);
+    `;
+    
+    // 파라미터 요소들 생성
+    parameters.forEach(param => {
+        const paramElement = createParameterControl(param);
+        container.appendChild(paramElement);
+    });
+    
+    // 헤더 클릭 이벤트 (접기/펼치기)
+    header.addEventListener('click', () => {
+        const isExpanded = container.style.maxHeight !== '0px';
+        const icon = header.querySelector('.expand-icon');
+        
+        if (isExpanded) {
+            container.style.maxHeight = '0px';
+            container.style.padding = '0 16px';
+            icon.textContent = '+';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            container.style.maxHeight = container.scrollHeight + 'px';
+            container.style.padding = '16px';
+            icon.textContent = '−';
+            icon.style.transform = 'rotate(180deg)';
+            
+            // 애니메이션 완료 후 auto로 설정
+            setTimeout(() => {
+                container.style.maxHeight = 'none';
+            }, 300);
+        }
+    });
+    
+    header.addEventListener('mouseenter', () => {
+        header.style.background = 'rgba(255, 255, 255, 0.05)';
+    });
+    
+    header.addEventListener('mouseleave', () => {
+        header.style.background = 'rgba(255, 255, 255, 0.02)';
+    });
+    
+    group.appendChild(header);
+    group.appendChild(container);
+    
+    return group;
+}
+
+/**
+ * 개별 파라미터 컨트롤 생성
+ * @param {Object} param - 파라미터 설정
+ * @returns {HTMLElement} 파라미터 컨트롤
+ */
+function createParameterControl(param) {
+    const container = document.createElement('div');
+    container.className = `param-control param-${param.id}`;
+    container.style.cssText = `
+        margin-bottom: 16px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    `;
+    
+    const label = document.createElement('label');
+    label.style.cssText = `
+        display: block;
+        margin-bottom: 8px;
+        color: #ddd;
+        font-size: 13px;
+        font-weight: 500;
+    `;
+    
+    let control;
+    
+    switch (param.type) {
+        case 'range':
+            label.innerHTML = `${param.name}: <span class="param-value" style="color: #3498db; font-weight: 600;">${param.value}</span>`;
+            
+            control = document.createElement('input');
+            control.type = 'range';
+            control.id = param.id;
+            control.min = param.min;
+            control.max = param.max;
+            control.value = param.value;
+            control.step = param.step;
+            control.style.cssText = `
+                width: 100%;
+                height: 6px;
+                background: linear-gradient(to right, #3498db 0%, rgba(255, 255, 255, 0.2) 0%);
+                border-radius: 3px;
+                outline: none;
+                -webkit-appearance: none;
+            `;
+            
+            // 실시간 값 업데이트
+            control.addEventListener('input', (e) => {
+                const valueSpan = container.querySelector('.param-value');
+                valueSpan.textContent = e.target.value;
+                
+                // 슬라이더 배경 그라디언트 업데이트
+                const percent = ((e.target.value - e.target.min) / (e.target.max - e.target.min)) * 100;
+                e.target.style.background = `linear-gradient(to right, #3498db ${percent}%, rgba(255, 255, 255, 0.2) ${percent}%)`;
+            });
+            
+            // 초기 슬라이더 배경 설정
+            const initialPercent = ((param.value - param.min) / (param.max - param.min)) * 100;
+            control.style.background = `linear-gradient(to right, #3498db ${initialPercent}%, rgba(255, 255, 255, 0.2) ${initialPercent}%)`;
+            
+            break;
+            
+        case 'checkbox':
+            label.innerHTML = param.name;
+            
+            control = document.createElement('input');
+            control.type = 'checkbox';
+            control.id = param.id;
+            control.checked = param.value;
+            control.style.cssText = `
+                margin-right: 8px;
+                transform: scale(1.2);
+                accent-color: #3498db;
+            `;
+            
+            const checkboxLabel = document.createElement('label');
+            checkboxLabel.style.cssText = `
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                color: #ddd;
+                font-size: 13px;
+            `;
+            checkboxLabel.appendChild(control);
+            checkboxLabel.appendChild(document.createTextNode(param.name));
+            
+            container.appendChild(checkboxLabel);
+            return container;
+            
+        case 'select':
+            label.innerHTML = param.name;
+            
+            control = document.createElement('select');
+            control.id = param.id;
+            control.style.cssText = `
+                width: 100%;
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 13px;
+            `;
+            
+            param.options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.value;
+                opt.textContent = option.label;
+                opt.selected = option.value === param.value;
+                control.appendChild(opt);
+            });
+            
+            break;
+            
+        case 'text':
+            label.innerHTML = param.name;
+            
+            control = document.createElement('input');
+            control.type = 'text';
+            control.id = param.id;
+            control.placeholder = param.placeholder || '';
+            control.style.cssText = `
+                width: 100%;
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 13px;
+            `;
+            
+            break;
+    }
+    
+    container.appendChild(label);
+    if (control && param.type !== 'checkbox') {
+        container.appendChild(control);
+    }
+    
+    return container;
+}
+
+/**
+ * 고급 미리보기 섹션 생성 (Multi-view)
+ * @returns {HTMLElement} 미리보기 섹션
+ */
+function createAdvancedPreviewSection() {
+    const section = document.createElement('div');
+    section.className = 'preview-section';
+    section.style.cssText = `
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        margin: 0 16px 20px 16px;
+        overflow: hidden;
+    `;
+    
+    // 미리보기 헤더 (뷰 모드 선택)
+    const header = document.createElement('div');
+    header.style.cssText = `
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    header.innerHTML = `
+        <h4 style="margin: 0; color: #fff; font-size: 14px; font-weight: 600;">미리보기</h4>
+        <div class="preview-view-modes" style="display: flex; gap: 4px;">
+            <button class="view-mode-btn active" data-mode="original" style="padding: 4px 8px; background: #3498db; color: white; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">원본</button>
+            <button class="view-mode-btn" data-mode="processed" style="padding: 4px 8px; background: rgba(255, 255, 255, 0.1); color: #ccc; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">처리됨</button>
+            <button class="view-mode-btn" data-mode="overlay" style="padding: 4px 8px; background: rgba(255, 255, 255, 0.1); color: #ccc; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">오버레이</button>
+            <button class="view-mode-btn" data-mode="split" style="padding: 4px 8px; background: rgba(255, 255, 255, 0.1); color: #ccc; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">분할</button>
+        </div>
+    `;
+    
+    // 미리보기 영역
+    const previewArea = document.createElement('div');
+    previewArea.className = 'preview-area';
+    previewArea.style.cssText = `
+        padding: 20px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.1);
+    `;
+    
+    previewArea.innerHTML = `
+        <div style="text-align: center; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 12px;">🖼️</div>
+            <div style="font-size: 14px;">미리보기를 클릭하여 결과를 확인하세요</div>
+        </div>
+    `;
+    
+    // 뷰 모드 버튼 이벤트
+    header.addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-mode-btn')) {
+            // 모든 버튼 비활성화
+            header.querySelectorAll('.view-mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'rgba(255, 255, 255, 0.1)';
+                btn.style.color = '#ccc';
+            });
+            
+            // 클릭된 버튼 활성화
+            e.target.classList.add('active');
+            e.target.style.background = '#3498db';
+            e.target.style.color = 'white';
+            
+            const mode = e.target.dataset.mode;
+            console.log('Preview mode changed to:', mode);
+            // TODO: 실제 뷰 모드 전환 로직 구현
+        }
+    });
+    
+    section.appendChild(header);
+    section.appendChild(previewArea);
+    
+    return section;
+}
+
+/**
+ * 액션 버튼 섹션 생성
+ * @param {string} category - 카테고리
+ * @param {HTMLElement} container - 컨테이너 참조
+ * @returns {HTMLElement} 버튼 섹션
+ */
+function createActionButtonsSection(category, container) {
+    const section = document.createElement('div');
+    section.className = 'action-buttons-section';
+    section.style.cssText = `
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin: 0 16px 16px 16px;
+    `;
+    
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.style.cssText = `
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+    `;
+    
+    // 미리보기 버튼
+    const previewBtn = document.createElement('button');
+    previewBtn.className = 'preview-btn';
+    previewBtn.innerHTML = '🔍 미리보기';
+    previewBtn.style.cssText = `
+        flex: 1;
+        padding: 12px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+    `;
+    
+    // 적용 버튼
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'apply-btn';
+    applyBtn.innerHTML = '✅ 적용 & 저장';
+    applyBtn.style.cssText = `
+        flex: 1;
+        padding: 12px;
+        background: linear-gradient(135deg, #27ae60, #229954);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+    `;
+    
+    // 오버레이 제거 버튼
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-overlay-btn';
+    removeBtn.innerHTML = '🗑️ 제거';
+    removeBtn.style.cssText = `
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+    `;
+    
+    // 프리셋 버튼들
+    const presetContainer = document.createElement('div');
+    presetContainer.style.cssText = `
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 12px;
+    `;
+    
+    const presets = getPresetsByCategory(category);
+    presets.forEach(preset => {
+        const presetBtn = document.createElement('button');
+        presetBtn.innerHTML = `${preset.icon} ${preset.name}`;
+        presetBtn.style.cssText = `
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        `;
+        
+        presetBtn.addEventListener('click', () => {
+            applyPreset(category, preset, container);
+            presetBtn.style.background = 'rgba(52, 152, 219, 0.2)';
+            presetBtn.style.borderColor = 'rgba(52, 152, 219, 0.5)';
+            presetBtn.style.color = '#3498db';
+            
+            setTimeout(() => {
+                presetBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                presetBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                presetBtn.style.color = '#ccc';
+            }, 1000);
+        });
+        
+        presetContainer.appendChild(presetBtn);
+    });
+    
+    // 버튼 호버 효과
+    [previewBtn, applyBtn, removeBtn].forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+            btn.style.transform = 'translateY(-1px)';
+            btn.style.boxShadow = btn.style.boxShadow.replace('0 2px 4px', '0 4px 8px');
+        });
+        
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translateY(0)';
+            btn.style.boxShadow = btn.style.boxShadow.replace('0 4px 8px', '0 2px 4px');
+        });
+        
+        btn.addEventListener('click', () => {
+            btn.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                btn.style.transform = 'translateY(-1px)';
+            }, 100);
+        });
+    });
+    
+    // TODO: 실제 이벤트 핸들러 연결
+    previewBtn.addEventListener('click', () => {
+        console.log(`Preview ${category} processing...`);
+        // handlePreview 함수 호출
+    });
+    
+    applyBtn.addEventListener('click', () => {
+        console.log(`Apply ${category} processing...`);
+        // handleApply 함수 호출
+    });
+    
+    removeBtn.addEventListener('click', () => {
+        console.log(`Remove ${category} overlay...`);
+        // handleRemoveOverlay 함수 호출
+    });
+    
+    // 상태 메시지 영역
+    const statusArea = document.createElement('div');
+    statusArea.className = 'status-area';
+    statusArea.style.cssText = `
+        padding: 12px;
+        background: rgba(52, 152, 219, 0.1);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+        border-radius: 4px;
+        color: #ccc;
+        font-size: 13px;
+        text-align: center;
+        transition: all 0.3s;
+    `;
+    statusArea.textContent = `${category.toUpperCase()} 전처리기 준비됨 - 모델을 선택하고 미리보기를 실행하세요`;
+    
+    buttonsContainer.appendChild(previewBtn);
+    buttonsContainer.appendChild(applyBtn);
+    buttonsContainer.appendChild(removeBtn);
+    
+    section.appendChild(presetContainer);
+    section.appendChild(buttonsContainer);
+    section.appendChild(statusArea);
+    
+    return section;
+}
+
+/**
+ * 카테고리별 프리셋 가져오기
+ * @param {string} category - 카테고리
+ * @returns {Array} 프리셋 배열
+ */
+function getPresetsByCategory(category) {
+    const presets = {
+        edge: [
+            { name: '부드러운', icon: '🌸', params: { threshold_low: 50, threshold_high: 150, edge_strength: 0.8 } },
+            { name: '표준', icon: '⚡', params: { threshold_low: 100, threshold_high: 200, edge_strength: 1.0 } },
+            { name: '강력한', icon: '💪', params: { threshold_low: 150, threshold_high: 255, edge_strength: 1.5 } }
+        ],
+        depth: [
+            { name: '실내', icon: '🏠', params: { depth_range: 'near', depth_strength: 1.2, contrast: 1.1 } },
+            { name: '실외', icon: '🌄', params: { depth_range: 'far', depth_strength: 1.0, contrast: 1.3 } },
+            { name: '균형', icon: '⚖️', params: { depth_range: 'auto', depth_strength: 1.0, contrast: 1.2 } }
+        ],
+        pose: [
+            { name: '전신', icon: '🤸', params: { pose_model: 'BODY_25', multi_person: true, confidence_threshold: 0.4 } },
+            { name: '상체', icon: '🙋', params: { pose_model: 'COCO', detect_face: true, confidence_threshold: 0.5 } },
+            { name: '정밀', icon: '🎯', params: { pose_model: 'MPII', confidence_threshold: 0.7, keypoint_thickness: 2 } }
+        ],
+        segment: [
+            { name: '객체', icon: '🐱', params: { color_mode: 'instance', mask_opacity: 0.6, show_labels: true } },
+            { name: '장면', icon: '🏞️', params: { color_mode: 'category', mask_opacity: 0.8, show_labels: false } },
+            { name: '깔끔', icon: '✨', params: { color_mode: 'depth', mask_opacity: 0.5, merge_small: true } }
+        ],
+        advanced: [
+            { name: '가벼운', icon: '🪶', params: { intensity: 0.5 } },
+            { name: '표준', icon: '⚡', params: { intensity: 1.0 } },
+            { name: '강력한', icon: '💥', params: { intensity: 1.8 } }
+        ]
+    };
+    
+    return presets[category] || [];
+}
+
+/**
+ * 프리셋 적용
+ * @param {string} category - 카테고리
+ * @param {Object} preset - 프리셋 정보
+ * @param {HTMLElement} container - 컨테이너
+ */
+function applyPreset(category, preset, container) {
+    console.log(`Applying ${preset.name} preset for ${category}:`, preset.params);
+    
+    // 파라미터 값들을 UI에 적용
+    Object.entries(preset.params).forEach(([paramId, value]) => {
+        const paramElement = container.querySelector(`#${paramId}`);
+        if (paramElement) {
+            if (paramElement.type === 'range') {
+                paramElement.value = value;
+                
+                // 값 표시 업데이트
+                const valueSpan = paramElement.parentElement.querySelector('.param-value');
+                if (valueSpan) {
+                    valueSpan.textContent = value;
+                }
+                
+                // 슬라이더 배경 업데이트
+                const percent = ((value - paramElement.min) / (paramElement.max - paramElement.min)) * 100;
+                paramElement.style.background = `linear-gradient(to right, #3498db ${percent}%, rgba(255, 255, 255, 0.2) ${percent}%)`;
+                
+                // input 이벤트 트리거
+                paramElement.dispatchEvent(new Event('input'));
+            } else if (paramElement.type === 'checkbox') {
+                paramElement.checked = value;
+                paramElement.dispatchEvent(new Event('change'));
+            } else if (paramElement.tagName === 'SELECT') {
+                paramElement.value = value;
+                paramElement.dispatchEvent(new Event('change'));
+            }
+        }
+    });
 }
 

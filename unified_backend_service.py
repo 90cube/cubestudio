@@ -87,16 +87,33 @@ DEFAULT_OUTPUT_PATHS = {
 # --- Enums and Data Classes ---
 
 class ProcessorType(str, Enum):
-    EDGE_DETECTION = "edge_detection"
-    DEPTH_ESTIMATION = "depth_estimation"
-    NORMAL_MAP = "normal_map"
-    POSE_ESTIMATION = "pose_estimation"
-    SEGMENTATION = "segmentation"
-    LINEART = "lineart"
-    SOFT_EDGE = "soft_edge"
-    SCRIBBLE = "scribble"
-    MLSD = "mlsd"
-    ANIME_FACE_SEGMENT = "anime_face_segment"
+    # Edge Detection Category
+    EDGE_DETECTION = "edge_detection"  # Canny, TEED
+    SOFT_EDGE = "soft_edge"  # HED, PiDiNet variants
+    LINEART = "lineart"  # Lineart, Lineart Anime, Lineart Coarse
+    
+    # Depth & Normal Category  
+    DEPTH_ESTIMATION = "depth_estimation"  # MiDaS, DPT, Depth Anything v1/v2, LeReS, ZoeDepth
+    NORMAL_MAP = "normal_map"  # Normal BAE, Normal MiDaS, Normal Dsine
+    
+    # Pose Category
+    POSE_ESTIMATION = "pose_estimation"  # OpenPose, DWPose, AnimalPose
+    
+    # Segmentation Category
+    SEGMENTATION = "segmentation"  # OneFormer, Uniformer, Anime Face Segment
+    
+    # Specialized Category
+    MLSD = "mlsd"  # M-LSD line detection
+    SCRIBBLE = "scribble"  # Scribble, Fake Scribble
+    COLOR = "color"  # Color extraction
+    SHUFFLE = "shuffle"  # Content shuffle
+    THRESHOLD = "threshold"  # Binary threshold
+    INPAINT = "inpaint"  # Inpainting masks
+    CLIP_VISION = "clip_vision"  # CLIP vision processing
+    REFERENCE = "reference"  # Reference processing
+    TILE = "tile"  # Tile processing
+    RECOLOR = "recolor"  # Recolor processing
+    REVISION = "revision"  # Revision processing
 
 class ModelStatus(str, Enum):
     AVAILABLE = "available"
@@ -109,6 +126,8 @@ class ProcessingBackend(str, Enum):
     PYTORCH = "pytorch"
     OPENCV = "opencv"
     BUILTIN = "builtin"
+    ONNX = "onnx"  # ONNX runtime models
+    SAFETENSORS = "safetensors"  # SafeTensors format models
 
 @dataclass
 class ModelInfo:
@@ -512,7 +531,7 @@ class ModelRegistry:
                 id='seg_anime_face',
                 name='Anime Face Segmentation',
                 file_path=PREPROCESSORS_PATH / 'face_parsing.farl.lapa.main_ema_136500_jit191.pt',
-                processor_type=ProcessorType.ANIME_FACE_SEGMENT,
+                processor_type=ProcessorType.SEGMENTATION,
                 backend=ProcessingBackend.PYTORCH,
                 description='Anime face segmentation model',
                 fallback_models=['builtin_depth']
@@ -546,6 +565,241 @@ class ModelRegistry:
             )
         }
         
+        # Pose estimation models
+        pose_models = {
+            'openpose_full': ModelInfo(
+                id='openpose_full',
+                name='OpenPose Full (Body+Hand+Face)',
+                file_path=PREPROCESSORS_PATH / 'body_pose_model.pth',
+                processor_type=ProcessorType.POSE_ESTIMATION,
+                backend=ProcessingBackend.PYTORCH,
+                description='Full OpenPose with body, hand and face detection',
+                fallback_models=['builtin_depth']
+            ),
+            'openpose_face': ModelInfo(
+                id='openpose_face',
+                name='OpenPose Face Only',
+                file_path=PREPROCESSORS_PATH / 'facenet.pth',
+                processor_type=ProcessorType.POSE_ESTIMATION,
+                backend=ProcessingBackend.PYTORCH,
+                description='OpenPose face detection only',
+                fallback_models=['builtin_depth']
+            ),
+            'openpose_faceonly': ModelInfo(
+                id='openpose_faceonly',
+                name='OpenPose Face Only (Optimized)',
+                file_path=PREPROCESSORS_PATH / 'facenet.pth',
+                processor_type=ProcessorType.POSE_ESTIMATION,
+                backend=ProcessingBackend.PYTORCH,
+                description='Optimized face-only OpenPose detection',
+                fallback_models=['openpose_face', 'builtin_depth']
+            ),
+            'openpose_hand': ModelInfo(
+                id='openpose_hand',
+                name='OpenPose Hand Only',
+                file_path=PREPROCESSORS_PATH / 'hand_pose_model.pth',
+                processor_type=ProcessorType.POSE_ESTIMATION,
+                backend=ProcessingBackend.PYTORCH,
+                description='OpenPose hand detection only',
+                fallback_models=['builtin_depth']
+            ),
+            'dwpose': ModelInfo(
+                id='dwpose',
+                name='DWPose Wholebody',
+                file_path=PREPROCESSORS_PATH / 'yolox_l.onnx',
+                processor_type=ProcessorType.POSE_ESTIMATION,
+                backend=ProcessingBackend.ONNX,
+                description='DWPose wholebody pose estimation',
+                fallback_models=['openpose_full', 'builtin_depth']
+            ),
+            'animal_openpose': ModelInfo(
+                id='animal_openpose',
+                name='Animal OpenPose',
+                file_path=PREPROCESSORS_PATH / 'rtmpose-m_simcc-ap10k_pt-aic-coco_210e-256x256-7a041aa1_20230206.onnx',
+                processor_type=ProcessorType.POSE_ESTIMATION,
+                backend=ProcessingBackend.ONNX,
+                description='Animal pose estimation using RTMPose',
+                fallback_models=['builtin_depth']
+            )
+        }
+        
+        # Specialized processors
+        specialized_models = {
+            'shuffle': ModelInfo(
+                id='shuffle',
+                name='Content Shuffle',
+                processor_type=ProcessorType.SHUFFLE,
+                backend=ProcessingBackend.OPENCV,
+                description='Content shuffle preprocessing',
+                fallback_models=[]
+            ),
+            'color': ModelInfo(
+                id='color',
+                name='Color Extraction',
+                processor_type=ProcessorType.COLOR,
+                backend=ProcessingBackend.OPENCV,
+                description='Extract average/dominant colors',
+                fallback_models=[]
+            ),
+            'threshold': ModelInfo(
+                id='threshold',
+                name='Binary Threshold',
+                processor_type=ProcessorType.THRESHOLD,
+                backend=ProcessingBackend.OPENCV,
+                description='Binary threshold processing',
+                fallback_models=[]
+            ),
+            'tile': ModelInfo(
+                id='tile',
+                name='Tile Processing',
+                processor_type=ProcessorType.TILE,
+                backend=ProcessingBackend.BUILTIN,
+                description='Tile-based preprocessing',
+                fallback_models=[]
+            ),
+            'inpaint_global_harmonious': ModelInfo(
+                id='inpaint_global_harmonious',
+                name='Inpaint Global Harmonious',
+                file_path=PREPROCESSORS_PATH / 'big-lama.pt',
+                processor_type=ProcessorType.INPAINT,
+                backend=ProcessingBackend.PYTORCH,
+                description='Global harmonious inpainting',
+                fallback_models=['threshold']
+            ),
+            'inpaint_only': ModelInfo(
+                id='inpaint_only',
+                name='Inpaint Only',
+                processor_type=ProcessorType.INPAINT,
+                backend=ProcessingBackend.OPENCV,
+                description='Simple inpainting masks',
+                fallback_models=[]
+            ),
+            'inpaint_only+lama': ModelInfo(
+                id='inpaint_only+lama',
+                name='Inpaint Only + LaMa',
+                file_path=PREPROCESSORS_PATH / 'big-lama.pt',
+                processor_type=ProcessorType.INPAINT,
+                backend=ProcessingBackend.PYTORCH,
+                description='Inpainting with LaMa model',
+                fallback_models=['inpaint_only']
+            ),
+            'clip_vision': ModelInfo(
+                id='clip_vision',
+                name='CLIP Vision',
+                file_path=PREPROCESSORS_PATH / 'clip_vision_model.safetensors',
+                processor_type=ProcessorType.CLIP_VISION,
+                backend=ProcessingBackend.SAFETENSORS,
+                description='CLIP vision feature extraction',
+                fallback_models=['color']
+            ),
+            'reference_only': ModelInfo(
+                id='reference_only',
+                name='Reference Only',
+                processor_type=ProcessorType.REFERENCE,
+                backend=ProcessingBackend.BUILTIN,
+                description='Reference image processing',
+                fallback_models=[]
+            ),
+            'reference_adain': ModelInfo(
+                id='reference_adain',
+                name='Reference AdaIN',
+                processor_type=ProcessorType.REFERENCE,
+                backend=ProcessingBackend.BUILTIN,
+                description='Reference with Adaptive Instance Normalization',
+                fallback_models=['reference_only']
+            ),
+            'reference_adain+attn': ModelInfo(
+                id='reference_adain+attn',
+                name='Reference AdaIN + Attention',
+                processor_type=ProcessorType.REFERENCE,
+                backend=ProcessingBackend.BUILTIN,
+                description='Reference with AdaIN and attention mechanism',
+                fallback_models=['reference_adain', 'reference_only']
+            ),
+            'recolor_luminance': ModelInfo(
+                id='recolor_luminance',
+                name='Recolor Luminance',
+                processor_type=ProcessorType.RECOLOR,
+                backend=ProcessingBackend.OPENCV,
+                description='Luminance-based recoloring',
+                fallback_models=['color']
+            ),
+            'recolor_intensity': ModelInfo(
+                id='recolor_intensity',
+                name='Recolor Intensity',
+                processor_type=ProcessorType.RECOLOR,
+                backend=ProcessingBackend.OPENCV,
+                description='Intensity-based recoloring',
+                fallback_models=['recolor_luminance', 'color']
+            ),
+            'revision_clipvision': ModelInfo(
+                id='revision_clipvision',
+                name='Revision CLIP Vision',
+                file_path=PREPROCESSORS_PATH / 'clip_vision_model.safetensors',
+                processor_type=ProcessorType.REVISION,
+                backend=ProcessingBackend.SAFETENSORS,
+                description='Revision using CLIP vision',
+                fallback_models=['clip_vision', 'color']
+            ),
+            'revision_ignore_prompt': ModelInfo(
+                id='revision_ignore_prompt',
+                name='Revision Ignore Prompt',
+                processor_type=ProcessorType.REVISION,
+                backend=ProcessingBackend.BUILTIN,
+                description='Revision ignoring text prompts',
+                fallback_models=['revision_clipvision']
+            )
+        }
+        
+        # Additional specialized edge and normal models
+        additional_models = {
+            'normal_dsine': ModelInfo(
+                id='normal_dsine',
+                name='Normal Dsine',
+                file_path=PREPROCESSORS_PATH / 'dsine.pt',
+                processor_type=ProcessorType.NORMAL_MAP,
+                backend=ProcessingBackend.PYTORCH,
+                description='Dsine normal map estimation',
+                fallback_models=['normal_bae', 'builtin_depth']
+            ),
+            'teed': ModelInfo(
+                id='teed',
+                name='TEED Edge Detection',
+                file_path=PREPROCESSORS_PATH / '7_model.pth',
+                processor_type=ProcessorType.EDGE_DETECTION,
+                backend=ProcessingBackend.PYTORCH,
+                description='Tiny and Efficient Edge Detector',
+                fallback_models=['table5_pidinet', 'opencv_canny', 'builtin_canny']
+            ),
+            'manga_line': ModelInfo(
+                id='manga_line',
+                name='Manga Line',
+                file_path=PREPROCESSORS_PATH / 'erika.pth',
+                processor_type=ProcessorType.LINEART,
+                backend=ProcessingBackend.PYTORCH,
+                description='Manga-style line extraction',
+                fallback_models=['lineart_anime', 'lineart_standard', 'builtin_lineart']
+            ),
+            'mobile_sam': ModelInfo(
+                id='mobile_sam',
+                name='Mobile SAM',
+                file_path=PREPROCESSORS_PATH / 'mobile_sam.pt',
+                processor_type=ProcessorType.SEGMENTATION,
+                backend=ProcessingBackend.PYTORCH,
+                description='Mobile Segment Anything Model',
+                fallback_models=['seg_ofcoco', 'builtin_depth']
+            ),
+            'sam': ModelInfo(
+                id='sam',
+                name='Segment Anything Model',
+                file_path=PREPROCESSORS_PATH / 'sam_vit_h_4b8939.pth',
+                processor_type=ProcessorType.SEGMENTATION,
+                backend=ProcessingBackend.PYTORCH,
+                description='Original Segment Anything Model',
+                fallback_models=['mobile_sam', 'seg_ofcoco', 'builtin_depth']
+            )
+        }
+        
         # Combine all models
         self.models.update(edge_models)
         self.models.update(depth_models)
@@ -555,6 +809,9 @@ class ModelRegistry:
         self.models.update(mlsd_models)
         self.models.update(normal_models)
         self.models.update(segmentation_models)
+        self.models.update(pose_models)
+        self.models.update(specialized_models)
+        self.models.update(additional_models)
         
         # Check model file availability
         self._check_model_availability()
@@ -1144,6 +1401,10 @@ class UnifiedProcessor:
             return self._process_opencv(image, model_info, params)
         elif backend == ProcessingBackend.BUILTIN:
             return self._process_builtin(image, model_info, params)
+        elif backend == ProcessingBackend.ONNX:
+            return self._process_onnx(image, model_info, params)
+        elif backend == ProcessingBackend.SAFETENSORS:
+            return self._process_safetensors(image, model_info, params)
         else:
             raise ValueError(f"Unsupported backend: {backend}")
     
@@ -1186,8 +1447,14 @@ class UnifiedProcessor:
             return self._pytorch_mlsd_processing(image, model, params)
         elif model_info.processor_type == ProcessorType.NORMAL_MAP:
             return self._pytorch_normal_processing(image, model, params)
-        elif model_info.processor_type in [ProcessorType.SEGMENTATION, ProcessorType.ANIME_FACE_SEGMENT]:
+        elif model_info.processor_type == ProcessorType.SEGMENTATION:
             return self._pytorch_segmentation_processing(image, model, params, model_info)
+        elif model_info.processor_type == ProcessorType.POSE_ESTIMATION:
+            return self._pytorch_pose_processing(image, model, params, model_info)
+        elif model_info.processor_type == ProcessorType.INPAINT:
+            return self._pytorch_inpaint_processing(image, model, params)
+        elif model_info.processor_type == ProcessorType.CLIP_VISION:
+            return self._pytorch_clip_processing(image, model, params)
         else:
             raise ValueError(f"Unsupported processor type: {model_info.processor_type}")
     
@@ -1532,7 +1799,7 @@ class UnifiedProcessor:
         segmentation_numpy = prediction.cpu().numpy().astype(np.uint8)
         
         # Create color map for different model types
-        if model_info.processor_type == ProcessorType.ANIME_FACE_SEGMENT:
+        if 'anime_face' in model_info.id:
             # Anime face segmentation colors
             colors = np.array([
                 [0, 0, 0],       # background
@@ -1555,6 +1822,198 @@ class UnifiedProcessor:
         
         return Image.fromarray(colored_segmentation.astype(np.uint8))
     
+    def _pytorch_pose_processing(self, image: Image.Image, model: Any, params: Dict, model_info: ModelInfo) -> Image.Image:
+        """PyTorch pose estimation processing"""
+        try:
+            device = next(model.parameters()).device
+            
+            # Pose processing transform
+            transform = Compose([
+                Resize((512, 512)),
+                ToTensor(),
+                Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+            
+            original_width, original_height = image.size
+            transformed_image = transform(image).unsqueeze(0).to(device)
+            
+            with torch.no_grad():
+                # For OpenPose models, expected output format varies
+                outputs = model(transformed_image)
+                
+                # Create pose skeleton canvas
+                canvas = np.zeros((original_height, original_width, 3), dtype=np.uint8)
+                
+                # Placeholder pose skeleton (would need actual OpenPose processing)
+                center_x, center_y = original_width // 2, original_height // 2
+                
+                # Draw simple stick figure
+                cv2.circle(canvas, (center_x, center_y - 60), 15, (255, 255, 255), 2)  # Head
+                cv2.line(canvas, (center_x, center_y - 45), (center_x, center_y + 60), (255, 255, 255), 2)  # Body
+                cv2.line(canvas, (center_x, center_y - 30), (center_x - 40, center_y + 10), (255, 255, 255), 2)  # Left arm
+                cv2.line(canvas, (center_x, center_y - 30), (center_x + 40, center_y + 10), (255, 255, 255), 2)  # Right arm
+                cv2.line(canvas, (center_x, center_y + 60), (center_x - 25, center_y + 120), (255, 255, 255), 2)  # Left leg
+                cv2.line(canvas, (center_x, center_y + 60), (center_x + 25, center_y + 120), (255, 255, 255), 2)  # Right leg
+                
+                return Image.fromarray(canvas)
+                
+        except Exception as e:
+            logger.warning(f"PyTorch pose processing failed: {e}, using fallback")
+            # Fallback to simple skeleton
+            canvas = np.zeros((image.height, image.width, 3), dtype=np.uint8)
+            return Image.fromarray(canvas)
+    
+    def _pytorch_inpaint_processing(self, image: Image.Image, model: Any, params: Dict) -> Image.Image:
+        """PyTorch inpainting processing (LaMa model)"""
+        try:
+            device = next(model.parameters()).device
+            
+            # Inpainting transform
+            transform = Compose([
+                Resize((512, 512)),
+                ToTensor(),
+            ])
+            
+            original_width, original_height = image.size
+            transformed_image = transform(image).unsqueeze(0).to(device)
+            
+            with torch.no_grad():
+                # For LaMa model, generate inpainting mask
+                output = model(transformed_image)
+                
+                if len(output.shape) == 4:
+                    output = output.squeeze(0)
+                
+                # Process output as inpainting result
+                output_numpy = output.cpu().numpy()
+                
+                if output_numpy.shape[0] == 3:  # RGB output
+                    output_numpy = np.transpose(output_numpy, (1, 2, 0))
+                elif output_numpy.shape[0] == 1:  # Grayscale output
+                    output_numpy = np.transpose(output_numpy, (1, 2, 0))
+                    output_numpy = np.repeat(output_numpy, 3, axis=2)
+                
+                # Resize to original dimensions
+                if output_numpy.shape[:2] != (original_height, original_width):
+                    output_numpy = cv2.resize(output_numpy, (original_width, original_height))
+                
+                # Normalize to 0-255 range
+                output_numpy = np.clip(output_numpy * 255, 0, 255).astype(np.uint8)
+                
+                return Image.fromarray(output_numpy)
+                
+        except Exception as e:
+            logger.warning(f"PyTorch inpaint processing failed: {e}, using fallback")
+            # Fallback to edge-based mask
+            return self._opencv_inpaint_processing(np.array(image), params)
+    
+    def _pytorch_clip_processing(self, image: Image.Image, model: Any, params: Dict) -> Image.Image:
+        """PyTorch CLIP vision processing"""
+        try:
+            device = next(model.parameters()).device
+            
+            # CLIP vision transform
+            transform = Compose([
+                Resize((224, 224)),
+                ToTensor(),
+                Normalize(mean=[0.48145466, 0.4578275, 0.40821073], 
+                         std=[0.26862954, 0.26130258, 0.27577711]),
+            ])
+            
+            transformed_image = transform(image).unsqueeze(0).to(device)
+            
+            with torch.no_grad():
+                # Get CLIP vision features
+                features = model(transformed_image)
+                
+                # For now, return the original image with slight enhancement
+                # In practice, CLIP features would be used for conditioning
+                image_np = np.array(image)
+                enhanced = cv2.convertScaleAbs(image_np, alpha=1.05, beta=5)
+                
+                return Image.fromarray(enhanced)
+                
+        except Exception as e:
+            logger.warning(f"PyTorch CLIP processing failed: {e}, using fallback")
+            # Return original image as fallback
+            return image
+    
+    def _process_onnx(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
+        """Process with ONNX Runtime (placeholder - requires onnxruntime)"""
+        try:
+            import onnxruntime as ort
+        except ImportError:
+            logger.warning("ONNX Runtime not available, falling back to OpenCV processing")
+            return self._process_opencv(image, model_info, params)
+        
+        # For now, implement basic ONNX processing for pose estimation
+        if model_info.processor_type == ProcessorType.POSE_ESTIMATION:
+            return self._onnx_pose_processing(image, model_info, params)
+        else:
+            # Fallback to OpenCV for other types
+            return self._process_opencv(image, model_info, params)
+    
+    def _onnx_pose_processing(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
+        """ONNX pose processing (DWPose, Animal OpenPose)"""
+        # Placeholder implementation - would need actual ONNX model loading
+        logger.info(f"ONNX pose processing with {model_info.id}")
+        
+        # For now, return a simple pose skeleton visualization
+        image_np = np.array(image)
+        
+        # Create a simple pose skeleton as placeholder
+        height, width = image_np.shape[:2]
+        canvas = np.zeros((height, width, 3), dtype=np.uint8)
+        
+        # Draw simple stick figure as placeholder
+        center_x, center_y = width // 2, height // 2
+        cv2.circle(canvas, (center_x, center_y - 60), 20, (255, 255, 255), 2)  # Head
+        cv2.line(canvas, (center_x, center_y - 40), (center_x, center_y + 40), (255, 255, 255), 2)  # Body
+        cv2.line(canvas, (center_x, center_y - 20), (center_x - 30, center_y), (255, 255, 255), 2)  # Left arm
+        cv2.line(canvas, (center_x, center_y - 20), (center_x + 30, center_y), (255, 255, 255), 2)  # Right arm
+        cv2.line(canvas, (center_x, center_y + 40), (center_x - 20, center_y + 80), (255, 255, 255), 2)  # Left leg
+        cv2.line(canvas, (center_x, center_y + 40), (center_x + 20, center_y + 80), (255, 255, 255), 2)  # Right leg
+        
+        return Image.fromarray(canvas)
+    
+    def _process_safetensors(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
+        """Process with SafeTensors format (placeholder - requires safetensors)"""
+        try:
+            import safetensors
+        except ImportError:
+            logger.warning("SafeTensors not available, falling back to PyTorch processing")
+            return self._process_pytorch(image, model_info, params)
+        
+        # For now, implement basic SafeTensors processing for CLIP Vision
+        if model_info.processor_type == ProcessorType.CLIP_VISION:
+            return self._safetensors_clip_processing(image, model_info, params)
+        elif model_info.processor_type == ProcessorType.REVISION:
+            return self._safetensors_revision_processing(image, model_info, params)
+        else:
+            # Fallback to PyTorch for other types
+            return self._process_pytorch(image, model_info, params)
+    
+    def _safetensors_clip_processing(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
+        """SafeTensors CLIP vision processing"""
+        # Placeholder implementation for CLIP vision
+        logger.info(f"SafeTensors CLIP processing with {model_info.id}")
+        
+        # Return the original image with slight modifications as placeholder
+        image_np = np.array(image)
+        
+        # Apply a slight color adjustment to indicate processing
+        image_np = cv2.convertScaleAbs(image_np, alpha=1.1, beta=10)
+        
+        return Image.fromarray(image_np)
+    
+    def _safetensors_revision_processing(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
+        """SafeTensors revision processing"""
+        # Placeholder implementation for revision
+        logger.info(f"SafeTensors revision processing with {model_info.id}")
+        
+        # Return the original image for now
+        return image
+    
     def _process_opencv(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
         """Process with OpenCV"""
         image_np = np.array(image)
@@ -1573,6 +2032,16 @@ class UnifiedProcessor:
             return self._opencv_mlsd_processing(image_np, params)
         elif model_info.processor_type == ProcessorType.NORMAL_MAP:
             return self._opencv_normal_processing(image_np, params)
+        elif model_info.processor_type == ProcessorType.COLOR:
+            return self._opencv_color_processing(image_np, params)
+        elif model_info.processor_type == ProcessorType.SHUFFLE:
+            return self._opencv_shuffle_processing(image_np, params)
+        elif model_info.processor_type == ProcessorType.THRESHOLD:
+            return self._opencv_threshold_processing(image_np, params)
+        elif model_info.processor_type == ProcessorType.INPAINT:
+            return self._opencv_inpaint_processing(image_np, params)
+        elif model_info.processor_type == ProcessorType.RECOLOR:
+            return self._opencv_recolor_processing(image_np, params)
         else:
             raise ValueError(f"OpenCV backend doesn't support {model_info.processor_type}")
     
@@ -1698,6 +2167,132 @@ class UnifiedProcessor:
         
         return Image.fromarray(normal_map)
     
+    def _opencv_color_processing(self, image_np: np.ndarray, params: Dict) -> Image.Image:
+        """OpenCV-based color extraction"""
+        # Extract dominant color and create solid color image
+        pixels = image_np.reshape((-1, 3))
+        
+        # Use K-means to find dominant color
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+        k = params.get('colors', 1)
+        _, labels, centers = cv2.kmeans(pixels.astype(np.float32), k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+        
+        # Create color palette image
+        if k == 1:
+            color = centers[0].astype(np.uint8)
+            result_np = np.full_like(image_np, color)
+        else:
+            # Create color bands
+            height, width = image_np.shape[:2]
+            result_np = np.zeros_like(image_np)
+            band_height = height // k
+            for i, color in enumerate(centers):
+                start_y = i * band_height
+                end_y = start_y + band_height if i < k - 1 else height
+                result_np[start_y:end_y] = color.astype(np.uint8)
+        
+        return Image.fromarray(result_np)
+    
+    def _opencv_shuffle_processing(self, image_np: np.ndarray, params: Dict) -> Image.Image:
+        """OpenCV-based content shuffle"""
+        height, width = image_np.shape[:2]
+        
+        # Create grid of blocks to shuffle
+        block_size = params.get('block_size', 64)
+        blocks_y = height // block_size
+        blocks_x = width // block_size
+        
+        result_np = image_np.copy()
+        
+        # Shuffle blocks
+        block_indices = [(i, j) for i in range(blocks_y) for j in range(blocks_x)]
+        np.random.shuffle(block_indices)
+        
+        for idx, (orig_i, orig_j) in enumerate(block_indices):
+            new_i = idx // blocks_x
+            new_j = idx % blocks_x
+            
+            orig_y = orig_i * block_size
+            orig_x = orig_j * block_size
+            new_y = new_i * block_size
+            new_x = new_j * block_size
+            
+            result_np[new_y:new_y+block_size, new_x:new_x+block_size] = \
+                image_np[orig_y:orig_y+block_size, orig_x:orig_x+block_size]
+        
+        return Image.fromarray(result_np)
+    
+    def _opencv_threshold_processing(self, image_np: np.ndarray, params: Dict) -> Image.Image:
+        """OpenCV-based binary threshold"""
+        gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+        
+        threshold_value = params.get('threshold', 127)
+        threshold_type = params.get('type', 'binary')
+        
+        if threshold_type == 'binary':
+            _, result = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+        elif threshold_type == 'binary_inv':
+            _, result = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY_INV)
+        elif threshold_type == 'otsu':
+            _, result = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        else:
+            _, result = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+        
+        result_np = cv2.cvtColor(result, cv2.COLOR_GRAY2RGB)
+        return Image.fromarray(result_np)
+    
+    def _opencv_inpaint_processing(self, image_np: np.ndarray, params: Dict) -> Image.Image:
+        """OpenCV-based inpainting mask generation"""
+        gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+        
+        # Create mask from edges or thresholding
+        method = params.get('method', 'edges')
+        
+        if method == 'edges':
+            mask = cv2.Canny(gray, 50, 150)
+        elif method == 'threshold':
+            threshold_value = params.get('threshold', 127)
+            _, mask = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+        else:
+            # Default to edge-based mask
+            mask = cv2.Canny(gray, 50, 150)
+        
+        # Dilate mask to make it more visible
+        kernel = np.ones((3, 3), np.uint8)
+        mask = cv2.dilate(mask, kernel, iterations=1)
+        
+        result_np = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
+        return Image.fromarray(result_np)
+    
+    def _opencv_recolor_processing(self, image_np: np.ndarray, params: Dict) -> Image.Image:
+        """OpenCV-based recoloring"""
+        method = params.get('method', 'luminance')
+        
+        if method == 'luminance':
+            # Convert to luminance and apply color
+            gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+            target_color = params.get('color', [255, 255, 255])
+            
+            # Create recolored image by multiplying grayscale with target color
+            result_np = np.zeros_like(image_np)
+            for i in range(3):
+                result_np[:, :, i] = (gray * target_color[i] // 255).astype(np.uint8)
+                
+        elif method == 'intensity':
+            # Intensity-based recoloring
+            intensity = np.mean(image_np, axis=2).astype(np.uint8)
+            target_color = params.get('color', [255, 255, 255])
+            
+            result_np = np.zeros_like(image_np)
+            for i in range(3):
+                result_np[:, :, i] = (intensity * target_color[i] // 255).astype(np.uint8)
+        else:
+            # Default to luminance
+            gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+            result_np = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+        
+        return Image.fromarray(result_np)
+    
     def _process_builtin(self, image: Image.Image, model_info: ModelInfo, params: Dict) -> Image.Image:
         """Process with built-in algorithms"""
         # Placeholder for built-in processing
@@ -1740,7 +2335,7 @@ class UnifiedProcessor:
             normal_map[:, :, 1] = ((grad_y / length + 1) * 127.5).astype(np.uint8)
             normal_map[:, :, 2] = ((normal_z / length + 1) * 127.5).astype(np.uint8)
             result_np = normal_map
-        elif model_info.processor_type in [ProcessorType.SEGMENTATION, ProcessorType.ANIME_FACE_SEGMENT]:
+        elif model_info.processor_type == ProcessorType.SEGMENTATION:
             # Simple segmentation using color quantization
             # Convert to LAB color space for better color clustering
             lab = cv2.cvtColor(image_np, cv2.COLOR_RGB2LAB)
@@ -1748,7 +2343,7 @@ class UnifiedProcessor:
             
             # Use K-means clustering for segmentation
             criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 8, 1.0)
-            k = 8 if model_info.processor_type == ProcessorType.ANIME_FACE_SEGMENT else 16
+            k = 8 if 'anime_face' in model_info.id else 16
             _, labels, centers = cv2.kmeans(data, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
             
             # Convert back to RGB
@@ -1756,8 +2351,36 @@ class UnifiedProcessor:
             segmented_data = centers[labels.flatten()]
             segmented = segmented_data.reshape(image_np.shape)
             result_np = cv2.cvtColor(segmented, cv2.COLOR_LAB2RGB)
+        elif model_info.processor_type == ProcessorType.COLOR:
+            # Extract dominant color
+            mean_color = np.mean(image_np, axis=(0, 1)).astype(np.uint8)
+            result_np = np.full_like(image_np, mean_color)
+        elif model_info.processor_type == ProcessorType.SHUFFLE:
+            # Simple pixel shuffle
+            result_np = image_np.copy()
+            height, width = result_np.shape[:2]
+            indices = np.arange(height * width)
+            np.random.shuffle(indices)
+            flat = result_np.reshape(-1, 3)
+            flat = flat[indices]
+            result_np = flat.reshape(height, width, 3)
+        elif model_info.processor_type == ProcessorType.THRESHOLD:
+            # Simple binary threshold
+            gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+            _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+            result_np = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
+        elif model_info.processor_type == ProcessorType.TILE:
+            # Return original image (tile processing is usually done in frontend)
+            result_np = image_np
+        elif model_info.processor_type in [ProcessorType.REFERENCE, ProcessorType.REVISION]:
+            # Return original image for reference types
+            result_np = image_np
+        elif model_info.processor_type == ProcessorType.RECOLOR:
+            # Simple grayscale recoloring
+            gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+            result_np = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
         else:
-            # Simple grayscale for other types
+            # Simple grayscale for unknown types
             gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
             result_np = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
         
@@ -2085,6 +2708,130 @@ async def batch_process(requests: List[UnifiedProcessRequest]):
         "failed": sum(1 for r in results if not r.success),
         "results": results
     }
+
+@app.get("/api/processors/categories")
+async def get_processor_categories():
+    """Get processor categories for 5-tab organization"""
+    categories = {
+        "edge_detection": {
+            "name": "Edge & Line Detection",
+            "description": "Edge detection, line art, and contour extraction",
+            "types": [
+                ProcessorType.EDGE_DETECTION,
+                ProcessorType.SOFT_EDGE,
+                ProcessorType.LINEART
+            ],
+            "icon": "edges"
+        },
+        "depth_normal": {
+            "name": "Depth & Normal Maps",
+            "description": "Depth estimation and normal map generation",
+            "types": [
+                ProcessorType.DEPTH_ESTIMATION,
+                ProcessorType.NORMAL_MAP
+            ],
+            "icon": "depth"
+        },
+        "pose_human": {
+            "name": "Pose & Human Detection",
+            "description": "Human pose estimation and body detection",
+            "types": [
+                ProcessorType.POSE_ESTIMATION
+            ],
+            "icon": "pose"
+        },
+        "segmentation": {
+            "name": "Segmentation & Masking",
+            "description": "Image segmentation and mask generation",
+            "types": [
+                ProcessorType.SEGMENTATION
+            ],
+            "icon": "segment"
+        },
+        "specialized": {
+            "name": "Specialized Processing",
+            "description": "Special purpose processors and effects",
+            "types": [
+                ProcessorType.MLSD,
+                ProcessorType.SCRIBBLE,
+                ProcessorType.COLOR,
+                ProcessorType.SHUFFLE,
+                ProcessorType.THRESHOLD,
+                ProcessorType.INPAINT,
+                ProcessorType.CLIP_VISION,
+                ProcessorType.REFERENCE,
+                ProcessorType.TILE,
+                ProcessorType.RECOLOR,
+                ProcessorType.REVISION
+            ],
+            "icon": "tools"
+        }
+    }
+    
+    # Add model counts for each category
+    for category_info in categories.values():
+        category_info["model_count"] = 0
+        category_info["available_models"] = 0
+        
+        for proc_type in category_info["types"]:
+            models = model_registry.get_available_models(proc_type)
+            all_models = [m for m in model_registry.models.values() if m.processor_type == proc_type]
+            category_info["model_count"] += len(all_models)
+            category_info["available_models"] += len(models)
+    
+    return categories
+
+@app.get("/api/processors/{processor_type}/models")
+async def get_models_for_processor(processor_type: ProcessorType):
+    """Get all models for a specific processor type with detailed info"""
+    models = model_registry.get_available_models(processor_type)
+    return [
+        {
+            "id": m.id,
+            "name": m.name,
+            "backend": m.backend.value,
+            "processor_type": m.processor_type.value,
+            "description": m.description,
+            "status": m.status.value,
+            "load_count": m.load_count,
+            "last_used": m.last_used.isoformat() if m.last_used else None,
+            "file_size": m.size,
+            "fallback_models": m.fallback_models,
+            "gpu_required": m.backend in [ProcessingBackend.PYTORCH, ProcessingBackend.ONNX],
+            "memory_usage": "high" if m.backend == ProcessingBackend.PYTORCH else "low",
+            "processing_speed": "fast" if m.backend == ProcessingBackend.BUILTIN else "medium"
+        }
+        for m in models
+    ]
+
+@app.get("/api/processors/stats")
+async def get_processor_stats():
+    """Get comprehensive processor statistics"""
+    stats = model_registry.get_registry_stats()
+    
+    # Add processor type breakdown
+    type_stats = {}
+    for proc_type in ProcessorType:
+        models = [m for m in model_registry.models.values() if m.processor_type == proc_type]
+        available = [m for m in models if m.status == ModelStatus.AVAILABLE]
+        
+        type_stats[proc_type.value] = {
+            "total_models": len(models),
+            "available_models": len(available),
+            "loaded_models": sum(1 for m in models if m.id in model_registry.model_cache),
+            "backend_breakdown": {}
+        }
+        
+        # Backend breakdown for this type
+        for backend in ProcessingBackend:
+            backend_models = [m for m in models if m.backend == backend]
+            if backend_models:
+                type_stats[proc_type.value]["backend_breakdown"][backend.value] = len(backend_models)
+    
+    stats["processor_types"] = type_stats
+    stats["total_processor_types"] = len(ProcessorType)
+    
+    return stats
 
 # Legacy API Endpoints (v1 - from backend_model_explorer.py)
 @app.get("/api/models/checkpoints", response_model=List[ModelFile])
