@@ -7,6 +7,7 @@ import { setSelectedImage } from '../canvas/canvas.js';
 import { registerShortcut } from '../keyboardManager/keyboardManager.js';
 import { init as initSliderPanel, showSliderPanel, hideSliderPanel } from './sliderPanel.js';
 import { getNodeRect } from '../../core/coordinates.js';
+import { openControlNetPanel } from '../controlnet/controlNetManager.js';
 
 let stage;
 let layer;
@@ -366,15 +367,16 @@ function openControlNetPreprocessing() {
     
     console.log('Opening ControlNet preprocessing for image:', image);
     
-    // ControlNet 전처리 패널을 동적으로 생성
-    import('../controlnet/controlNetManager.js').then(module => {
-        const { openControlNetPanel } = module;
+    try {
         openControlNetPanel(image);
-    }).catch(error => {
-        console.error('Failed to load ControlNet module:', error);
-        // 모듈이 아직 없으면 임시 알림 표시
+    } catch (error) {
+        console.error('Failed to open ControlNet panel:');
+        console.error('Full error object:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
         alert('ControlNet 전처리 기능을 준비 중입니다...');
-    });
+    }
 }
 
 export { showContextMenu, hideContextMenu };

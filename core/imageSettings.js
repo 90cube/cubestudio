@@ -13,7 +13,6 @@ class ImageSettings {
                 t2i: './output/t2i',              // 텍스트 투 이미지
                 i2i: './output/i2i',              // 이미지 투 이미지  
                 detail: './output/detail',         // 디테일러 후처리
-                upscaled: './output/upscaled',     // 업스케일
                 preprocessor: './output/preprocessor', // 전처리
                 controlnet: './output/controlnet', // ControlNet
                 custom: './output/custom'          // 커스텀
@@ -24,7 +23,6 @@ class ImageSettings {
                 t2i: '[model]_[seed]_%%YYYYMMDD_%%HHMMSS',
                 i2i: 'i2i_[seed]_%%YYYYMMDD_%%HHMMSS', 
                 detail: 'detail_%%YYYYMMDD_%%HHMMSS',
-                upscaled: 'upscaled_[scale]x_%%YYYYMMDD_%%HHMMSS',
                 preprocessor: '[type]_%%YYYYMMDD_%%HHMMSS',
                 controlnet: 'cn_[type]_%%YYYYMMDD_%%HHMMSS',
                 custom: 'custom_%%YYYYMMDD_%%HHMMSS'
@@ -43,7 +41,6 @@ class ImageSettings {
             auto_save: {
                 enabled: true,
                 save_on_generate: true,
-                save_on_upscale: true,
                 save_on_detail: true,
                 create_backup: false
             },

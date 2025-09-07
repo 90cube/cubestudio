@@ -16,3 +16,9 @@ renewal/
 
 # Ignore output directory
 output/
+
+# Ignore node modules
+node_modules/
+
+# Ignore logs
+*.log

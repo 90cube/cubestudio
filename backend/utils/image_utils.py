@@ -35,7 +35,6 @@ class ImageSaveManager:
             't2i': self.base_output_path / 't2i',
             'i2i': self.base_output_path / 'i2i',
             'detail': self.base_output_path / 'detail',
-            'upscaled': self.base_output_path / 'upscaled',
             'preprocessor': self.base_output_path / 'preprocessor',
             'controlnet': self.base_output_path / 'controlnet',
             'custom': self.base_output_path / 'custom'
