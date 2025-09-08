@@ -3,15 +3,16 @@
 import pathConfig from '../../../core/pathConfig.js';
 
 /**
- * Depth Map ?처리기
- * ??지?서 깊이 ?보?추출?니??
+ * Depth Map 전처리기
+ * 이미지에서 깊이 정보를 추출합니다.
  */
 
 /**
- * Depth Map ?성 ?행
- * @param {HTMLImageElement} imageElement - ?본 ??지 ?리먼트
- * @param {Object} params - Depth ?라미터
- * @returns {HTMLCanvasElement} 처리??캔버?? */
+ * Depth Map 생성 수행
+ * @param {HTMLImageElement} imageElement - 원본 이미지 엘리먼트
+ * @param {Object} params - Depth 파라미터
+ * @returns {HTMLCanvasElement} 처리된 캔버스
+ */
 export function processDepthMap(imageElement, params = {}) {
     const {
         contrast = 1.2,
@@ -20,7 +21,7 @@ export function processDepthMap(imageElement, params = {}) {
         depthStrength = 1.0
     } = params;
     
-    // 캔버???성
+    // 캔버스 생성
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
@@ -42,7 +43,7 @@ export function processDepthMap(imageElement, params = {}) {
         depthStrength
     });
     
-    // 처리???이?? ?시 캔버?에 ?용
+    // 처리된 데이터를 다시 캔버스에 적용
     const newImageData = ctx.createImageData(canvas.width, canvas.height);
     newImageData.data.set(processedData);
     ctx.putImageData(newImageData, 0, 0);
@@ -51,14 +52,14 @@ export function processDepthMap(imageElement, params = {}) {
 }
 
 /**
- * Depth Map ?고리즘 (?순?된 버전)
- * 밝기 기반??깊이 추정 + 그라?언??분석
+ * Depth Map 알고리즘 (단순화된 버전)
+ * 밝기 기반의 깊이 추정 + 그라디언트 분석
  */
 function applyDepthMap(data, width, height, params) {
     const { contrast, brightness, smoothing, depthStrength } = params;
     const result = new Uint8ClampedArray(data.length);
     
-    // 1?계: 그레?스케??변???밝기 기반 깊이 추정
+    // 1단계: 그레이스케일 변환 및 밝기 기반 깊이 추정
     const grayData = new Array(width * height);
     for (let i = 0; i < data.length; i += 4) {
         const idx = i / 4;
@@ -66,7 +67,7 @@ function applyDepthMap(data, width, height, params) {
         grayData[idx] = gray;
     }
     
-    // 2?계: 그라?언??기반 깊이 추정
+    // 2단계: 그라디언트 기반 깊이 추정
     const depthData = new Array(width * height);
     
     for (let y = 1; y < height - 1; y++) {
@@ -74,11 +75,11 @@ function applyDepthMap(data, width, height, params) {
             const idx = y * width + x;
             const center = grayData[idx];
             
-            // 주? ??과의 차이??한 깊이 추정
+            // 주변 픽셀과의 차이를 통한 깊이 추정
             let gradientSum = 0;
             let count = 0;
             
-            // 8방향 그라?언??계산
+            // 8방향 그라디언트 계산
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
                     if (dx === 0 && dy === 0) continue;
@@ -92,12 +93,12 @@ function applyDepthMap(data, width, height, params) {
             
             const avgGradient = gradientSum / count;
             
-            // 밝기 + 그라?언??조합?로 깊이 계산
-            // 밝? ?역 = 가까? (?? 깊이?
-            // 그라?언?? ???역 = 경계?(중간 깊이?
+            // 밝기 + 그라디언트 조합으로 깊이 계산
+            // 밝은 영역 = 가까움 (높은 깊이값)
+            // 그라디언트가 큰 영역 = 경계면 (중간 깊이값)
             let depth = (center * 0.7 + (255 - avgGradient * 2) * 0.3) * depthStrength;
             
-            // ???밝기 조정
+            // 대비 및 밝기 조정
             depth = (depth - 128) * contrast + 128 + brightness * 255;
             depth = Math.max(0, Math.min(255, depth));
             
@@ -105,7 +106,7 @@ function applyDepthMap(data, width, height, params) {
         }
     }
     
-    // 3?계: ?무???용
+    // 3단계: 스무딩 적용
     const smoothedData = new Array(width * height);
     const smoothRadius = Math.floor(smoothing);
     
@@ -127,7 +128,7 @@ function applyDepthMap(data, width, height, params) {
         }
     }
     
-    // 4?계: 결과 ?이???성 (그레?스케??깊이 ?
+    // 4단계: 결과 데이터 생성 (그레이스케일 깊이 맵)
     for (let i = 0; i < width * height; i++) {
         const depth = smoothedData[i] || depthData[i] || 128;
         const pixelIdx = i * 4;
@@ -154,7 +155,7 @@ export function konvaImageToHTMLImage(imageNode) {
         img.onload = () => resolve(img);
         img.onerror = reject;
         
-        // Konva 이미지 인스턴스 가져오기
+        // Konva 이미지의 소스 가져오기
         const originalImage = imageNode.image();
         if (originalImage instanceof HTMLImageElement) {
             img.src = originalImage.src;
@@ -178,24 +179,26 @@ export function canvasToBlob(canvas) {
 }
 
 /**
- * ?처리된 ??지 ??? * @param {HTMLCanvasElement} canvas - ??할 캔버?? * @param {string} filename - ??할 ?일?(?택?항, ?동 ?성??
- * @param {Object} options - ????션
- * @returns {Promise<string>} ??된 ?일???체 경로
+ * 전처리된 이미지 저장
+ * @param {HTMLCanvasElement} canvas - 저장할 캔버스
+ * @param {string} filename - 저장할 파일명 (선택사항, 자동 생성됨)
+ * @param {Object} options - 저장 옵션
+ * @returns {Promise<string>} 저장된 파일의 전체 경로
  */
 export async function savePreprocessedImage(canvas, filename = null, options = {}) {
     try {
-        // ?일명이 ?공?? ?으??동 ?성
+        // 파일명이 제공되지 않으면 자동 생성
         if (!filename) {
             const prefix = options.prefix || 'depth_map';
             filename = pathConfig.generateFilename(prefix, '.png');
         }
         
-        // ?체 ?일 경로 ?성
+        // 전체 파일 경로 생성
         const fullPath = pathConfig.getFullPath('preprocessor', filename);
         
         const blob = await canvasToBlob(canvas);
         
-        // 백엔???버??한 ?일 ????도
+        // 백엔드 서버를 통한 파일 저장 시도
         try {
             const imageDataUrl = canvas.toDataURL('image/png');
             
@@ -214,18 +217,18 @@ export async function savePreprocessedImage(canvas, filename = null, options = {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log(`???버??해 Depth ?처???지 ??됨:`);
-                console.log(`   ?일? ${filename}`);
-                console.log(`   ???경로: ${result.saved_path}`);
+                console.log(`✅ 서버를 통해 Depth 전처리 이미지 저장됨:`);
+                console.log(`   파일명: ${filename}`);
+                console.log(`   저장 경로: ${result.saved_path}`);
                 return result.saved_path;
             } else {
                 throw new Error('Server save failed');
             }
             
         } catch (serverError) {
-            console.warn('?️  ?버 ????패, 브라?? ?운로드 ?용:', serverError.message);
+            console.warn('⚠️  서버 저장 실패, 브라우저 다운로드 사용:', serverError.message);
             
-            // ?백: 브라?? ?운로드
+            // 폴백: 브라우저 다운로드
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -237,32 +240,33 @@ export async function savePreprocessedImage(canvas, filename = null, options = {
             
             URL.revokeObjectURL(url);
             
-            console.log(`??브라?? ?운로드?Depth ?처???지 ??됨:`);
-            console.log(`   ?일? ${filename}`);
+            console.log(`✅ 브라우저 다운로드로 Depth 전처리 이미지 저장됨:`);
+            console.log(`   파일명: ${filename}`);
             console.log(`   목표 경로: ${pathConfig.getPreprocessorPath()}`);
-            console.log(`   ?제 ??? ?운로드 ?더`);
+            console.log(`   실제 저장: 다운로드 폴더`);
             
-            return fullPath; // 목표 경로 반환 (UI ?시??
+            return fullPath; // 목표 경로 반환 (UI 표시용)
         }
         
     } catch (error) {
-        console.error('??Depth ?처???지 ????패:', error);
+        console.error('❌ Depth 전처리 이미지 저장 실패:', error);
         throw error;
     }
 }
 
 /**
- * ?처리기 출력 경로 가?오? * @returns {string} ?재 ?정???처리기 출력 경로
+ * 전처리기 출력 경로 가져오기
+ * @returns {string} 현재 설정된 전처리기 출력 경로
  */
 export function getPreprocessorOutputPath() {
     return pathConfig.getPreprocessorPath();
 }
 
 /**
- * ?처리기 출력 경로 ?정
- * @param {string} path - ?정??경로
+ * 전처리기 출력 경로 설정
+ * @param {string} path - 설정할 경로
  */
 export function setPreprocessorOutputPath(path) {
     pathConfig.setPreprocessorPath(path);
-    console.log(`? Depth ?처리기 출력 경로 변경됨: ${path}`);
+    console.log(`📁 Depth 전처리기 출력 경로 변경됨: ${path}`);
 }

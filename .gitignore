@@ -22,3 +22,22 @@ node_modules/
 
 # Ignore logs
 *.log
+
+# Ignore font files
+assets/fonts/*.ttf
+assets/fonts/*.otf
+assets/fonts/*.woff
+assets/fonts/*.woff2
+*.ttf
+*.otf
+*.woff
+*.woff2
+
+# Ignore test files
+test*.html
+scrollbar-test.html
+test-*.html
+
+# Ignore development artifacts
+TEST_REPORT.md
+package-lock.json
