@@ -308,9 +308,14 @@ function setupDoubleClickEvent() {
             return;
         }
 
-        // 이미지를 더블클릭한 경우는 제외
+        // 이미지를 더블클릭한 경우 - 전처리된 이미지라면 컨텍스트 메뉴 표시
         if (e.target.className === 'Image') {
-            // console.log('⚠️ Double-click ignored - image clicked');
+            const imageType = e.target.getAttr('imageType');
+            if (imageType === 'preproc') {
+                // 전처리된 이미지 더블클릭 시 컨텍스트 메뉴 표시
+                const pointer = stage.getPointerPosition();
+                showPreprocessedImageContextMenu(e.target, pointer);
+            }
             return;
         }
 
@@ -604,7 +609,7 @@ function clearImageHighlight() {
     }
 }
 
-function updateHighlightPosition() {
+export function updateHighlightPosition() {
     if (selectionHighlight && selectedImage) {
         // Use the new utility here as well
         const box = getNodeRect(selectedImage);
@@ -1231,4 +1236,145 @@ function editText(textNode) {
         }
     }, 100);
 }
+
+/**
+ * 전처리된 이미지 컨텍스트 메뉴 표시 (캔버스용)
+ */
+function showPreprocessedImageContextMenu(imageNode, pointerPosition) {
+    // 기존 컨텍스트 메뉴 제거
+    removeExistingContextMenu();
+    
+    // 컨텍스트 메뉴 생성
+    const contextMenu = document.createElement('div');
+    contextMenu.className = 'canvas-preproc-context-menu';
+    contextMenu.style.cssText = `
+        position: fixed;
+        z-index: 10000;
+        background: rgba(30, 30, 30, 0.95);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 6px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        padding: 4px 0;
+        min-width: 140px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    `;
+    
+    // 메뉴 위치 설정
+    contextMenu.style.left = pointerPosition.x + 'px';
+    contextMenu.style.top = pointerPosition.y + 'px';
+    
+    // 메뉴 아이템들 생성
+    const menuItems = [
+        { icon: '📷', type: 'normal', label: 'Normal Image' },
+        { icon: '⚙️', type: 'preproc', label: 'Preprocessed Image' }
+    ];
+    
+    menuItems.forEach(item => {
+        const menuItem = document.createElement('div');
+        menuItem.className = 'context-menu-item';
+        menuItem.innerHTML = `${item.icon} ${item.label}`;
+        menuItem.style.cssText = `
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s ease;
+            ${imageNode.getAttr('imageType') === item.type ? 'background: rgba(139, 92, 246, 0.2);' : ''}
+        `;
+        
+        // 호버 효과
+        menuItem.addEventListener('mouseenter', () => {
+            if (imageNode.getAttr('imageType') !== item.type) {
+                menuItem.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+        });
+        
+        menuItem.addEventListener('mouseleave', () => {
+            if (imageNode.getAttr('imageType') !== item.type) {
+                menuItem.style.background = 'none';
+            }
+        });
+        
+        // 클릭 이벤트
+        menuItem.addEventListener('click', () => {
+            changeImageType(imageNode, item.type);
+            removeExistingContextMenu();
+        });
+        
+        contextMenu.appendChild(menuItem);
+    });
+    
+    // 문서에 추가
+    document.body.appendChild(contextMenu);
+    
+    // 외부 클릭 시 메뉴 닫기
+    setTimeout(() => {
+        const closeHandler = (e) => {
+            if (!contextMenu.contains(e.target)) {
+                removeExistingContextMenu();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        document.addEventListener('click', closeHandler);
+    }, 0);
+    
+    // 화면 경계 체크 및 위치 조정
+    setTimeout(() => {
+        const rect = contextMenu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            contextMenu.style.left = (pointerPosition.x - rect.width) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            contextMenu.style.top = (pointerPosition.y - rect.height) + 'px';
+        }
+    }, 0);
+}
+
+/**
+ * 기존 컨텍스트 메뉴 제거
+ */
+function removeExistingContextMenu() {
+    const existingMenu = document.querySelector('.canvas-preproc-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+}
+
+/**
+ * 이미지 타입 변경 (캔버스용)
+ */
+function changeImageType(imageNode, newType) {
+    const oldType = imageNode.getAttr('imageType');
+    if (oldType === newType) {
+        return; // 같은 타입이면 무시
+    }
+    
+    // 이미지 노드의 타입 속성 변경
+    imageNode.setAttr('imageType', newType);
+    
+    // 캔버스 이벤트 발생 (레이어 패널 업데이트용)
+    const typeChangedEvent = new CustomEvent('canvasImageTypeChanged', {
+        detail: {
+            imageNode: imageNode,
+            oldType: oldType,
+            newType: newType
+        }
+    });
+    document.dispatchEvent(typeChangedEvent);
+    
+    console.log(`🔄 Canvas: Image type changed from ${oldType} to ${newType}`);
+    
+    // 레이어 다시 그리기
+    layer.draw();
+    
+    // 선택된 이미지인 경우 하이라이트도 업데이트
+    if (selectedImage === imageNode) {
+        updateHighlightPosition();
+    }
+}
+
 
