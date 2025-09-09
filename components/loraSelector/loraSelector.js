@@ -11,7 +11,7 @@ export class LoRASelectorComponent {
     constructor() {
         this.containerElement = null;
         this.isInitialized = false;
-        this.apiUrl = 'http://localhost:9004/api';
+        this.apiUrl = 'http://localhost:8080/api';
         this.selectedModelType = null; // 선택된 체크포인트 타입 (SDXL, WAN 등)
         
         // LoRA 데이터 저장

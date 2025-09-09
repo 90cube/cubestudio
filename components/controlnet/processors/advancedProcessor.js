@@ -512,7 +512,7 @@ export async function savePreprocessedImage(canvas, filename = null, options = {
         try {
             const imageDataUrl = canvas.toDataURL('image/png');
             
-            const response = await fetch('http://localhost:9004/api/save-image', {
+            const response = await fetch('http://localhost:8080/api/save-image', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

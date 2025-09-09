@@ -215,7 +215,7 @@ export async function processSegmentationWithAI(imageElement, modelId, params = 
         console.log(`🎯 ${modelId} 세그멘테이션 시작...`);
         
         // 백엔드 API 호출
-        const response = await fetch('http://localhost:9004/api/segmentation', {
+        const response = await fetch('http://localhost:8080/api/segmentation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -317,7 +317,7 @@ export async function savePreprocessedImage(canvas, filename = null, options = {
         try {
             const imageDataUrl = canvas.toDataURL('image/png');
             
-            const response = await fetch('http://localhost:9004/api/save-image', {
+            const response = await fetch('http://localhost:8080/api/save-image', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

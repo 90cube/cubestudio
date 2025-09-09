@@ -1,0 +1,56 @@
+# CUBE Studio Configuration
+# 모든 모델 경로와 설정을 중앙에서 관리
+
+# 기본 모델 경로 설정
+models:
+  # 전체 모델 루트 경로
+  base_path: "./models"
+  
+  # 각 모델 타입별 하위 경로
+  checkpoints: "checkpoints"      # ./models/checkpoints
+  vae: "vae"                     # ./models/vae
+  loras: "loras"                 # ./models/loras
+  preprocessors: "preprocessors"  # ./models/preprocessors
+  upscalers: "upscale_models"    # ./models/upscale_models
+  controlnet: "controlnet"       # ./models/controlnet
+  clip: "clip"                   # ./models/clip
+  embeddings: "embeddings"       # ./models/embeddings
+  hypernetworks: "hypernetworks" # ./models/hypernetworks
+
+# 서버 설정
+server:
+  host: "127.0.0.1"
+  port: 8080
+  debug: false
+  cors_enabled: true
+  log_level: "info"
+
+# API 설정
+api:
+  title: "CUBE Studio Unified Backend"
+  version: "4.0.0"
+  description: "통합 AI 이미지 생성 및 전처리 백엔드"
+
+# 외부 도구 경로 (선택적)
+external:
+  # MiDaS 원본 구현체 경로 (없으면 내장 처리기 사용)
+  midas_path: null
+  
+  # ComfyUI 연동 (심볼릭 링크 사용시)
+  comfyui_models_path: null
+
+# 출력 설정
+output:
+  directory: "./output"
+  temp_directory: "./temp"
+
+# 처리 설정
+processing:
+  # 최대 동시 처리 수
+  max_concurrent: 4
+  
+  # 기본 이미지 포맷
+  default_format: "png"
+  
+  # 최대 이미지 크기 (픽셀)
+  max_image_size: 4096

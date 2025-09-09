@@ -4,6 +4,10 @@
 # Ignore python cache
 __pycache__/
 
+# Ignore environment configuration
+.env
+temp/
+
 # Ignore claude files
 .claude/
 CLAUDE.md

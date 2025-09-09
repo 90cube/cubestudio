@@ -4266,3 +4266,741 @@
 2025-09-09 08:28:40,588 - __main__ - INFO - [API] VAEs list requested: 6 models found
 2025-09-09 08:47:23,745 - __main__ - INFO - Scanned 20 checkpoint files
 2025-09-09 08:47:23,745 - __main__ - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 09:34:11,273 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 09:34:11,274 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:34:11,274 - __main__ - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:34:11,274 - __main__ - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:34:11,275 - __main__ - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:34:11,275 - __main__ - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:34:11,275 - __main__ - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:34:11,276 - __main__ - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:34:11,277 - __main__ - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:34:11,277 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:34:11,279 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend v4.0
+2025-09-09 09:34:11,280 - __main__ - INFO - [PATH] Models path: D:\Comfyui\Original_comfyui\ComfyUI_windows_portable\ComfyUI\models\preprocessors
+2025-09-09 09:34:11,280 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 09:34:11,754 - __main__ - INFO - Scanned 20 checkpoint files
+2025-09-09 09:34:11,754 - __main__ - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 09:34:11,756 - __main__ - INFO - Scanned 6 VAE files
+2025-09-09 09:34:11,756 - __main__ - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 09:43:17,081 - unified_backend_service - INFO - PyTorch loaded successfully
+2025-09-09 09:43:17,082 - unified_backend_service - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:43:17,082 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:43:17,083 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:43:17,083 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:43:17,083 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:43:17,083 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:43:17,083 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:43:17,083 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:43:17,083 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:43:17,083 - unified_backend_service - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:43:25,156 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 09:43:25,157 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:43:25,157 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:43:25,158 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:43:25,158 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:43:25,158 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:43:25,158 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:43:25,158 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:43:25,159 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 09:43:25,159 - __main__ - INFO - [PATH] Models path: D:\Comfyui\Original_comfyui\ComfyUI_windows_portable\ComfyUI\models\preprocessors
+2025-09-09 09:43:25,159 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 09:46:08,911 - unified_backend_service - INFO - PyTorch loaded successfully
+2025-09-09 09:46:08,912 - unified_backend_service - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:46:08,912 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:46:08,913 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:46:08,913 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:46:08,913 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:46:08,913 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:46:08,913 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:46:08,913 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:46:08,913 - unified_backend_service - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:46:08,916 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 09:46:23,224 - unified_backend_service - INFO - PyTorch loaded successfully
+2025-09-09 09:46:23,225 - unified_backend_service - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:46:23,225 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:46:23,226 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:46:23,226 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:46:23,226 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:46:23,226 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:46:23,226 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:46:23,226 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:46:23,226 - unified_backend_service - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:46:23,229 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 09:46:23,229 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 09:46:33,619 - unified_backend_service - INFO - PyTorch loaded successfully
+2025-09-09 09:46:33,620 - unified_backend_service - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:46:33,620 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:46:33,621 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:46:33,621 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:46:33,621 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:46:33,621 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:46:33,621 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:46:33,621 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:46:33,621 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:46:33,621 - unified_backend_service - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:46:33,624 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 09:46:33,624 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 09:48:23,486 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 09:48:23,486 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:48:23,487 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:48:23,487 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:48:23,487 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 09:48:23,487 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:48:23,489 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 09:48:23,489 - __main__ - INFO - [PATH] Models path: D:\Comfyui\Original_comfyui\ComfyUI_windows_portable\ComfyUI\models\preprocessors
+2025-09-09 09:48:23,489 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 09:54:50,268 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 09:54:50,268 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 09:54:50,269 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 09:54:50,269 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 09:54:50,269 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 09:54:50,270 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 09:54:50,270 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 09:54:50,271 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 09:54:50,271 - __main__ - INFO - [PATH] Models path: D:\Comfyui\Original_comfyui\ComfyUI_windows_portable\ComfyUI\models\preprocessors
+2025-09-09 09:54:50,271 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 10:04:39,997 - unified_backend_service - INFO - PyTorch loaded successfully
+2025-09-09 10:04:39,998 - unified_backend_service - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:04:39,998 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:04:39,999 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:04:39,999 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:04:39,999 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:04:39,999 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:04:39,999 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:04:39,999 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:04:39,999 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:04:39,999 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:04:39,999 - unified_backend_service - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:04:39,999 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:04:48,296 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:04:48,297 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:04:48,297 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:04:48,297 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:04:48,297 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:04:48,297 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:04:48,297 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:04:48,297 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:04:48,298 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:04:48,298 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:04:48,298 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:04:48,298 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:04:48,298 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:04:48,299 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:04:48,299 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:04:48,300 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 10:07:55,607 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:07:55,608 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:07:55,608 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:07:55,608 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:07:55,608 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:07:55,608 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:07:55,608 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:07:55,609 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:07:55,609 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:07:55,609 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:07:55,609 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:07:55,609 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:07:55,610 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:07:55,611 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:07:55,611 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 10:08:06,913 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 10:08:06,913 - __main__ - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 10:08:15,166 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 10:08:15,166 - __main__ - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 10:08:54,643 - backend.services.processor_service - INFO - Processors list requested: 3 processors
+2025-09-09 10:08:54,643 - __main__ - INFO - [API] Processors list requested: 3 processors
+2025-09-09 10:09:00,187 - backend.services.processor_service - INFO - Categories requested: 3 processors in 5 categories
+2025-09-09 10:09:00,187 - __main__ - INFO - [API] Categories requested: 3 processors in 5 categories
+2025-09-09 10:09:38,124 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:09:38,125 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:09:38,125 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:09:38,125 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:09:38,125 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:09:38,125 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:09:38,125 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:09:38,125 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:09:38,126 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:09:38,126 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:09:38,126 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:09:38,126 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:09:38,126 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:09:38,127 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:09:38,127 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:09:38,127 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 10:09:45,918 - backend.services.processor_service - INFO - Stats requested: 3/3 processors, 13/14 models
+2025-09-09 10:09:45,919 - __main__ - INFO - [API] Stats requested: 3/3 processors, 13/14 models
+2025-09-09 10:11:32,930 - __main__ - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 10:13:23,825 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:13:23,825 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:13:23,826 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:13:23,827 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:13:23,827 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:13:23,827 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:13:23,827 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:13:23,827 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:13:23,827 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:13:23,827 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:13:23,827 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:13:23,828 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:13:23,828 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:13:23,828 - __main__ - INFO - [SCAN] Available models: 13/14
+2025-09-09 10:13:29,324 - backend.services.processor_service - INFO - Stats requested: 3/3 processors, 13/14 models
+2025-09-09 10:13:29,324 - __main__ - INFO - [API] Stats requested: 3/3 processors, 13/14 models
+2025-09-09 10:44:16,452 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:44:16,453 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:44:16,453 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:44:16,453 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:44:16,453 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:44:16,454 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:44:16,455 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:44:16,455 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:44:16,455 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:44:16,455 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:44:29,406 - backend.services.processor_service - INFO - Processors list requested: 3 processors
+2025-09-09 10:44:29,406 - backend.api.processors - INFO - [API] Processors list requested: 3 processors
+2025-09-09 10:44:33,530 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 10:44:33,530 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 10:45:35,643 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 10:45:35,644 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:45:35,644 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:45:35,644 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:45:35,644 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:45:35,644 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:45:35,645 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:45:35,646 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:45:35,646 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:45:35,646 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:45:35,646 - backend.main - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:45:35,646 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:46:41,814 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:46:41,814 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 10:46:41,814 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 10:46:41,814 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 10:46:41,815 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 10:46:41,815 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 10:46:41,815 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 10:46:41,815 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 10:46:41,815 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 10:46:41,815 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 10:46:41,816 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 10:46:41,816 - backend.models.processor - INFO - [FOUND] Model: dw_openpose (388.03MB)
+2025-09-09 10:46:41,816 - backend.models.processor - INFO - [FOUND] Model: oneformer_coco (905.61MB)
+2025-09-09 10:46:41,816 - backend.models.processor - INFO - [FOUND] Model: oneformer_ade20k (905.73MB)
+2025-09-09 10:46:41,816 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 10:46:41,816 - backend.models.processor - INFO - [FOUND] Model: clip (3519.15MB)
+2025-09-09 10:46:41,817 - backend.models.processor - INFO - [FOUND] Model: lama (195.12MB)
+2025-09-09 10:46:41,817 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 10:46:41,817 - backend.services.processor_service - INFO - ProcessorService initialized: 13/14 models available
+2025-09-09 10:46:41,817 - __main__ - INFO - Model scan complete: 13/14 models available
+2025-09-09 10:46:41,817 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 10:46:53,958 - backend.services.processor_service - INFO - Processors list requested: 3 processors
+2025-09-09 10:46:53,959 - backend.api.processors - INFO - [API] Processors list requested: 3 processors
+2025-09-09 10:59:52,691 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 10:59:52,691 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:00:23,492 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:00:23,492 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:00:23,492 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:00:23,492 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:00:51,403 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:00:51,403 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:00:51,403 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:00:51,403 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:01:24,378 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:01:24,379 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:01:24,379 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:01:24,379 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:02:06,088 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:02:06,088 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:02:06,088 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:02:06,088 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:03:32,350 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:03:32,351 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:03:32,351 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:03:32,351 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:04:17,786 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:04:17,787 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:04:17,787 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:04:17,787 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:04:17,788 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:04:17,789 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:04:17,789 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:04:17,789 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:04:17,789 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:04:17,789 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:04:17,789 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:04:17,789 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:04:17,789 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:04:17,789 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:04:17,789 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:04:35,781 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:04:35,782 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:04:35,782 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:04:35,782 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:04:35,783 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:04:35,783 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:04:35,784 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:04:35,784 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:04:35,784 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:04:35,784 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:04:35,784 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:04:35,784 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:04:35,784 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:04:35,784 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:04:35,784 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:07:07,987 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:07:07,988 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:07:07,988 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:07:07,988 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:07:07,989 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:07:07,989 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:07:07,989 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:07:07,989 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:07:07,989 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:07:07,990 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:07:07,990 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:07:07,990 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:07:07,990 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:07:07,990 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:07:07,990 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:07:07,990 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:07:07,990 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:07:07,990 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:07:07,990 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:07:07,990 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:07:07,990 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:15:50,390 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:15:50,390 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:15:50,390 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:15:50,390 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:15:50,392 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:15:50,392 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:15:50,392 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:15:50,392 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:15:50,393 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:15:50,393 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:15:50,393 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:15:50,393 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:15:50,393 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:15:50,393 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:15:50,393 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:15:50,393 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:15:50,393 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:15:50,394 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:15:50,394 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:15:50,394 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:15:50,394 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:16:58,300 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:16:58,301 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:16:58,301 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:16:58,301 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:16:58,303 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:16:58,303 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:16:58,303 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:16:58,303 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:16:58,304 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:16:58,304 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:16:58,304 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:16:58,304 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:16:58,304 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:16:58,304 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:16:58,304 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:16:58,304 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:16:58,305 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:16:58,305 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:16:58,305 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:16:58,305 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:16:58,305 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:18:53,071 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:18:53,071 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:18:53,071 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:18:53,071 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:18:53,073 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:18:53,073 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:18:53,073 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:18:53,073 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:18:53,074 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:18:53,074 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:18:53,074 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:18:53,074 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:18:53,074 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:18:53,074 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:19:55,905 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:19:55,906 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:20:09,891 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:20:09,892 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:20:15,454 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:20:15,455 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:20:39,503 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:20:57,617 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:20:57,618 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:21:01,991 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:21:01,992 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:21:06,101 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:21:06,101 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:21:15,046 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:21:15,047 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:21:20,495 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'checkpoint_extensions'
+2025-09-09 11:21:20,496 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'vae_extensions'
+2025-09-09 11:21:32,862 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:21:32,862 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:21:32,862 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:21:32,862 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:21:32,863 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:21:32,864 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:21:32,864 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:21:32,864 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:21:32,864 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:21:32,864 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:21:32,864 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:21:32,865 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:21:32,865 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:21:32,865 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:21:32,865 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:21:33,317 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'image_extensions'
+2025-09-09 11:21:33,317 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'image_extensions'
+2025-09-09 11:21:42,518 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'image_extensions'
+2025-09-09 11:21:42,520 - backend.api.models - ERROR - [API] Error scanning VAEs: 'ConfigManager' object has no attribute 'image_extensions'
+2025-09-09 11:21:48,290 - backend.api.models - ERROR - [API] Error scanning checkpoints: 'ConfigManager' object has no attribute 'image_extensions'
+2025-09-09 11:22:01,500 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 11:22:01,500 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 11:22:01,500 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 11:22:01,500 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 11:22:01,502 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 11:22:01,502 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 11:22:01,502 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 11:22:01,503 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 11:22:01,503 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 11:22:01,503 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 11:22:01,503 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 11:22:01,503 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 11:22:01,503 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 11:22:01,503 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 11:22:01,503 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 11:22:01,957 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 11:22:01,958 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 11:22:01,959 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 11:22:01,959 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 11:22:24,225 - backend.services.processor_service - INFO - Processors list requested: 3 processors
+2025-09-09 11:22:24,225 - backend.api.processors - INFO - [API] Processors list requested: 3 processors
+2025-09-09 11:35:24,158 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 11:35:24,158 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 11:35:24,160 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 11:35:24,160 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 12:03:54,116 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 12:03:54,116 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 12:03:54,118 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 12:03:54,118 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 12:04:50,926 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 12:04:54,884 - backend.utils.image_utils - INFO - [PYTORCH] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:04:54,887 - backend.utils.image_utils - INFO - [PYTORCH] PIL image created: (1280, 1920)
+2025-09-09 12:04:54,929 - backend.utils.image_utils - INFO - [PYTORCH] Using device: cuda
+2025-09-09 12:04:54,929 - backend.utils.image_utils - ERROR - [PYTORCH] Failed to load model with original MiDaS: No module named 'midas'
+2025-09-09 12:04:54,929 - backend.utils.image_utils - ERROR - [PYTORCH] Failed to process midas_v21: Could not load midas_v21 model: No module named 'midas'
+2025-09-09 12:04:54,929 - backend.services.image_service - ERROR - [ERROR] PyTorch processing failed for midas_v21: Could not load midas_v21 model: No module named 'midas'
+2025-09-09 12:04:54,930 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for midas_v21. Backend processing is required.
+2025-09-09 12:09:54,030 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 12:09:54,031 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 12:09:54,031 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 12:09:54,031 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 12:09:54,032 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 12:09:54,033 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 12:09:54,033 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 12:09:54,033 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 12:09:54,033 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 12:09:54,033 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 12:09:54,033 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 12:09:54,033 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 12:09:54,033 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 12:09:54,033 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 12:09:54,033 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 12:20:12,590 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 12:20:12,591 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 12:20:12,593 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 12:20:12,593 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 12:20:23,343 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 12:20:29,158 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:20:29,159 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 12:20:29,159 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] Using device: cuda
+2025-09-09 12:20:29,161 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] Loading internal MiDaS model: midas_v21
+2025-09-09 12:20:29,450 - backend.midas.midas_model - WARNING - [MIDAS] No compatible weights found in D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt, using random initialization
+2025-09-09 12:20:29,461 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] Model loaded successfully from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:20:29,462 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] Processing image with internal MiDaS
+2025-09-09 12:20:29,685 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 12:20:29,687 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 0
+2025-09-09 12:20:29,689 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 0.00
+2025-09-09 12:20:29,689 - backend.utils.image_utils - INFO - [INTERNAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 12:20:29,689 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 12:20:29,704 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.581s, fallback: False)
+2025-09-09 12:24:49,127 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 12:24:49,128 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 12:24:49,128 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 12:24:49,128 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 12:24:49,129 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 12:24:49,129 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 12:24:49,129 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 12:24:49,129 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 12:24:49,129 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 12:24:49,130 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 12:24:49,130 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 12:24:49,130 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 12:24:49,130 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 12:24:49,130 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 12:24:49,130 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 12:24:49,130 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 12:24:49,130 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 12:24:49,130 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 12:24:49,130 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 12:24:49,130 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 12:24:49,130 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 12:28:23,177 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 12:28:23,178 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 12:28:23,178 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 12:28:23,178 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 12:28:23,179 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 12:28:23,179 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 12:28:23,180 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 12:28:23,180 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 12:28:23,180 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 12:28:23,180 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 12:28:23,180 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 12:28:23,180 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 12:28:23,180 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 12:28:23,180 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 12:28:23,180 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 12:29:58,444 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 12:29:58,444 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 12:29:58,444 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 12:29:58,444 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 12:29:58,445 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 12:29:58,446 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 12:29:58,446 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 12:29:58,446 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 12:29:58,446 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 12:29:58,446 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 12:29:58,447 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 12:29:58,447 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 12:29:58,447 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 12:29:58,447 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 12:29:58,447 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 12:54:48,415 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 12:54:48,415 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 12:54:48,418 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 12:54:48,418 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 12:55:25,473 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 12:55:30,282 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:55:30,285 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1280, 1920)
+2025-09-09 12:55:30,285 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 12:55:30,550 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 12:55:32,423 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 12:55:32,424 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 12:55:32,644 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (1920, 1280)
+2025-09-09 12:55:32,648 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 12:55:32,653 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 136.19
+2025-09-09 12:55:32,653 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 12:55:32,656 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 12:55:32,751 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (2.551s, fallback: False)
+2025-09-09 12:55:35,616 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:55:35,618 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1280, 1920)
+2025-09-09 12:55:35,618 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 12:55:35,618 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 12:55:36,601 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 12:55:36,601 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 12:55:36,641 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (1920, 1280)
+2025-09-09 12:55:36,644 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 12:55:36,649 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 136.19
+2025-09-09 12:55:36,649 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 12:55:36,652 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 12:55:36,756 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.186s, fallback: False)
+2025-09-09 12:55:41,491 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:55:41,493 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1280, 1920)
+2025-09-09 12:55:41,493 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 12:55:41,493 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 12:55:42,593 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 12:55:42,593 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 12:55:42,665 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (1920, 1280)
+2025-09-09 12:55:42,669 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 12:55:42,675 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 136.19
+2025-09-09 12:55:42,675 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 12:55:42,678 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 12:55:42,771 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.326s, fallback: False)
+2025-09-09 12:55:43,986 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:55:43,988 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1280, 1920)
+2025-09-09 12:55:43,989 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 12:55:43,989 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 12:55:45,110 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 12:55:45,111 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 12:55:45,161 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (1920, 1280)
+2025-09-09 12:55:45,165 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 12:55:45,168 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 136.19
+2025-09-09 12:55:45,168 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 12:55:45,170 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 12:55:45,257 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.317s, fallback: False)

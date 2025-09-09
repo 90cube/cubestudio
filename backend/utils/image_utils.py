@@ -1,336 +1,287 @@
-#!/usr/bin/env python3
 """
-CUBE Studio - Image Utilities
-Common image processing utilities and image save manager.
-
-This module handles:
-- Base64 image encoding/decoding
-- Image file saving with metadata
-- Path sanitization and security
-- File format handling
+Image processing utilities for CUBE Studio
+Contains low-level image processing algorithms and transformations.
 """
 
-import os
-import io
 import base64
-import re
+import io
 import logging
-from pathlib import Path
-from typing import Dict, Optional
+import os
+from typing import Any, Dict, Union
+
+import cv2
+import numpy as np
 from PIL import Image
-from datetime import datetime
 
-from ..models.data_models import SaveImageRequest, SaveImageResponse
-
-# Configure logging
 logger = logging.getLogger(__name__)
 
 
-class ImageSaveManager:
-    """Handles image saving operations with security and metadata support"""
+def decode_base64_image(image_base64: str) -> np.ndarray:
+    """
+    Decode base64 image string to numpy array.
     
-    def __init__(self, base_output_path: Path):
-        self.base_output_path = Path(base_output_path)
-        self.default_paths = {
-            't2i': self.base_output_path / 't2i',
-            'i2i': self.base_output_path / 'i2i',
-            'detail': self.base_output_path / 'detail',
-            'preprocessor': self.base_output_path / 'preprocessor',
-            'controlnet': self.base_output_path / 'controlnet',
-            'custom': self.base_output_path / 'custom'
-        }
-        self.supported_formats = {
-            'png': {'ext': '.png', 'pil_format': 'PNG'},
-            'jpg': {'ext': '.jpg', 'pil_format': 'JPEG'},
-            'jpeg': {'ext': '.jpg', 'pil_format': 'JPEG'},
-            'webp': {'ext': '.webp', 'pil_format': 'WebP'}
-        }
+    Args:
+        image_base64: Base64 encoded image (with or without data URI prefix)
         
-        logger.info(f"ImageSaveManager initialized with base path: {self.base_output_path}")
+    Returns:
+        Image as RGB numpy array
+        
+    Raises:
+        Exception: If image decoding fails
+    """
+    try:
+        if image_base64.startswith('data:image'):
+            image_base64 = image_base64.split(',')[1]
+        
+        image_bytes = base64.b64decode(image_base64)
+        image_pil = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        image_array = np.array(image_pil)
+        
+        return image_array
+    except Exception as e:
+        logger.error(f"Failed to decode base64 image: {e}")
+        raise Exception(f"Image decode error: {str(e)}")
+
+
+def encode_image_to_base64(image_array: np.ndarray, format: str = 'PNG') -> str:
+    """
+    Encode numpy array image to base64 string.
     
-    def ensure_directory(self, path: Path):
-        """Ensure directory exists"""
+    Args:
+        image_array: Image as numpy array
+        format: Image format ('PNG', 'JPEG', etc.)
+        
+    Returns:
+        Base64 encoded image with data URI prefix
+        
+    Raises:
+        Exception: If image encoding fails
+    """
+    try:
+        image_pil = Image.fromarray(image_array)
+        buffer = io.BytesIO()
+        image_pil.save(buffer, format=format)
+        image_b64 = base64.b64encode(buffer.getvalue()).decode()
+        
+        return f"data:image/{format.lower()};base64,{image_b64}"
+    except Exception as e:
+        logger.error(f"Failed to encode image to base64: {e}")
+        raise Exception(f"Image encode error: {str(e)}")
+
+
+def process_canny_opencv(image_array: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """
+    OpenCV Canny edge detection algorithm.
+    
+    Args:
+        image_array: Input image as numpy array
+        params: Parameters including low_threshold, high_threshold, and blur_kernel
+        
+    Returns:
+        Processed image as RGB numpy array
+    """
+    # Convert to grayscale if needed
+    gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
+    
+    # Get parameters
+    low_threshold = params.get('low_threshold', 100)
+    high_threshold = params.get('high_threshold', 200)
+    blur_kernel = params.get('blur_kernel', 3)
+    
+    # Apply Gaussian blur to reduce noise
+    if blur_kernel > 1:
+        gray = cv2.GaussianBlur(gray, (blur_kernel, blur_kernel), 0)
+    
+    # Apply Canny edge detection
+    edges = cv2.Canny(gray, low_threshold, high_threshold)
+    
+    # Convert to RGB for consistency
+    return cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+
+
+def process_depth_builtin(image_array: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """
+    Built-in depth estimation fallback using brightness analysis.
+    
+    Args:
+        image_array: Input image as numpy array
+        params: Parameters including contrast and brightness
+        
+    Returns:
+        Depth map as RGB numpy array
+    """
+    gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
+    
+    contrast = params.get('contrast', 1.2)
+    brightness = params.get('brightness', 0.1)
+    
+    # Simple depth from brightness
+    depth = gray.astype(np.float32) / 255.0
+    depth = depth * contrast + brightness
+    depth = np.clip(depth, 0, 1)
+    
+    # Convert to 3-channel for consistency
+    depth_rgb = np.stack([depth, depth, depth], axis=-1)
+    return (depth_rgb * 255).astype(np.uint8)
+
+
+def process_openpose_builtin(image_array: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """
+    Built-in pose estimation fallback using edge detection.
+    
+    Args:
+        image_array: Input image as numpy array
+        params: Processing parameters (unused in fallback)
+        
+    Returns:
+        Skeleton outline as RGB numpy array
+    """
+    # For now, return a simple skeletal outline
+    gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
+    edges = cv2.Canny(gray, 50, 150)
+    
+    # Simple skeleton simulation
+    kernel = np.ones((3, 3), np.uint8)
+    skeleton = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+    
+    return cv2.cvtColor(skeleton, cv2.COLOR_GRAY2RGB)
+
+
+def process_depth_pytorch(image_array: np.ndarray, model_id: str, params: Dict[str, Any], available_models: Dict = None) -> np.ndarray:
+    """
+    PyTorch-based depth estimation using original MiDaS implementation.
+    
+    Args:
+        image_array: Input image as numpy array (RGB)
+        model_id: Model identifier ('midas_v21' or 'dpt_hybrid')
+        params: Processing parameters including brightness, contrast, smoothing, depthStrength
+        
+    Returns:
+        Processed depth map as RGB numpy array
+        
+    Raises:
+        Exception: If PyTorch is unavailable or model loading fails
+    """
+    # Import required modules and check availability
+    try:
+        import torch
+        import torch.nn.functional as F
+    except ImportError as e:
+        raise Exception(f"Required modules not available: {e}")
+    
+    # Check PyTorch availability
+    if not torch.cuda.is_available() and not torch.backends.mps.is_available():
+        logger.warning("[PYTORCH] Neither CUDA nor MPS available, using CPU")
+    
+    # Validate available_models parameter
+    if available_models is None:
+        raise Exception("available_models parameter is required")
+    
+    # Get model file path
+    model_info = available_models.get(model_id, {})
+    model_path = model_info.get("filepath")
+    
+    if not model_path or not os.path.exists(model_path):
+        raise Exception(f"Model file not found: {model_path}")
+    
+    logger.info(f"[ORIGINAL-MIDAS] Loading {model_id} from {model_path}")
+    
+    try:
+        # Convert numpy array to PIL Image
+        pil_image = Image.fromarray(image_array)
+        logger.info(f"[ORIGINAL-MIDAS] PIL image created: {pil_image.size}")
+        
+        # Load and run original MiDaS model
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logger.info(f"[ORIGINAL-MIDAS] Using device: {device}")
+        
+        # Load model using original MiDaS implementation
         try:
-            path.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Ensured directory exists: {path}")
-        except Exception as e:
-            logger.error(f"Failed to create directory {path}: {e}")
-            raise
-    
-    def sanitize_filename(self, filename: str) -> str:
-        """Sanitize filename to prevent security issues"""
-        # Remove dangerous characters
-        filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
-        # Remove control characters
-        filename = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', filename)
-        # Replace multiple spaces and dots with underscore
-        filename = re.sub(r'[\s.]+', '_', filename)
-        # Remove leading/trailing spaces, dots, underscores
-        filename = filename.strip('. _')
-        
-        # Ensure we have a valid filename
-        if not filename:
-            filename = 'untitled'
-        
-        logger.debug(f"Sanitized filename: '{filename}'")
-        return filename
-    
-    def generate_unique_filename(self, directory: Path, base_filename: str) -> str:
-        """Generate unique filename to avoid conflicts"""
-        name_part = base_filename.rsplit('.', 1)[0]
-        ext_part = '.' + base_filename.rsplit('.', 1)[1] if '.' in base_filename else ''
-        
-        counter = 1
-        unique_filename = base_filename
-        
-        while (directory / unique_filename).exists():
-            unique_filename = f"{name_part}_{counter:03d}{ext_part}"
-            counter += 1
+            from backend.midas_original import load_model
             
-            # Prevent infinite loops
-            if counter > 9999:
-                unique_filename = f"{name_part}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}{ext_part}"
-                break
-        
-        logger.debug(f"Generated unique filename: {unique_filename}")
-        return unique_filename
-    
-    def decode_base64_image(self, base64_data: str) -> Image.Image:
-        """Decode base64 string to PIL Image"""
-        try:
-            # Handle data URL format
-            if 'base64,' in base64_data:
-                base64_data = base64_data.split('base64,')[1]
+            logger.info(f"[ORIGINAL-MIDAS] Loading original MiDaS model: {model_id}")
             
-            # Decode base64 to bytes
-            image_bytes = base64.b64decode(base64_data)
-            
-            # Open as PIL Image
-            image = Image.open(io.BytesIO(image_bytes))
-            
-            logger.debug(f"Decoded image: {image.mode} {image.size}")
-            return image
-            
-        except Exception as e:
-            logger.error(f"Failed to decode base64 image: {e}")
-            raise ValueError(f"Invalid base64 image data: {e}")
-    
-    def encode_image_to_base64(self, image: Image.Image, format: str = 'PNG') -> str:
-        """Encode PIL Image to base64 string"""
-        try:
-            buffer = io.BytesIO()
-            image.save(buffer, format=format)
-            buffer.seek(0)
-            
-            base64_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            logger.debug(f"Encoded image to base64: {len(base64_data)} characters")
-            return base64_data
-            
-        except Exception as e:
-            logger.error(f"Failed to encode image to base64: {e}")
-            raise ValueError(f"Failed to encode image: {e}")
-    
-    def save_image(self, base64_image: str, filename: str, save_path: str, 
-                  image_type: str, metadata: Optional[Dict] = None, 
-                  quality_settings: Optional[Dict] = None) -> Dict:
-        """Save base64 image to specified path with quality settings"""
-        try:
-            # Default quality settings
-            default_quality = {
-                'format': 'png',
-                'png_compression': 6,
-                'jpg_quality': 90,
-                'webp_quality': 90,
-                'save_metadata': True
-            }
-            
-            if quality_settings:
-                default_quality.update(quality_settings)
-            
-            # Decode image
-            image = self.decode_base64_image(base64_image)
-            
-            # Process save path
-            if save_path.startswith('./'):
-                save_directory = Path(save_path[2:])
+            # Map model_id to correct model type
+            if model_id == "midas_v21":
+                model_type = "midas_v21_384"
+            elif model_id == "dpt_hybrid":
+                model_type = "dpt_hybrid_384"
             else:
-                save_directory = Path(save_path)
+                model_type = model_id
             
-            if not save_directory.is_absolute():
-                save_directory = Path.cwd() / save_directory
-            
-            # Ensure directory exists
-            self.ensure_directory(save_directory)
-            
-            # Sanitize filename
-            clean_filename = self.sanitize_filename(filename)
-            image_format = default_quality['format'].lower()
-            
-            # Validate format
-            if image_format not in self.supported_formats:
-                logger.warning(f"Unsupported format {image_format}, using PNG")
-                image_format = 'png'
-            
-            format_info = self.supported_formats[image_format]
-            
-            # Ensure proper extension
-            if not clean_filename.endswith(format_info['ext']):
-                clean_filename += format_info['ext']
-            
-            # Generate unique filename
-            unique_filename = self.generate_unique_filename(save_directory, clean_filename)
-            full_path = save_directory / unique_filename
-            
-            # Prepare save arguments
-            save_kwargs = {}
-            if image_format == 'png':
-                save_kwargs['optimize'] = True
-                save_kwargs['compress_level'] = default_quality['png_compression']
-            elif image_format in ['jpg', 'jpeg']:
-                save_kwargs['quality'] = default_quality['jpg_quality']
-                save_kwargs['optimize'] = True
-                
-                # Convert RGBA to RGB for JPEG
-                if image.mode in ('RGBA', 'LA'):
-                    background = Image.new('RGB', image.size, (255, 255, 255))
-                    if image.mode == 'LA':
-                        image = image.convert('RGBA')
-                    background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
-                    image = background
-                    
-            elif image_format == 'webp':
-                save_kwargs['quality'] = default_quality['webp_quality']
-                save_kwargs['optimize'] = True
-            
-            # Save image
-            image.save(full_path, format_info['pil_format'], **save_kwargs)
-            file_size = full_path.stat().st_size
-            
-            logger.info(f"Successfully saved image: {full_path} ({file_size} bytes)")
-            
-            return {
-                'success': True,
-                'saved_path': str(full_path),
-                'filename': unique_filename,
-                'file_size': file_size,
-                'format': image_format,
-                'directory': str(save_directory)
-            }
-            
-        except Exception as e:
-            logger.error(f"Error saving image: {e}")
-            return {
-                'success': False,
-                'error': str(e),
-                'filename': filename,
-                'attempted_path': save_path
-            }
-    
-    def save_image_from_request(self, request: SaveImageRequest) -> SaveImageResponse:
-        """Save image from SaveImageRequest and return SaveImageResponse"""
-        try:
-            result = self.save_image(
-                base64_image=request.image,
-                filename=request.filename,
-                save_path=request.path,
-                image_type=request.type,
-                metadata=request.metadata,
-                quality_settings=request.quality_settings
-            )
-            
-            if result['success']:
-                return SaveImageResponse(
-                    success=True,
-                    saved_path=result['saved_path'],
-                    filename=result['filename'],
-                    file_size=result['file_size']
-                )
-            else:
-                return SaveImageResponse(
-                    success=False,
-                    filename=request.filename,
-                    error=result['error']
-                )
+            model, transform, net_w, net_h = load_model(device, model_path, model_type, optimize=False)
+            logger.info(f"[ORIGINAL-MIDAS] Model loaded successfully: {net_w}x{net_h}")
                 
         except Exception as e:
-            logger.error(f"Error processing save image request: {e}")
-            return SaveImageResponse(
-                success=False,
-                filename=request.filename,
-                error=str(e)
-            )
-
-
-def convert_image_format(image: Image.Image, target_format: str) -> Image.Image:
-    """Convert image to target format with proper mode conversion"""
-    target_format = target_format.upper()
-    
-    if target_format == 'JPEG' and image.mode in ('RGBA', 'LA', 'P'):
-        # Convert to RGB for JPEG
-        if image.mode == 'P':
-            image = image.convert('RGBA')
+            logger.error(f"[ORIGINAL-MIDAS] Failed to load original MiDaS model: {e}")
+            raise Exception(f"Could not load original {model_id} model: {e}")
         
-        # Create white background for transparency
-        background = Image.new('RGB', image.size, (255, 255, 255))
-        if image.mode in ('RGBA', 'LA'):
-            background.paste(image, mask=image.split()[-1] if len(image.split()) > 3 else None)
-        else:
-            background.paste(image)
-        
-        return background
-    
-    elif target_format == 'PNG' and image.mode not in ('RGBA', 'RGB', 'L', 'LA'):
-        # Convert to RGBA for PNG
-        return image.convert('RGBA')
-    
-    return image
-
-
-def validate_image_data(base64_data: str) -> bool:
-    """Validate that base64 data represents a valid image"""
-    try:
-        if 'base64,' in base64_data:
-            base64_data = base64_data.split('base64,')[1]
-        
-        image_bytes = base64.b64decode(base64_data)
-        image = Image.open(io.BytesIO(image_bytes))
-        
-        # Basic validation
-        if image.size[0] == 0 or image.size[1] == 0:
-            return False
-        
-        # Try to load the image data
-        image.load()
-        
-        return True
-        
-    except Exception as e:
-        logger.debug(f"Image validation failed: {e}")
-        return False
-
-
-def get_image_info(base64_data: str) -> Dict:
-    """Get information about a base64 encoded image"""
-    try:
-        if 'base64,' in base64_data:
-            base64_data = base64_data.split('base64,')[1]
-        
-        image_bytes = base64.b64decode(base64_data)
-        image = Image.open(io.BytesIO(image_bytes))
-        
-        return {
-            'valid': True,
-            'format': image.format,
-            'mode': image.mode,
-            'size': image.size,
-            'width': image.size[0],
-            'height': image.size[1],
-            'data_size': len(image_bytes),
-            'has_transparency': image.mode in ('RGBA', 'LA') or 'transparency' in image.info
-        }
+        # Process image with original MiDaS
+        try:
+            logger.info(f"[ORIGINAL-MIDAS] Processing image with original MiDaS")
+            
+            # Apply MiDaS transform
+            img_input = transform({"image": np.array(pil_image) / 255.0})["image"]
+            
+            # Convert to tensor and add batch dimension
+            sample = torch.from_numpy(img_input).to(device).unsqueeze(0)
+            
+            # Run inference
+            with torch.no_grad():
+                prediction = model.forward(sample)
+                prediction = (
+                    torch.nn.functional.interpolate(
+                        prediction.unsqueeze(1),
+                        size=image_array.shape[:2],
+                        mode="bicubic",
+                        align_corners=False,
+                    )
+                    .squeeze()
+                    .cpu()
+                    .numpy()
+                )
+            
+            # Normalize to 0-255 range
+            depth_map = prediction
+            if depth_map.max() > depth_map.min():
+                depth_map = (depth_map - depth_map.min()) / (depth_map.max() - depth_map.min())
+            else:
+                logger.warning("[ORIGINAL-MIDAS] Constant depth map detected, setting to mid-range")
+                depth_map = np.full_like(depth_map, 0.5)
+            
+            depth_map = (depth_map * 255).astype(np.uint8)
+            
+            logger.info(f"[ORIGINAL-MIDAS] Depth map generated: {depth_map.shape}")
+            
+            # Apply depth effects if specified
+            brightness = params.get('brightness', 0.0)
+            contrast = params.get('contrast', 1.0)
+            
+            if brightness != 0.0 or contrast != 1.0:
+                logger.info(f"[ORIGINAL-MIDAS] Applying effects: brightness={brightness}, contrast={contrast}")
+                # Apply brightness and contrast
+                depth_float = depth_map.astype(np.float32) / 255.0
+                depth_float = np.clip(depth_float + brightness, 0, 1)
+                depth_float = np.clip(contrast * (depth_float - 0.5) + 0.5, 0, 1)
+                depth_map = (depth_float * 255).astype(np.uint8)
+            
+            # Convert single-channel to RGB
+            if len(depth_map.shape) == 2:
+                depth_rgb = np.stack([depth_map, depth_map, depth_map], axis=-1)
+            else:
+                depth_rgb = depth_map
+            
+            # DEBUG: Check actual depth values
+            logger.info(f"[DEBUG] Depth range: {depth_rgb.min()} to {depth_rgb.max()}")
+            logger.info(f"[DEBUG] Depth mean: {depth_rgb.mean():.2f}")
+            
+            logger.info(f"[ORIGINAL-MIDAS] {model_id} processing completed successfully")
+            return depth_rgb
+            
+        except Exception as e:
+            logger.error(f"[ORIGINAL-MIDAS] Failed to process image: {e}")
+            raise Exception(f"Original MiDaS processing failed: {e}")
         
     except Exception as e:
-        return {
-            'valid': False,
-            'error': str(e)
-        }
+        logger.error(f"[ORIGINAL-MIDAS] Failed to process {model_id}: {e}")
+        raise

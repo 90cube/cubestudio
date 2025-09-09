@@ -35,7 +35,7 @@ let availablePreprocessors = [];
 async function loadPreprocessorModels() {
     try {
         // 백엔드 API에서 사용 가능한 전처리기 목록 가져오기
-        const response = await fetch('http://localhost:9004/api/preprocessors');
+        const response = await fetch('http://localhost:8080/api/preprocessors');
         if (response.ok) {
             availablePreprocessors = await response.json();
             console.log('✅ 전처리기 모델 로드 완료:', availablePreprocessors.length, '개');
@@ -1245,7 +1245,7 @@ async function processWithExternalModel(imageNode, model, params = {}) {
         console.log(`🎛️  ${model.name} 전처리 시작...`);
         
         // 백엔드 API 호출
-        const response = await fetch('http://localhost:9004/api/v3/process', {
+        const response = await fetch('http://localhost:8080/api/v3/process', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1846,7 +1846,7 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
         console.log(`🏔️  ${model.name} Depth 전처리 시작...`);
         
         // 백엔드 API 호출 (Depth 전용 엔드포인트)
-        const response = await fetch('http://localhost:9004/api/v3/process', {
+        const response = await fetch('http://localhost:8080/api/v3/process', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

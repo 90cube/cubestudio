@@ -13,7 +13,7 @@ export class ModelExplorerComponent {
         this.vaeList = [];
         this.selectedModel = null;
         this.selectedFolderPath = null; // 선택된 모델의 폴더 경로 추적
-        this.apiUrl = 'http://localhost:9004/api';
+        this.apiUrl = 'http://localhost:8080/api';
         this.tooltip = new Tooltip();
         this.containerElement = null;
         this.isInitialized = false;

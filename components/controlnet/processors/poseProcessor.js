@@ -233,7 +233,7 @@ export async function processPoseWithAI(imageElement, modelId, params = {}) {
         console.log(`🤸 ${modelId} 포즈 검출 시작...`);
         
         // 백엔드 API 호출
-        const response = await fetch('http://localhost:9004/api/pose-detection', {
+        const response = await fetch('http://localhost:8080/api/pose-detection', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -335,7 +335,7 @@ export async function savePreprocessedImage(canvas, filename = null, options = {
         try {
             const imageDataUrl = canvas.toDataURL('image/png');
             
-            const response = await fetch('http://localhost:9004/api/save-image', {
+            const response = await fetch('http://localhost:8080/api/save-image', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
