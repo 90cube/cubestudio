@@ -44,6 +44,35 @@ async def process_image_v3(request: ProcessRequest, api_request: Request):
         )
 
 
+@router.post("/process")
+async def process_image(request: ProcessRequest, api_request: Request):
+    """Process image (compatible with frontend /api/process calls)"""
+    image_service = api_request.app.state.image_service
+    
+    result = image_service.process_image_v3(
+        processor=request.processor,
+        image=request.image,
+        parameters=request.parameters
+    )
+    
+    # Convert dict result to ProcessResponse if successful
+    if result.get("success", False):
+        return ProcessResponse(
+            success=result["success"],
+            processed_image=result["processed_image"],
+            processing_time=result["processing_time"],
+            processor_used=result["processor_used"],
+            fallback_used=result["fallback_used"]
+        )
+    else:
+        return ProcessResponse(
+            success=result["success"],
+            processing_time=result["processing_time"],
+            processor_used=result["processor_used"],
+            error=result.get("error")
+        )
+
+
 @router.post("/v2/process")
 async def process_v2(request: ProcessV2Request, api_request: Request):
     """Process image with specific model (v2 API compatible with frontend)"""

@@ -240,13 +240,11 @@ function createControlNetUI(imageNode) {
         border-radius: 8px 8px 0 0;
     `;
     
-    // 5개 전문 탭 시스템
+    // 3개 핵심 탭 시스템
     const tabs = [
         { id: 'edges', name: 'Edge & Lines', icon: '📐', category: 'structural' },
         { id: 'depth', name: 'Depth & Normals', icon: '🏔️', category: 'spatial' },
-        { id: 'pose', name: 'Pose & Human', icon: '🤸', category: 'human' },
-        { id: 'segment', name: 'Segmentation', icon: '🎯', category: 'semantic' },
-        { id: 'advanced', name: 'Advanced', icon: '⚡', category: 'specialized' }
+        { id: 'pose', name: 'Pose & Human', icon: '🤸', category: 'human' }
     ];
     
     let activeTab = 'edges'; // 기본 활성 탭
@@ -325,12 +323,6 @@ function switchTab(tabId, container, imageNode) {
         case 'pose':
             contentArea.appendChild(createPoseUI(imageNode));
             break;
-        case 'segment':
-            contentArea.appendChild(createSegmentationUI(imageNode));
-            break;
-        case 'advanced':
-            contentArea.appendChild(createAdvancedUI(imageNode));
-            break;
     }
 }
 
@@ -349,47 +341,23 @@ function createEdgeUI(imageNode) {
         <p style="color: #bbb; margin: 0; font-size: 13px;">윤곽선, 라인아트, 스케치 검출을 통한 구조적 정보 추출</p>
     `;
     
-    // 모델 선택 카드 영역
+    // 모델 선택 카드 영역 - 2개만 유지
     const modelSection = createModelSelectionSection('edge', [
         { 
-            id: 'canny', 
-            name: 'Canny Edge', 
-            description: '클래식한 엣지 검출 알고리즘',
-            capabilities: ['빠른 처리', '정확한 윤곽선'],
-            requirements: '낮음',
-            icon: '📐'
-        },
-        { 
-            id: 'hed', 
-            name: 'Holistically-Nested Edge Detection', 
-            description: '딥러닝 기반 전체적 엣지 검출',
-            capabilities: ['자연스러운 윤곽', '세밀한 디테일'],
-            requirements: 'GPU 권장',
-            icon: '🎨'
-        },
-        { 
-            id: 'pidinet', 
-            name: 'PiDiNet', 
-            description: '픽셀 차분 네트워크 기반 엣지 검출',
-            capabilities: ['고품질 엣지', '노이즈 저항성'],
-            requirements: 'GPU 필요',
+            id: 'canny_builtin', 
+            name: 'Canny (프론트엔드)', 
+            description: '브라우저에서 직접 처리하는 Canny 엣지 검출',
+            capabilities: ['즉시 처리', '서버 불필요', '빠른 미리보기'],
+            requirements: '없음',
             icon: '⚡'
         },
         { 
-            id: 'lineart', 
-            name: 'Line Art', 
-            description: '라인아트 스타일 변환',
-            capabilities: ['깔끔한 선화', '일러스트 최적화'],
-            requirements: 'GPU 권장',
-            icon: '✏️'
-        },
-        { 
-            id: 'scribble', 
-            name: 'Scribble', 
-            description: '스케치/낙서 스타일 검출',
-            capabilities: ['자유로운 스케치', '손그림 느낌'],
-            requirements: '중간',
-            icon: '✨'
+            id: 'canny_opencv', 
+            name: 'Canny (OpenCV)', 
+            description: 'OpenCV 기반 고품질 Canny 엣지 검출',
+            capabilities: ['고품질', '정확한 윤곽선', '파라미터 제어'],
+            requirements: '백엔드 서버',
+            icon: '📐'
         }
     ]);
     
@@ -399,17 +367,6 @@ function createEdgeUI(imageNode) {
             { id: 'threshold_low', name: '하위 임계값', type: 'range', min: 0, max: 255, value: 100, step: 1 },
             { id: 'threshold_high', name: '상위 임계값', type: 'range', min: 0, max: 255, value: 200, step: 1 },
             { id: 'edge_strength', name: '엣지 강도', type: 'range', min: 0.1, max: 3.0, value: 1.0, step: 0.1 }
-        ],
-        advanced: [
-            { id: 'blur_radius', name: '블러 반경', type: 'range', min: 0, max: 10, value: 1.4, step: 0.1 },
-            { id: 'l2_gradient', name: 'L2 Gradient 사용', type: 'checkbox', value: true },
-            { id: 'safe_mode', name: '안전 모드 (노이즈 감소)', type: 'checkbox', value: false },
-            { id: 'resolution', name: '처리 해상도', type: 'select', options: [
-                { value: 'original', label: '원본 해상도' },
-                { value: '512', label: '512px' },
-                { value: '768', label: '768px' },
-                { value: '1024', label: '1024px' }
-            ], value: '512' }
         ]
     });
     
@@ -464,23 +421,6 @@ function createDepthUI(imageNode) {
             { id: 'depth_strength', name: '깊이 강도', type: 'range', min: 0.1, max: 3.0, value: 1.0, step: 0.1 },
             { id: 'contrast', name: '대비', type: 'range', min: 0.5, max: 3.0, value: 1.2, step: 0.1 },
             { id: 'brightness', name: '밝기', type: 'range', min: -0.5, max: 0.5, value: 0.1, step: 0.05 }
-        ],
-        advanced: [
-            { id: 'smoothing', name: '스무딩 정도', type: 'range', min: 0, max: 10, value: 2, step: 1 },
-            { id: 'invert_depth', name: '깊이 반전', type: 'checkbox', value: false },
-            { id: 'remove_background', name: '배경 제거', type: 'checkbox', value: false },
-            { id: 'depth_range', name: '깊이 범위', type: 'select', options: [
-                { value: 'auto', label: '자동 감지' },
-                { value: 'near', label: '근거리 (0-10m)' },
-                { value: 'medium', label: '중거리 (0-50m)' },
-                { value: 'far', label: '원거리 (0-1000m)' }
-            ], value: 'auto' },
-            { id: 'output_format', name: '출력 형식', type: 'select', options: [
-                { value: 'disparity', label: 'Disparity Map' },
-                { value: 'depth', label: 'Depth Map' },
-                { value: 'normal', label: 'Normal Map' },
-                { value: 'both', label: 'Depth + Normal' }
-            ], value: 'depth' }
         ]
     });
     
@@ -586,161 +526,6 @@ function createPoseUI(imageNode) {
     return container;
 }
 
-/**
- * Segmentation 전처리 UI 생성 (ADE20K, COCO)
- */
-function createSegmentationUI(imageNode) {
-    const container = document.createElement('div');
-    container._imageNode = imageNode;
-    
-    const header = document.createElement('div');
-    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
-    header.innerHTML = `
-        <h3 style="margin: 0 0 8px 0; color: #f39c12; font-size: 18px;">🎯 Segmentation</h3>
-        <p style="color: #bbb; margin: 0; font-size: 13px;">의미론적 분할을 통한 객체 및 영역 구분</p>
-    `;
-    
-    const modelSection = createModelSelectionSection('segment', [
-        { 
-            id: 'ade20k', 
-            name: 'ADE20K', 
-            description: '150개 클래스 실내외 장면 분할',
-            capabilities: ['세밀한 분류', '실내외 범용'],
-            requirements: 'GPU 필요',
-            icon: '🏠'
-        },
-        { 
-            id: 'coco_stuff', 
-            name: 'COCO-Stuff', 
-            description: 'COCO 데이터셋 기반 객체/배경 분할',
-            capabilities: ['객체 중심', '80개 클래스'],
-            requirements: 'GPU 권장',
-            icon: '🐱'
-        },
-        { 
-            id: 'cityscapes', 
-            name: 'Cityscapes', 
-            description: '도시 환경 특화 분할',
-            capabilities: ['차량/도로 특화', '자율주행'],
-            requirements: 'GPU 필요',
-            icon: '🚗'
-        },
-        { 
-            id: 'oneformer', 
-            name: 'OneFormer', 
-            description: '범용 세그멘테이션 모델',
-            capabilities: ['다목적', '고성능'],
-            requirements: 'GPU 필요',
-            icon: '🎯'
-        }
-    ]);
-    
-    const parametersSection = createParametersSection('segment', {
-        basic: [
-            { id: 'mask_opacity', name: '마스크 투명도', type: 'range', min: 0.1, max: 1.0, value: 0.7, step: 0.05 },
-            { id: 'outline_thickness', name: '외곽선 두께', type: 'range', min: 0, max: 5, value: 1, step: 1 }
-        ],
-        advanced: [
-            { id: 'color_mode', name: '색상 모드', type: 'select', options: [
-                { value: 'category', label: '카테고리별 색상' },
-                { value: 'instance', label: '인스턴스별 색상' },
-                { value: 'depth', label: '깊이별 색상' }
-            ], value: 'category' },
-            { id: 'show_labels', name: '레이블 표시', type: 'checkbox', value: true },
-            { id: 'merge_small', name: '작은 영역 병합', type: 'checkbox', value: false }
-        ]
-    });
-    
-    const previewSection = createAdvancedPreviewSection();
-    const buttonSection = createActionButtonsSection('segment', container);
-    
-    container.appendChild(header);
-    container.appendChild(modelSection);
-    container.appendChild(parametersSection);
-    container.appendChild(previewSection);
-    container.appendChild(buttonSection);
-    
-    return container;
-}
-
-/**
- * Advanced 전처리 UI 생성 (MLSD, Shuffle, Threshold 등)
- */
-function createAdvancedUI(imageNode) {
-    const container = document.createElement('div');
-    container._imageNode = imageNode;
-    
-    const header = document.createElement('div');
-    header.style.cssText = 'text-align: center; padding: 16px 20px 12px 20px;';
-    header.innerHTML = `
-        <h3 style="margin: 0 0 8px 0; color: #e74c3c; font-size: 18px;">⚡ Advanced</h3>
-        <p style="color: #bbb; margin: 0; font-size: 13px;">특수 목적 전처리 및 실험적 기능</p>
-    `;
-    
-    const modelSection = createModelSelectionSection('advanced', [
-        { 
-            id: 'mlsd', 
-            name: 'M-LSD', 
-            description: 'Mobile Line Segment Detection',
-            capabilities: ['직선 검출', '모바일 최적화'],
-            requirements: '낮음',
-            icon: '📏'
-        },
-        { 
-            id: 'shuffle', 
-            name: 'Shuffle', 
-            description: '이미지 셔플링 및 재배열',
-            capabilities: ['텍스처 변형', '패턴 변화'],
-            requirements: '낮음',
-            icon: '🔀'
-        },
-        { 
-            id: 'threshold', 
-            name: 'Threshold', 
-            description: '임계값 기반 이진화',
-            capabilities: ['이진 변환', '윤곽 강조'],
-            requirements: '낮음',
-            icon: '⚫'
-        },
-        { 
-            id: 'inpaint', 
-            name: 'Inpainting Guide', 
-            description: '인페인팅 가이드 생성',
-            capabilities: ['마스크 생성', '영역 지정'],
-            requirements: 'GPU 권장',
-            icon: '🎨'
-        },
-        { 
-            id: 'tile', 
-            name: 'Tile Resample', 
-            description: '타일 기반 리샘플링',
-            capabilities: ['해상도 향상', '디테일 보존'],
-            requirements: 'GPU 권장',
-            icon: '🧩'
-        }
-    ]);
-    
-    const parametersSection = createParametersSection('advanced', {
-        basic: [
-            { id: 'intensity', name: '효과 강도', type: 'range', min: 0.1, max: 2.0, value: 1.0, step: 0.1 }
-        ],
-        advanced: [
-            { id: 'experimental', name: '실험적 기능', type: 'checkbox', value: false },
-            { id: 'custom_params', name: '사용자 정의 파라미터', type: 'text', placeholder: '{"param": "value"}' }
-        ]
-    });
-    
-    const previewSection = createAdvancedPreviewSection();
-    const buttonSection = createActionButtonsSection('advanced', container);
-    
-    container.appendChild(header);
-    container.appendChild(modelSection);
-    container.appendChild(parametersSection);
-    container.appendChild(previewSection);
-    container.appendChild(buttonSection);
-    
-    return container;
-}
 
 // ============================================================================
 // LEGACY FUNCTIONS (TO BE REMOVED)
@@ -1541,6 +1326,71 @@ async function applyProcessedImageToCanvas(imageNode, processedCanvas) {
 }
 
 /**
+ * Edge 미리보기 처리
+ * @param {HTMLElement} container - UI 컨테이너
+ * @param {HTMLElement} previewDiv - 미리보기 영역
+ */
+async function handleEdgePreview(container, previewDiv) {
+    const imageNode = container._imageNode;
+    if (!imageNode) return;
+    
+    // 선택된 모델 확인 - 카드 기반 UI에서 선택된 모델 가져오기
+    const edgeSection = container.querySelector('[data-category="edge"]');
+    const selectedCard = edgeSection ? edgeSection.querySelector('.model-card.selected') : null;
+    const selectedModelId = selectedCard ? selectedCard.dataset.modelId : 'canny_builtin';
+    
+    // 로딩 상태 표시
+    previewDiv.innerHTML = `<div style="color: #ccc; text-align: center; padding: 20px;">처리 중... (${selectedModelId === 'canny_builtin' ? 'Canny 프론트엔드' : 'Canny OpenCV'})</div>`;
+    
+    try {
+        let processedCanvas;
+        
+        // 파라미터 가져오기
+        const params = getCannyParameters(container);
+        
+        if (selectedModelId === 'canny_builtin') {
+            // 프론트엔드에서 직접 처리 (processCannyEdge 사용)
+            const htmlImage = await konvaImageToHTMLImage(imageNode);
+            processedCanvas = processCannyEdge(htmlImage, params);
+        } else if (selectedModelId === 'canny_opencv') {
+            // OpenCV 백엔드 API 호출
+            processedCanvas = await processEdgeWithOpenCV(imageNode, params);
+        } else {
+            // 기본값: 프론트엔드 처리
+            const htmlImage = await konvaImageToHTMLImage(imageNode);
+            processedCanvas = processCannyEdge(htmlImage, params);
+        }
+        
+        // 프리뷰 컨테이너가 결과를 올바르게 표시할 수 있도록 추가 스타일 적용
+        previewDiv.style.overflow = 'hidden';
+        previewDiv.style.display = 'flex';
+        previewDiv.style.alignItems = 'center';
+        previewDiv.style.justifyContent = 'center';
+        
+        // 미리보기 영역에 결과 표시
+        processedCanvas.style.cssText = `
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 4px;
+            image-rendering: crisp-edges;
+            display: block;
+            margin: 0 auto;
+            object-fit: contain;
+        `;
+        
+        previewDiv.innerHTML = '';
+        previewDiv.appendChild(processedCanvas);
+        
+        // 처리된 캔버스를 컨테이너에 저장 (적용 시 사용)
+        container._processedCanvas = processedCanvas;
+        
+    } catch (error) {
+        console.error('Edge preview failed:', error);
+        previewDiv.innerHTML = '<div style="color: #e74c3c;">처리 중 오류 발생</div>';
+    }
+}
+
+/**
  * Depth 미리보기 처리
  * @param {HTMLElement} container - UI 컨테이너
  * @param {HTMLElement} previewDiv - 미리보기 영역
@@ -1971,20 +1821,132 @@ function getDepthParameters(container) {
 }
 
 /**
+ * OpenCV를 사용한 Edge 처리 (백엔드 API 호출)
+ * @param {Konva.Image} imageNode - 원본 이미지 노드
+ * @param {Object} params - 파라미터
+ * @returns {HTMLCanvasElement} 처리된 캔버스
+ */
+async function processEdgeWithOpenCV(imageNode, params) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    try {
+        console.log('🎛️  OpenCV Canny 전처리 시작...');
+        
+        // Konva 이미지를 데이터 URL로 변환
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        const originalImage = imageNode.image();
+        
+        tempCanvas.width = originalImage.width;
+        tempCanvas.height = originalImage.height;
+        tempCtx.drawImage(originalImage, 0, 0);
+        const imageDataUrl = tempCanvas.toDataURL('image/png');
+        
+        // 백엔드 API 호출
+        const response = await fetch('http://localhost:8080/api/v3/process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                processor: 'canny_opencv',
+                image: imageDataUrl,
+                parameters: {
+                    low_threshold: params.lowThreshold || 100,
+                    high_threshold: params.highThreshold || 200,
+                    blur_kernel: 3
+                }
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(`Canny API failed: ${response.status} - ${error.detail || 'Unknown error'}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Canny processing failed');
+        }
+        
+        console.log('✅ OpenCV Canny 전처리 완료');
+        
+        // 결과 이미지를 캔버스로 변환
+        const img = new Image();
+        
+        return new Promise((resolve, reject) => {
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas);
+            };
+            img.onerror = () => reject(new Error('Failed to load processed Canny image'));
+            img.src = result.processed_image; // Base64 데이터 URL
+        });
+        
+    } catch (error) {
+        console.error('❌ OpenCV Canny 전처리 실패:', error);
+        
+        // 폴백: 에러 캔버스 생성
+        canvas.width = 400;
+        canvas.height = 300;
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('OpenCV Canny 처리 실패', 200, 120);
+        
+        ctx.fillStyle = '#f39c12';
+        ctx.font = '12px Arial';
+        const errorMsg = error.message.length > 40 ? error.message.substring(0, 37) + '...' : error.message;
+        ctx.fillText(errorMsg, 200, 180);
+        
+        ctx.fillStyle = '#95a5a6';
+        ctx.fillText('백엔드 서버 확인 필요', 200, 220);
+        
+        return canvas;
+    }
+}
+
+/**
  * UI에서 Canny 파라미터 수집
  * @param {HTMLElement} container - UI 컨테이너
  * @returns {Object} Canny 파라미터
  */
 function getCannyParameters(container) {
-    const lowThreshold = parseInt(container.querySelector('#low-threshold').value);
-    const highThreshold = parseInt(container.querySelector('#high-threshold').value);
-    const useL2Gradient = container.querySelector('#l2-gradient').checked;
-    
-    return {
-        lowThreshold,
-        highThreshold,
-        useL2Gradient
-    };
+    try {
+        const lowThresholdEl = container.querySelector('#threshold_low');
+        const highThresholdEl = container.querySelector('#threshold_high');
+        const blurRadiusEl = container.querySelector('#blur_radius');
+        const l2GradientEl = container.querySelector('#l2_gradient');
+        
+        const lowThreshold = lowThresholdEl ? parseInt(lowThresholdEl.value) : 100;
+        const highThreshold = highThresholdEl ? parseInt(highThresholdEl.value) : 200;
+        const blurRadius = blurRadiusEl ? parseFloat(blurRadiusEl.value) : 1.4;
+        const useL2Gradient = l2GradientEl ? l2GradientEl.checked : true;
+        
+        console.log('📊 Canny 파라미터:', { lowThreshold, highThreshold, blurRadius, useL2Gradient });
+        
+        return {
+            lowThreshold,
+            highThreshold,
+            blurRadius,
+            useL2Gradient
+        };
+    } catch (error) {
+        console.warn('파라미터 읽기 실패, 기본값 사용:', error);
+        return {
+            lowThreshold: 100,
+            highThreshold: 200,
+            blurRadius: 1.4,
+            useL2Gradient: true
+        };
+    }
 }
 
 // ============================================================================
@@ -2123,16 +2085,10 @@ function createParametersSection(category, parameterGroups) {
         overflow: hidden;
     `;
     
-    // Basic Parameters (항상 표시)
+    // Basic Parameters만 표시 (Advanced는 작동하지 않으므로 제거)
     if (parameterGroups.basic && parameterGroups.basic.length > 0) {
-        const basicSection = createParameterGroup('Basic', parameterGroups.basic, true);
+        const basicSection = createParameterGroup('Parameters', parameterGroups.basic, true);
         section.appendChild(basicSection);
-    }
-    
-    // Advanced Parameters (접을 수 있음)
-    if (parameterGroups.advanced && parameterGroups.advanced.length > 0) {
-        const advancedSection = createParameterGroup('Advanced', parameterGroups.advanced, false);
-        section.appendChild(advancedSection);
     }
     
     return section;
@@ -2609,6 +2565,47 @@ function createActionButtonsSection(category, container) {
                 await handleDepthPreview(depthContainer, previewDiv);
             } else {
                 console.error('Preview div not found for depth processing');
+            }
+        } else if (category === 'edge') {
+            console.log(`Preview ${category} processing...`);
+            
+            // Edge 컨테이너와 프리뷰 영역 찾기
+            const edgeContainer = container;
+            
+            // 디버깅: 현재 컨테이너 구조 확인
+            console.log('🔍 Edge 컨테이너 구조 디버깅:', {
+                container: !!edgeContainer,
+                classList: edgeContainer.classList.toString(),
+                childElementCount: edgeContainer.childElementCount
+            });
+            
+            // 미리보기 영역 찾기 - .preview-area를 직접 타겟팅
+            let previewDiv = edgeContainer.querySelector('.preview-area');
+            
+            if (!previewDiv) {
+                // 프리뷰 섹션 찾아서 preview area 찾기
+                const previewSection = edgeContainer.querySelector('.preview-section');
+                if (previewSection) {
+                    previewDiv = previewSection.querySelector('.preview-area');
+                }
+            }
+            
+            if (!previewDiv) {
+                console.error('❌ Preview area not found');
+                // 사용 가능한 모든 클래스명 출력 (디버깅용)
+                const allElements = Array.from(edgeContainer.querySelectorAll('*'));
+                console.log('📋 모든 하위 요소 클래스:', allElements.map(el => el.className).filter(c => c));
+                return;
+            }
+            
+            if (previewDiv) {
+                console.log('✅ Edge 프리뷰 div 발견:', previewDiv);
+                await handleEdgePreview(edgeContainer, previewDiv);
+            } else {
+                console.error('❌ Preview div not found for edge processing after all attempts');
+                // 사용 가능한 모든 클래스명 출력
+                const allElements = Array.from(edgeContainer.querySelectorAll('*'));
+                console.log('📋 모든 하위 요소 클래스:', allElements.map(el => el.className).filter(c => c));
             }
         } else {
             console.log(`Preview ${category} processing...`);
