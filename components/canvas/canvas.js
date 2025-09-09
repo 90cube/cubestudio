@@ -282,7 +282,17 @@ function addImageToCanvas(imageObject, x, y) {
     layer.add(konvaImage);
     layer.batchDraw();
     
-    // console.log('📷 New image added to canvas');
+    // 레이어 패널 업데이트를 위한 커스텀 이벤트 발생
+    const imageAddedEvent = new CustomEvent('canvasImageAdded', {
+        detail: {
+            imageNode: konvaImage,
+            imageType: 'normal',
+            source: 'user_upload'
+        }
+    });
+    document.dispatchEvent(imageAddedEvent);
+    
+    console.log('📷 New image added to canvas and event dispatched');
 }
 
 /**
@@ -425,6 +435,15 @@ function setupImageSelection() {
             // 선택된 이미지 하이라이트 적용
             highlightSelectedImage(selectedImage);
             
+            // 레이어 패널 업데이트를 위한 커스텀 이벤트 발생
+            const imageSelectedEvent = new CustomEvent('canvasImageSelected', {
+                detail: {
+                    imageNode: selectedImage,
+                    imageType: selectedImage.getAttr('imageType') || 'normal'
+                }
+            });
+            document.dispatchEvent(imageSelectedEvent);
+            
             // console.log('✅ Image selected successfully:', selectedImage);
             // console.log('✅ selectedImage stored:', {
             //     className: selectedImage.className,
@@ -519,6 +538,12 @@ export function deleteSelectedImage() {
     // 하이라이트 제거
     clearImageHighlight();
     
+    // 삭제될 이미지 정보 저장 (이벤트용)
+    const deletedImageInfo = {
+        imageType: selectedImage.getAttr('imageType') || 'normal',
+        id: selectedImage.id() || selectedImage._id
+    };
+    
     // 이미지 삭제
     selectedImage.destroy();
     
@@ -535,6 +560,12 @@ export function deleteSelectedImage() {
     
     // 레이어 다시 그리기
     layer.batchDraw();
+    
+    // 레이어 패널 업데이트를 위한 커스텀 이벤트 발생
+    const imageDeletedEvent = new CustomEvent('canvasImageDeleted', {
+        detail: deletedImageInfo
+    });
+    document.dispatchEvent(imageDeletedEvent);
     
     console.log('✅ Selected image deleted successfully');
 }

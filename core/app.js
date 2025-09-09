@@ -10,6 +10,7 @@ import { MultiDetailerComponent } from '../components/multiDetailer/multiDetaile
 import { LoRASelectorComponent } from '../components/loraSelector/loraSelector.js';
 import { GenerationPanel } from '../components/generationPanel/generationPanel.js';
 import { init as initElementsMenu } from '../components/elementsMenu/elementsMenu.js';
+import { showLayerPanel } from '../components/layerPanel/layerPanel.js';
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,6 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
         createGenerationPanel();
         // console.log('✅ Generation Panel created and should be ready for image selection');
     }, 100);
+    
+    // 12. 레이어 패널 생성 (지연 후 생성)
+    setTimeout(() => {
+        createLayerPanel();
+    }, 150);
 
 });
 
@@ -171,6 +177,27 @@ function setupImageEditingShortcuts() {
         }
     }, {}, 'Delete selected image (alternative)');
     
+    // L키 - 레이어 패널 토글
+    registerShortcut('l', (e) => {
+        // 포커스된 요소가 입력 필드인지 확인
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.contentEditable === 'true'
+        )) {
+            return; // 텍스트 입력 중에는 단축키 비활성화
+        }
+        
+        console.log('🎨 L key pressed - toggling layer panel');
+        // 레이어 패널 토글
+        import('../components/layerPanel/layerPanel.js').then(layerModule => {
+            layerModule.showLayerPanel();
+        });
+        
+        e.preventDefault();
+    }, {}, 'Toggle layer panel');
+    
 }
 
 // 선택된 이미지 찾기 함수
@@ -270,11 +297,18 @@ function calculateSymmetricPositions() {
     const rightTop = topMargin;
     const rightBottom = rightTop + panelHeight + 20;
     
+    // 레이어 패널 위치 (오른쪽 아래, 다른 패널들과 동일한 여백)
+    const layerPanelWidth = 320;
+    const layerPanelHeight = 380;
+    const layerPanelX = viewportWidth - layerPanelWidth - edgeMargin; // 다른 패널들과 동일한 30px 여백
+    const layerPanelY = viewportHeight - layerPanelHeight - edgeMargin; // 다른 패널들과 동일한 30px 여백
+    
     return {
         modelExplorer: { x: leftX, y: leftTop },
         parameters: { x: leftX, y: leftBottom },
         loraSelector: { x: rightX, y: rightTop },
-        multiDetailer: { x: rightX, y: rightBottom }
+        multiDetailer: { x: rightX, y: rightBottom },
+        layerPanel: { x: layerPanelX, y: layerPanelY }
     };
 }
 
@@ -300,6 +334,9 @@ function adjustPanelsOnResize() {
                 break;
             case 'multi-detailer-panel':
                 newPosition = positions.multiDetailer;
+                break;
+            case 'layer-panel':
+                newPosition = positions.layerPanel;
                 break;
         }
         
@@ -497,6 +534,23 @@ function createGenerationPanel() {
             // console.log('- All subscribers:', Array.from(subscribers.keys()));
         }
     };
+}
+
+// 레이어 패널 생성 (오른쪽 아래 위치, 자동 스냅)
+function createLayerPanel() {
+    const positions = calculateSymmetricPositions();
+    
+    const layerPanel = showLayerPanel({
+        id: 'layer-panel', // 자동 스냅을 위한 ID 추가
+        x: positions.layerPanel.x, // 계산된 x 위치
+        y: positions.layerPanel.y, // 계산된 y 위치
+        width: 320,  // 가로 20픽셀 증가 (300 → 320)
+        height: 380, // 세로 20픽셀 감소 (400 → 380)
+        markingColor: '#8b5cf6' // 보라색 테마
+    });
+    
+    console.log('🎨 Layer Panel created');
+    return layerPanel;
 }
 
 /**
