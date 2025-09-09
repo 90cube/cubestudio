@@ -29,6 +29,7 @@ from .services.image_service import ImageService
 from .api.processors import router as processors_router
 from .api.models import router as models_router
 from .api.processing import router as processing_router
+from .api.model_status import router as model_status_router
 
 # Initialize configuration
 config_manager = get_config_manager()
@@ -143,6 +144,7 @@ def create_app() -> FastAPI:
     app.include_router(processors_router, prefix="/api", tags=["processors"])
     app.include_router(models_router, prefix="/api", tags=["models"])
     app.include_router(processing_router, prefix="/api", tags=["processing"])
+    app.include_router(model_status_router, prefix="/api", tags=["model-status"])
 
     return app
 

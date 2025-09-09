@@ -7,7 +7,7 @@ import { setSelectedImage } from '../canvas/canvas.js';
 import { registerShortcut } from '../keyboardManager/keyboardManager.js';
 import { init as initSliderPanel, showSliderPanel, hideSliderPanel } from './sliderPanel.js';
 import { getNodeRect } from '../../core/coordinates.js';
-import { openControlNetPanel } from '../controlnet/controlNetManager.js';
+import { openPreprocessingPanel } from '../preprocessing/preprocessorManager.js';
 
 let stage;
 let layer;
@@ -122,9 +122,9 @@ function setupContextMenu() {
             isDirectAction: true
         },
         {
-            category: 'ControlNet 전처리',
+            category: '이미지 전처리',
             icon: '🎛️',
-            action: () => openControlNetPreprocessing(),
+            action: () => openImagePreprocessing(),
             isDirectAction: true,
             style: 'color: #3498db; font-weight: 500;'
         },
@@ -356,26 +356,22 @@ export function rotateImageByAngle(imageNode, angle) {
 }
 
 /**
- * ControlNet 전처리 패널 열기
+ * 이미지 전처리 패널 열기
  */
-function openControlNetPreprocessing() {
+function openImagePreprocessing() {
     const image = getCurrentSelectedImage();
     if (!image) {
-        console.warn('No image selected for ControlNet preprocessing');
+        console.warn('No image selected for preprocessing');
         return;
     }
     
-    console.log('Opening ControlNet preprocessing for image:', image);
+    console.log('Opening preprocessing panel for image:', image);
     
     try {
-        openControlNetPanel(image);
+        openPreprocessingPanel(image);
     } catch (error) {
-        console.error('Failed to open ControlNet panel:');
-        console.error('Full error object:', error);
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        alert('ControlNet 전처리 기능을 준비 중입니다...');
+        console.error('Failed to open preprocessing panel:', error);
+        alert('이미지 전처리 기능을 준비 중입니다...');
     }
 }
 

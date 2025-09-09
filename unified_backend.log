@@ -5004,3 +5004,1277 @@
 2025-09-09 12:55:45,168 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
 2025-09-09 12:55:45,170 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
 2025-09-09 12:55:45,257 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.317s, fallback: False)
+2025-09-09 12:58:17,499 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 12:58:17,499 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 12:58:17,500 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 12:58:17,501 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 12:58:36,910 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 12:58:40,925 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 12:58:40,926 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 12:58:40,926 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 12:58:40,926 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 12:58:42,610 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 12:58:42,610 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 12:58:42,666 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 12:58:42,668 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 12:58:42,670 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 12:58:42,670 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 12:58:42,671 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 12:58:42,726 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.817s, fallback: False)
+2025-09-09 13:28:38,794 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 13:28:38,794 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 13:28:38,796 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 13:28:38,797 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 13:28:48,674 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 14:23:30,583 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 14:23:30,583 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 14:23:30,585 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 14:23:30,585 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 14:23:43,531 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 14:39:41,642 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 14:39:41,642 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 14:39:41,644 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 14:39:41,644 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 14:39:54,008 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 14:42:30,012 - __main__ - INFO - PyTorch loaded successfully
+2025-09-09 14:42:30,012 - __main__ - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 14:42:30,012 - __main__ - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 14:42:30,012 - __main__ - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 14:42:30,013 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 14:42:30,013 - backend.models.processor - INFO - [FOUND] Model: dpt_beit_large_512 (1508.68MB)
+2025-09-09 14:42:30,013 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 14:42:30,013 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 14:42:30,014 - backend.models.processor - INFO - [FOUND] Model: network_bsds500 (56.14MB)
+2025-09-09 14:42:30,014 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 14:42:30,014 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 14:42:30,014 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 14:42:30,014 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 14:42:30,014 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 14:42:30,014 - backend.models.processor - INFO - [FOUND] Model: mlsd (6.05MB)
+2025-09-09 14:42:30,014 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 14:42:30,014 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 14:42:30,014 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 14:42:30,014 - backend.services.processor_service - INFO - ProcessorService initialized: 8/14 models available
+2025-09-09 14:42:30,014 - __main__ - INFO - Model scan complete: 8/14 models available
+2025-09-09 14:42:30,014 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 14:43:02,441 - backend.services.processor_service - INFO - Processors list requested: 3 processors
+2025-09-09 14:43:02,441 - backend.api.processors - INFO - [API] Processors list requested: 3 processors
+2025-09-09 14:44:23,658 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 14:44:23,659 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.023s, fallback: False)
+2025-09-09 15:34:03,093 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 15:34:03,093 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 15:34:03,095 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 15:34:03,095 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 15:34:18,237 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 15:34:20,988 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 15:34:21,019 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.052s, fallback: False)
+2025-09-09 16:18:32,713 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 16:18:32,713 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 16:18:32,716 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 16:18:32,716 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 16:18:43,279 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 16:18:47,209 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 16:18:47,237 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.047s, fallback: False)
+2025-09-09 17:33:21,748 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:33:21,748 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:33:21,751 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:33:21,751 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:33:34,470 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 17:33:40,688 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 17:33:40,716 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.049s, fallback: False)
+2025-09-09 17:33:45,711 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 17:33:45,739 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.044s, fallback: False)
+2025-09-09 17:35:23,980 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:35:23,980 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:35:23,983 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:35:23,983 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:42,323 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:42,323 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:42,325 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:42,325 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:42,498 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:42,499 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:42,500 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:42,500 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:42,851 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:42,851 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:42,853 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:42,853 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:43,109 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:43,110 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:43,111 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:43,111 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:43,462 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:43,463 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:43,465 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:43,465 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:43,843 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:43,843 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:43,846 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:43,846 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:44,089 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:44,089 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:44,092 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:44,092 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:44,485 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:44,486 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:44,488 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:44,488 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:44,882 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:44,882 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:44,885 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:44,885 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:45,279 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:45,279 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:45,282 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:45,282 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:45,667 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:45,667 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:45,669 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:45,669 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:46,083 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:46,083 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:46,085 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:46,085 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:46,481 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:46,481 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:46,482 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:46,482 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:46,887 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:46,887 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:46,889 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:46,889 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:47,281 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:47,281 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:47,283 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:47,283 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:47,658 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:47,659 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:47,661 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:47,661 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:48,051 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:48,051 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:48,053 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:48,053 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:48,456 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:48,456 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:48,458 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:48,458 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:48,858 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:48,858 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:48,860 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:48,860 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:49,258 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:49,258 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:49,260 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:49,260 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:49,661 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:49,661 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:49,664 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:49,664 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:50,066 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:50,066 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:50,071 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:50,071 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:50,460 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:50,460 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:50,462 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:50,462 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:50,867 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:50,867 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:50,869 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:50,869 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:51,263 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:51,263 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:51,265 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:51,265 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:51,674 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:51,674 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:51,676 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:51,676 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:52,079 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:52,079 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:52,081 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:52,081 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:52,467 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:52,467 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:52,469 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:52,469 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:52,877 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:52,877 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:52,879 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:52,879 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:53,268 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:53,268 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:53,270 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:53,270 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:53,678 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:53,678 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:53,680 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:53,680 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:54,087 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:54,087 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:54,089 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:54,089 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:54,481 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:54,481 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:54,483 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:54,483 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:54,876 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:54,876 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:54,878 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:54,878 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:55,275 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:55,275 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:55,277 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:55,277 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:55,672 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:55,672 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:55,674 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:55,674 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:56,070 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:56,070 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:56,072 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:56,072 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:56,471 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:56,471 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:56,473 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:56,473 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:57:56,864 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:57:56,864 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:57:56,866 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:57:56,866 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:58:00,071 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:58:00,071 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:58:00,073 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:58:00,073 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:58:03,926 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 17:58:03,927 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 17:58:03,928 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 17:58:03,928 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 17:58:18,502 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 17:58:21,538 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading dpt_hybrid from D:\Cube_Project\Cubestudio\models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-09 17:58:21,539 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:21,539 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:21,539 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: dpt_hybrid
+2025-09-09 17:58:24,041 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:24,041 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:24,253 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:24,255 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:24,256 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 96.42
+2025-09-09 17:58:24,256 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] dpt_hybrid processing completed successfully
+2025-09-09 17:58:24,256 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: dpt_hybrid
+2025-09-09 17:58:24,296 - backend.services.image_service - INFO - [PROCESS] Processing complete: dpt_hybrid (2.773s, fallback: False)
+2025-09-09 17:58:26,659 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:26,660 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:26,660 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:26,660 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:28,326 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:28,327 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:28,359 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:28,360 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:28,361 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:28,361 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:28,363 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:28,406 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.762s, fallback: False)
+2025-09-09 17:58:30,971 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:30,971 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:30,972 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:30,972 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:32,035 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:32,036 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:32,085 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:32,086 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:32,088 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:32,088 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:32,089 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:32,132 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.177s, fallback: False)
+2025-09-09 17:58:34,368 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:34,369 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:34,369 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:34,369 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:35,436 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:35,437 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:35,486 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:35,487 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:35,488 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:35,488 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:35,490 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:35,535 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.181s, fallback: False)
+2025-09-09 17:58:36,982 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:36,983 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:36,983 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:36,983 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:38,053 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:38,053 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:38,102 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:38,103 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:38,105 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:38,105 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:38,106 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:38,149 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.182s, fallback: False)
+2025-09-09 17:58:40,331 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:40,332 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:40,332 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:40,332 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:41,425 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:41,425 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:41,482 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:41,483 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:41,484 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:41,484 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:41,486 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:41,529 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.213s, fallback: False)
+2025-09-09 17:58:42,219 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:42,220 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:42,220 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:42,220 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:43,238 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:43,238 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:43,272 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:43,273 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:43,275 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:43,275 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:43,277 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:43,323 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.120s, fallback: False)
+2025-09-09 17:58:45,469 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:45,470 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:45,470 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:45,470 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:46,532 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:46,532 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:46,567 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:46,568 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:46,569 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:46,569 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:46,570 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:46,613 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.159s, fallback: False)
+2025-09-09 17:58:53,143 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:53,144 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:53,144 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:53,144 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:54,219 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:54,219 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:54,268 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:54,269 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:54,270 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:54,270 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:54,272 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:54,315 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.186s, fallback: False)
+2025-09-09 17:58:57,435 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:58:57,436 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:58:57,436 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:58:57,436 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:58:58,521 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:58:58,521 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:58:58,554 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:58:58,555 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:58:58,556 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:58:58,556 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:58:58,558 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:58:58,602 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.182s, fallback: False)
+2025-09-09 17:59:01,129 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:59:01,130 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:59:01,130 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:59:01,130 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:59:02,191 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:59:02,191 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:59:02,241 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:59:02,242 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:59:02,244 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:59:02,244 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:59:02,245 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:59:02,288 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.173s, fallback: False)
+2025-09-09 17:59:04,828 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:59:04,829 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:59:04,829 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:59:04,829 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:59:05,904 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:59:05,904 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:59:05,935 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:59:05,936 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:59:05,938 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:59:05,938 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:59:05,940 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:59:05,983 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.169s, fallback: False)
+2025-09-09 17:59:10,349 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:59:10,350 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:59:10,350 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:59:10,350 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:59:11,410 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:59:11,410 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:59:11,459 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:59:11,460 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:59:11,462 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:59:11,462 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:59:11,464 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:59:11,507 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.172s, fallback: False)
+2025-09-09 17:59:12,898 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading midas_v21 from D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 17:59:12,899 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] PIL image created: (1152, 768)
+2025-09-09 17:59:12,899 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Using device: cuda
+2025-09-09 17:59:12,899 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Loading original MiDaS model: midas_v21
+2025-09-09 17:59:13,934 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Model loaded successfully: 384x384
+2025-09-09 17:59:13,935 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Processing image with original MiDaS
+2025-09-09 17:59:13,973 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] Depth map generated: (768, 1152)
+2025-09-09 17:59:13,974 - backend.utils.image_utils - INFO - [DEBUG] Depth range: 0 to 255
+2025-09-09 17:59:13,975 - backend.utils.image_utils - INFO - [DEBUG] Depth mean: 139.34
+2025-09-09 17:59:13,976 - backend.utils.image_utils - INFO - [ORIGINAL-MIDAS] midas_v21 processing completed successfully
+2025-09-09 17:59:13,977 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 17:59:14,021 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.137s, fallback: False)
+2025-09-09 18:30:15,342 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 18:30:15,342 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 18:30:15,344 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 18:30:15,344 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 18:30:27,812 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 18:30:36,470 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 18:30:36,501 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.052s, fallback: False)
+2025-09-09 18:37:33,630 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 18:37:33,630 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 18:37:33,630 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 18:37:33,630 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 18:37:33,631 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 18:37:33,631 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 18:37:33,632 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 18:37:33,632 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 18:37:33,632 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 18:37:33,632 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 18:37:33,632 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 18:37:33,632 - backend.services.processor_service - INFO - ProcessorService initialized: 5/14 models available
+2025-09-09 18:37:33,632 - backend.main - INFO - Model scan complete: 5/14 models available
+2025-09-09 18:37:33,633 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 18:37:44,409 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 18:37:44,409 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 18:37:44,411 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 18:37:44,411 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 18:41:17,301 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 18:41:17,301 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 18:41:17,303 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 18:41:17,303 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 18:52:13,930 - backend.api.processors - INFO - [API] Preprocessors list requested: 3 preprocessors available
+2025-09-09 18:52:31,554 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 18:52:31,554 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 18:52:31,554 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 18:52:31,554 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 18:52:31,555 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 18:52:31,555 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 18:52:31,556 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 18:52:31,556 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 18:52:31,556 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 18:52:31,556 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 18:52:31,556 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 18:52:31,556 - backend.services.processor_service - INFO - ProcessorService initialized: 5/14 models available
+2025-09-09 18:52:31,556 - backend.main - INFO - Model scan complete: 5/14 models available
+2025-09-09 18:52:31,556 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 18:52:43,966 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 18:54:51,906 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 18:54:51,906 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 18:54:51,908 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 18:54:51,908 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 18:54:59,182 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 18:55:03,076 - backend.services.image_service - WARNING - [WARN] Model not available for depth_anything_v2, using fallback
+2025-09-09 18:55:03,076 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for depth_anything_v2. Backend processing is required.
+2025-09-09 18:56:54,597 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 18:56:54,598 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 18:56:54,598 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 18:56:54,598 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 18:57:38,423 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 18:57:38,423 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 18:57:38,423 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 18:57:38,423 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 18:57:38,424 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 18:57:38,425 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 18:57:38,425 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 18:57:38,425 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 18:57:38,425 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 18:57:38,425 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 18:57:38,425 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 18:57:38,425 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 18:57:38,425 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 18:57:38,425 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 18:57:38,425 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 18:57:38,425 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 18:57:38,426 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 18:57:38,426 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 18:57:38,426 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 18:57:38,426 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 18:57:38,426 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 18:57:38,426 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 18:58:05,042 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 18:58:05,043 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 18:58:05,043 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 18:58:05,043 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 18:58:05,044 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 18:58:05,044 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 18:58:05,044 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 18:58:05,044 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 18:58:05,044 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 18:58:05,044 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 18:58:05,044 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 18:58:05,044 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 18:58:05,044 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 18:58:05,044 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 18:58:05,045 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 18:58:05,045 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 18:58:05,045 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 18:58:05,045 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 18:58:05,045 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 18:58:05,045 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 18:58:05,045 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 18:58:05,045 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 18:58:11,598 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 18:59:06,055 - backend.services.image_service - WARNING - [WARN] PyTorch processor depth_anything_v2 not implemented, using fallback
+2025-09-09 18:59:06,055 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for depth_anything_v2. Backend processing is required.
+2025-09-09 18:59:59,085 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 18:59:59,085 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 18:59:59,085 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 18:59:59,085 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 18:59:59,086 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 18:59:59,086 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 18:59:59,086 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 18:59:59,087 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 18:59:59,087 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 18:59:59,087 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 18:59:59,087 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 18:59:59,087 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 18:59:59,087 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 18:59:59,087 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 18:59:59,088 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 19:00:07,296 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 19:00:07,314 - dinov2 - WARNING - xFormers not available
+2025-09-09 19:00:07,316 - dinov2 - WARNING - xFormers not available
+2025-09-09 19:00:07,345 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 19:00:07,350 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 19:00:08,312 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 19:00:08,624 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (1, 1, 3)
+2025-09-09 19:00:08,625 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 19:00:08,625 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (1, 1, 3), range: 0-4
+2025-09-09 19:00:08,625 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 19:00:08,626 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.335s, fallback: False)
+2025-09-09 19:05:14,416 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 19:05:14,416 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 19:05:14,418 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 19:05:14,418 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 19:05:15,431 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 19:05:15,431 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 19:05:15,433 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 19:05:15,433 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 19:05:24,961 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 19:05:28,678 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 19:05:28,678 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 19:05:28,682 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 19:05:29,678 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 19:05:29,905 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 19:05:29,905 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 19:05:29,905 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 19:05:29,906 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 19:05:29,956 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.294s, fallback: False)
+2025-09-09 19:05:35,244 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 19:05:35,244 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 19:05:35,247 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 19:05:36,212 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 19:05:36,485 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 19:05:36,485 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 19:05:36,485 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 19:05:36,485 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 19:05:36,541 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.315s, fallback: False)
+2025-09-09 19:05:38,416 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 19:05:38,416 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 19:05:38,419 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 19:05:39,305 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 19:05:39,419 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 19:05:39,419 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 19:05:39,420 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 19:05:39,420 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 19:05:39,468 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.068s, fallback: False)
+2025-09-09 19:05:41,049 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 19:05:41,049 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 19:05:41,052 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 19:05:41,980 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 19:05:42,258 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 19:05:42,259 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 19:05:42,259 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 19:05:42,259 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 19:05:42,311 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.277s, fallback: False)
+2025-09-09 19:35:28,573 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 19:35:28,573 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 19:35:28,575 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 19:35:29,463 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 19:35:29,538 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (1, 1)
+2025-09-09 19:35:29,538 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 19:35:29,538 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (1, 1, 3), range: 0-0
+2025-09-09 19:35:29,539 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 19:35:29,539 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (0.966s, fallback: False)
+2025-09-09 20:10:48,062 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 20:10:48,063 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 20:10:48,065 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 20:10:48,065 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 20:11:19,247 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:11:19,247 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:11:19,248 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:11:19,248 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:11:19,249 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:11:19,249 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:11:19,249 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:11:19,249 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:11:19,249 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:11:19,249 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:11:19,249 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:11:19,249 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:11:19,250 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:11:19,250 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:11:19,250 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:11:19,250 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:11:39,138 - dinov2 - WARNING - xFormers not available
+2025-09-09 20:11:39,140 - dinov2 - WARNING - xFormers not available
+2025-09-09 20:11:39,141 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:11:39,146 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:11:40,156 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:13:07,966 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:13:07,969 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:13:08,980 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:14:07,254 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:14:07,254 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:14:07,254 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:14:07,254 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:14:07,255 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:14:07,255 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:14:07,255 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:14:07,255 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:14:07,256 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:14:07,256 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:14:07,256 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:14:07,256 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:14:07,256 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:14:07,256 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:14:07,256 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:14:20,574 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:14:20,577 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:14:21,494 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:14:45,581 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:14:45,583 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:14:46,468 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:19:03,552 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 20:19:03,552 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 20:19:03,554 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 20:19:03,554 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 20:19:31,124 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 20:19:31,124 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.010s, fallback: False)
+2025-09-09 20:19:38,638 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:19:38,639 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:19:38,641 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:19:39,501 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:19:39,816 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (1, 1, 3)
+2025-09-09 20:19:39,816 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:19:39,816 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (1, 1, 3), range: 0-4
+2025-09-09 20:19:39,816 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:19:39,817 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.178s, fallback: False)
+2025-09-09 20:20:41,451 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:20:41,452 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:20:41,452 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:20:41,452 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:20:41,453 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:20:41,453 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:20:41,453 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:20:41,453 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:20:41,453 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:20:41,453 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:20:41,453 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:20:41,454 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:20:41,454 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:20:41,454 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:20:41,454 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:20:41,454 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:21:28,506 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:21:28,506 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:21:28,509 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:21:29,389 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:21:29,481 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (100, 100, 3)
+2025-09-09 20:21:29,481 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:21:29,481 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (100, 100, 3), range: 0-255
+2025-09-09 20:21:29,481 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:21:29,483 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (0.977s, fallback: False)
+2025-09-09 20:24:14,914 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 20:24:14,914 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 20:24:14,916 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 20:24:14,916 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 20:24:20,983 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 20:24:31,263 - backend.services.image_service - ERROR - [ERROR] PyTorch processing failed for midas_v21: name 'process_depth_original_midas' is not defined
+2025-09-09 20:24:31,263 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for midas_v21. Backend processing is required.
+2025-09-09 20:24:35,194 - backend.services.image_service - ERROR - [ERROR] PyTorch processing failed for dpt_hybrid: name 'process_depth_original_midas' is not defined
+2025-09-09 20:24:35,194 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for dpt_hybrid. Backend processing is required.
+2025-09-09 20:24:37,472 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:24:37,472 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:24:37,475 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:24:38,447 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:24:38,651 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 20:24:38,652 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:24:38,652 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 20:24:38,652 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:24:38,704 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.248s, fallback: False)
+2025-09-09 20:24:49,236 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:24:49,236 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:24:49,239 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:24:50,213 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:24:50,414 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 20:24:50,414 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:24:50,414 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 20:24:50,415 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:24:50,467 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.247s, fallback: False)
+2025-09-09 20:24:54,151 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:24:54,151 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:24:54,154 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:24:55,072 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:24:55,350 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 20:24:55,350 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:24:55,350 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 20:24:55,351 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:24:55,403 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.268s, fallback: False)
+2025-09-09 20:26:51,674 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 20:26:51,674 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 20:26:51,676 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 20:26:51,677 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 20:27:04,326 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 20:27:12,975 - backend.services.image_service - ERROR - [ERROR] PyTorch processing failed for midas_v21: name 'process_depth_original_midas' is not defined
+2025-09-09 20:27:12,975 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for midas_v21. Backend processing is required.
+2025-09-09 20:27:16,032 - backend.services.image_service - ERROR - [ERROR] PyTorch processing failed for dpt_hybrid: name 'process_depth_original_midas' is not defined
+2025-09-09 20:27:16,032 - backend.services.image_service - ERROR - [CRITICAL] Processing failed for dpt_hybrid. Backend processing is required.
+2025-09-09 20:29:05,403 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:29:05,404 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:29:05,404 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:29:05,404 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:29:05,405 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:29:05,405 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:29:05,405 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:29:05,405 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:29:05,405 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:29:05,405 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:29:05,406 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:29:05,406 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:29:05,406 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:29:05,406 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:29:05,406 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:29:05,406 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:30:25,811 - backend.utils.image_utils - ERROR - Failed to decode base64 image: broken data stream when reading image file
+2025-09-09 20:30:32,905 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:30:32,905 - backend.utils.image_utils - WARNING - [MIDAS] Using fallback depth processing for midas_v21
+2025-09-09 20:30:32,905 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:30:32,906 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.001s, fallback: False)
+2025-09-09 20:37:32,797 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 20:37:32,797 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 20:37:32,798 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 20:37:32,798 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 20:37:38,358 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 20:37:41,383 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:37:41,383 - backend.utils.image_utils - WARNING - [MIDAS] Using fallback depth processing for midas_v21
+2025-09-09 20:37:41,399 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:37:41,475 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.108s, fallback: False)
+2025-09-09 20:41:34,845 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:41:34,846 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:41:34,846 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:41:34,846 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:41:34,847 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:41:34,847 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:41:34,847 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:41:34,847 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:41:34,847 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:41:34,847 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:41:34,848 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:41:34,848 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:41:34,848 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:41:34,848 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:41:34,848 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:41:34,848 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:41:43,589 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:41:43,595 - backend.utils.image_utils - ERROR - [MIDAS] Failed to process with midas_v21: 'path'
+2025-09-09 20:41:43,595 - backend.utils.image_utils - WARNING - [MIDAS] Using fallback depth processing for midas_v21
+2025-09-09 20:41:43,596 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:41:43,596 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.014s, fallback: False)
+2025-09-09 20:43:29,266 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:43:29,266 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:43:29,266 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:43:29,266 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:43:29,267 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:43:29,268 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:43:29,268 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:43:29,268 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:43:29,268 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:43:29,268 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:43:29,268 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:43:29,269 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:43:29,269 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:43:29,269 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:43:29,269 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:43:36,281 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:43:36,596 - backend.utils.image_utils - ERROR - [MIDAS] Failed to process with midas_v21: cannot import name 'Compose' from 'backend.midas_original.transforms' (D:\Cube_Project\Cubestudio\backend\midas_original\transforms.py)
+2025-09-09 20:43:36,596 - backend.utils.image_utils - WARNING - [MIDAS] Using fallback depth processing for midas_v21
+2025-09-09 20:43:36,596 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:43:36,597 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.323s, fallback: False)
+2025-09-09 20:44:15,972 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:44:15,972 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:44:15,972 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:44:15,973 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:44:15,973 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:44:15,974 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:44:15,974 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:44:15,974 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:44:15,974 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:44:15,974 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:44:15,974 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:44:15,974 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:44:15,974 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:44:15,974 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:44:15,974 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:44:15,974 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:44:15,975 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:44:15,975 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:44:15,975 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:44:15,975 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:44:15,975 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:44:15,975 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:44:23,580 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:44:23,843 - backend.utils.image_utils - ERROR - [MIDAS] Failed to process with midas_v21: 'path'
+2025-09-09 20:44:23,843 - backend.utils.image_utils - WARNING - [MIDAS] Using fallback depth processing for midas_v21
+2025-09-09 20:44:23,844 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:44:23,844 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.271s, fallback: False)
+2025-09-09 20:44:49,747 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:44:49,747 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:44:49,747 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:44:49,747 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:44:49,749 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:44:49,749 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:44:49,749 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:44:49,749 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:44:49,749 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:44:49,749 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:44:49,749 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:44:49,749 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:44:49,749 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:44:49,749 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:44:49,749 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:44:49,750 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:44:49,750 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:44:49,750 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:44:49,750 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:44:49,750 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:44:49,750 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:44:49,750 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:44:57,164 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:44:57,417 - backend.utils.image_utils - ERROR - [MIDAS] Failed to process with midas_v21: 'path'
+2025-09-09 20:44:57,418 - backend.utils.image_utils - ERROR - [MIDAS] Full traceback: Traceback (most recent call last):
+  File "D:\Cube_Project\Cubestudio\backend\utils\image_utils.py", line 266, in process_depth_original_midas
+    model_path = model_info['path']
+                 ~~~~~~~~~~^^^^^^^^
+KeyError: 'path'
+
+2025-09-09 20:44:57,418 - backend.utils.image_utils - WARNING - [MIDAS] Using fallback depth processing for midas_v21
+2025-09-09 20:44:57,418 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:44:57,419 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (0.262s, fallback: False)
+2025-09-09 20:45:38,612 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 20:45:38,612 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 20:45:38,613 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 20:45:38,613 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 20:45:38,614 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 20:45:38,614 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 20:45:38,614 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 20:45:38,614 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 20:45:38,614 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 20:45:38,614 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 20:45:38,614 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 20:45:38,614 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 20:45:38,614 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 20:45:38,614 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 20:45:38,615 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 20:45:38,615 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 20:45:38,615 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 20:45:38,615 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 20:45:38,615 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 20:45:38,615 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 20:45:38,615 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 20:45:38,615 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 20:45:47,603 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:45:47,860 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 20:45:49,992 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 20:45:49,993 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:45:49,995 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (2.399s, fallback: False)
+2025-09-09 20:54:54,183 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 20:54:54,183 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 20:54:54,184 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 20:54:54,184 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 20:55:04,217 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 20:55:06,590 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 20:55:06,590 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 20:55:08,467 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 20:55:08,470 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 20:55:08,608 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (2.106s, fallback: False)
+2025-09-09 20:55:10,607 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:55:10,613 - dinov2 - WARNING - xFormers not available
+2025-09-09 20:55:10,614 - dinov2 - WARNING - xFormers not available
+2025-09-09 20:55:10,616 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:55:10,621 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:55:11,611 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:55:11,955 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (1536, 3072, 3)
+2025-09-09 20:55:11,956 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:55:11,957 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (1536, 3072, 3), range: 0-255
+2025-09-09 20:55:11,958 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:55:12,092 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.572s, fallback: False)
+2025-09-09 20:55:15,623 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:55:15,623 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:55:15,626 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:55:16,536 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:55:16,876 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (1536, 3072, 3)
+2025-09-09 20:55:16,876 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:55:16,877 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (1536, 3072, 3), range: 0-255
+2025-09-09 20:55:16,878 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:55:17,011 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.476s, fallback: False)
+2025-09-09 20:55:18,210 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 20:55:18,210 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 20:55:18,214 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 20:55:19,074 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 20:55:19,264 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (1536, 3072, 3)
+2025-09-09 20:55:19,265 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 20:55:19,266 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (1536, 3072, 3), range: 0-255
+2025-09-09 20:55:19,266 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 20:55:19,396 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.274s, fallback: False)
+2025-09-09 21:04:13,215 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 21:19:04,276 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 21:19:04,276 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 21:19:04,277 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 21:19:04,278 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 21:19:09,869 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 21:19:11,850 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 21:19:11,850 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 21:19:13,645 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 21:19:13,646 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 21:19:13,696 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.862s, fallback: False)
+2025-09-09 21:19:13,721 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 21:19:13,722 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 21:19:14,764 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 21:19:14,765 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 21:19:14,818 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.114s, fallback: False)
+2025-09-09 21:19:14,841 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 21:19:14,841 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 21:19:15,931 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 21:19:15,933 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 21:19:15,985 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.163s, fallback: False)
+2025-09-09 21:19:16,009 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with dpt_hybrid
+2025-09-09 21:19:16,010 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-09 21:19:17,453 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with dpt_hybrid using dpt_hybrid_384
+2025-09-09 21:19:17,454 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: dpt_hybrid
+2025-09-09 21:19:17,503 - backend.services.image_service - INFO - [PROCESS] Processing complete: dpt_hybrid (1.514s, fallback: False)
+2025-09-09 21:19:17,527 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 21:19:17,527 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 21:19:17,531 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 21:19:18,495 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 21:19:18,622 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 21:19:18,622 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 21:19:18,622 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 21:19:18,623 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 21:19:18,673 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.165s, fallback: False)
+2025-09-09 21:19:18,698 - backend.services.image_service - INFO - [OK] Processed with built-in: canny_opencv
+2025-09-09 21:19:18,724 - backend.services.image_service - INFO - [PROCESS] Processing complete: canny_opencv (0.045s, fallback: False)
+2025-09-09 21:21:14,776 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 21:21:14,776 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 21:21:14,778 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 21:21:14,778 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 21:21:15,140 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 21:21:15,140 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 21:21:15,142 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 21:21:15,142 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 21:21:20,578 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 21:21:23,737 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 21:21:23,737 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 21:21:25,573 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 21:21:25,574 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 21:21:25,618 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.896s, fallback: False)
+2025-09-09 21:21:28,898 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 21:21:28,898 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 21:21:30,011 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 21:21:30,012 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 21:21:30,057 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.174s, fallback: False)
+2025-09-09 21:39:58,392 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 21:39:58,393 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 21:39:58,395 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 21:39:58,395 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 21:53:19,224 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 21:53:19,224 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 21:53:19,226 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 21:53:19,226 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 21:53:27,519 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 22:14:36,466 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:14:36,466 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:14:36,468 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:14:36,468 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:14:42,302 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 22:29:26,030 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:26,031 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:26,033 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:26,033 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:26,895 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:26,895 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:26,897 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:26,897 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:27,157 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:27,157 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:27,159 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:27,159 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:27,544 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:27,544 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:27,546 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:27,546 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:27,923 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:27,923 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:27,925 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:27,925 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:28,324 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:28,324 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:28,326 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:28,326 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:28,729 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:28,729 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:28,731 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:28,731 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:29,112 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:29,112 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:29,114 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:29,115 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:29,518 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:29,518 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:29,521 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:29,521 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:29,903 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:29,903 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:29,905 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:29,905 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:30,303 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:30,303 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:30,305 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:30,305 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:30,699 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:30,699 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:30,701 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:30,701 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:31,098 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:31,098 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:31,101 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:31,101 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:31,493 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:31,493 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:31,495 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:31,495 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:31,884 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:31,884 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:31,886 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:31,886 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:32,276 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:32,277 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:32,281 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:32,281 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:32,672 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:32,672 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:32,674 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:32,674 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:33,077 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:33,077 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:33,079 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:33,079 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:33,468 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:33,468 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:33,470 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:33,470 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:38,752 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:29:38,752 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:29:38,755 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:29:38,755 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:29:46,284 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 22:30:02,556 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:30:02,556 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:30:02,559 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:30:02,559 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:34:21,397 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:34:21,397 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:34:21,398 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:34:21,398 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:34:27,862 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 22:35:47,845 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:35:47,845 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:35:47,847 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:35:47,847 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:35:55,963 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 22:45:13,914 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 22:45:13,914 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 22:45:13,916 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 22:45:13,916 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 22:45:19,857 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 22:45:26,304 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 22:45:26,304 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 22:45:28,312 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 22:45:28,313 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 22:45:28,359 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (2.070s, fallback: False)
+2025-09-09 22:45:30,188 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 22:45:30,189 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 22:45:31,364 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 22:45:31,365 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 22:45:31,411 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.237s, fallback: False)
+2025-09-09 22:45:33,000 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 22:45:33,000 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 22:45:34,182 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 22:45:34,183 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 22:45:34,231 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.245s, fallback: False)
+2025-09-09 22:45:35,432 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 22:45:35,432 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 22:45:36,589 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 22:45:36,591 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 22:45:36,638 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.221s, fallback: False)
+2025-09-09 23:00:12,712 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 23:00:12,712 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 23:00:12,712 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 23:00:12,712 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 23:00:45,229 - backend.main - INFO - PyTorch loaded successfully
+2025-09-09 23:00:45,229 - backend.main - WARNING - Enhanced preprocessing not available: No module named 'integrate_enhanced_preprocessors'
+2025-09-09 23:00:45,229 - backend.main - INFO - [START] Starting CUBE Studio Unified Backend 4.0.0
+2025-09-09 23:00:45,229 - backend.main - INFO - [PATH] Models path: D:\Cube_Project\Cubestudio\models\preprocessors
+2025-09-09 23:00:45,230 - backend.models.processor - INFO - [FOUND] Model: dpt_hybrid (469.93MB)
+2025-09-09 23:00:45,230 - backend.models.processor - WARNING - [MISSING] Model: dpt_beit_large_512 (dpt_beit_large_512.pt)
+2025-09-09 23:00:45,231 - backend.models.processor - INFO - [FOUND] Model: midas_v21 (402.94MB)
+2025-09-09 23:00:45,231 - backend.models.processor - INFO - [FOUND] Model: depth_anything_v2_vitb (371.90MB)
+2025-09-09 23:00:45,231 - backend.models.processor - INFO - [FOUND] Model: hed (28.08MB)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: network_bsds500 (network-bsds500.pth)
+2025-09-09 23:00:45,231 - backend.models.processor - INFO - [FOUND] Model: body_pose (199.57MB)
+2025-09-09 23:00:45,231 - backend.models.processor - INFO - [FOUND] Model: hand_pose (140.52MB)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: dw_openpose (dw-ll_ucoco_384.pth)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: oneformer_coco (OneFormer_coco_swin_large.pth)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: oneformer_ade20k (OneFormer_ade20k_swin_large.pth)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: mlsd (mlsd_large_512_fp32.pth)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: clip (clip_g.safetensors)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: lama (big-lama.pt)
+2025-09-09 23:00:45,231 - backend.models.processor - WARNING - [MISSING] Model: realesrgan (RealESRGAN_x4plus.pth)
+2025-09-09 23:00:45,231 - backend.services.processor_service - INFO - ProcessorService initialized: 6/15 models available
+2025-09-09 23:00:45,231 - backend.main - INFO - Model scan complete: 6/15 models available
+2025-09-09 23:00:45,231 - backend.services.image_service - INFO - ImageService initialized with 3 built-in processors
+2025-09-09 23:02:18,096 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 23:02:18,096 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 23:02:18,097 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 23:02:18,097 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 23:02:23,663 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 23:02:39,132 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:02:39,132 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:02:40,885 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:02:40,887 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:02:40,931 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.823s, fallback: False)
+2025-09-09 23:02:42,281 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:02:42,282 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:02:43,453 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:02:43,454 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:02:43,499 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.242s, fallback: False)
+2025-09-09 23:02:46,361 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:02:46,361 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:02:47,506 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:02:47,508 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:02:47,551 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.215s, fallback: False)
+2025-09-09 23:07:22,888 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 23:07:22,888 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 23:07:22,890 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 23:07:22,890 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 23:07:28,217 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 23:07:34,180 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:07:34,181 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:07:36,167 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:07:36,168 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:07:36,218 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (2.052s, fallback: False)
+2025-09-09 23:07:37,820 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:07:37,820 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:07:38,990 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:07:38,991 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:07:39,042 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.237s, fallback: False)
+2025-09-09 23:07:40,587 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:07:40,587 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:07:41,752 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:07:41,754 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:07:41,805 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.232s, fallback: False)
+2025-09-09 23:13:16,652 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 23:13:16,652 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 23:13:16,654 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 23:13:16,654 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 23:13:20,805 - backend.services.model_scanner - INFO - Scanned 20 checkpoint files
+2025-09-09 23:13:20,805 - backend.api.models - INFO - [API] Checkpoints list requested: 20 models found
+2025-09-09 23:13:20,806 - backend.services.model_scanner - INFO - Scanned 6 VAE files
+2025-09-09 23:13:20,806 - backend.api.models - INFO - [API] VAEs list requested: 6 models found
+2025-09-09 23:13:28,279 - backend.api.processors - INFO - [API] Preprocessors list requested: 4 preprocessors available
+2025-09-09 23:13:31,147 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with midas_v21
+2025-09-09 23:13:31,147 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\midas_v21_384.pt
+2025-09-09 23:13:33,036 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with midas_v21 using midas_v21_384
+2025-09-09 23:13:33,037 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: midas_v21
+2025-09-09 23:13:33,091 - backend.services.image_service - INFO - [PROCESS] Processing complete: midas_v21 (1.958s, fallback: False)
+2025-09-09 23:13:34,689 - backend.utils.image_utils - INFO - [MIDAS] Starting original MiDaS processing with dpt_hybrid
+2025-09-09 23:13:34,689 - backend.utils.image_utils - INFO - [MIDAS] Loading model from: D:\Cube_Project\Cubestudio\models\preprocessors\dpt_hybrid-midas-501f0c75.pt
+2025-09-09 23:13:35,944 - backend.utils.image_utils - INFO - [MIDAS] Successfully processed with dpt_hybrid using dpt_hybrid_384
+2025-09-09 23:13:35,945 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: dpt_hybrid
+2025-09-09 23:13:35,992 - backend.services.image_service - INFO - [PROCESS] Processing complete: dpt_hybrid (1.318s, fallback: False)
+2025-09-09 23:13:39,312 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Starting Depth Anything V2 processing
+2025-09-09 23:13:39,312 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Using device: cuda
+2025-09-09 23:13:39,315 - dinov2 - INFO - using MLP layer as FFN
+2025-09-09 23:13:40,326 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Model loaded successfully: vitb
+2025-09-09 23:13:40,509 - backend.services.depth_anything_processor - INFO - [DEPTH-ANYTHING] Processed image: (768, 1152, 3)
+2025-09-09 23:13:40,509 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Processing completed successfully
+2025-09-09 23:13:40,509 - backend.utils.image_utils - INFO - [DEPTH-ANYTHING] Output shape: (768, 1152, 3), range: 0-255
+2025-09-09 23:13:40,510 - backend.services.image_service - INFO - [OK] Processed with pytorch backend: depth_anything_v2
+2025-09-09 23:13:40,563 - backend.services.image_service - INFO - [PROCESS] Processing complete: depth_anything_v2 (1.266s, fallback: False)

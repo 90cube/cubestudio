@@ -44,8 +44,13 @@ class DepthAnythingProcessor:
         try:
             from ..depth_anything_v2.dpt import DepthAnythingV2
             
-            # Set device
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            # Set device - use same detection as DPT module
+            if torch.cuda.is_available():
+                self.device = torch.device("cuda")
+            elif torch.backends.mps.is_available():
+                self.device = torch.device("mps")
+            else:
+                self.device = torch.device("cpu")
             logger.info(f"[DEPTH-ANYTHING] Using device: {self.device}")
             
             # Create model
@@ -102,16 +107,17 @@ class DepthAnythingProcessor:
             # Get original size
             original_height, original_width = image.shape[:2]
             
-            # Run inference
+            # Run inference with the loaded model
             with torch.no_grad():
                 depth = self.model.infer_image(image, input_size)
             
-            # Resize to original dimensions
-            depth = cv2.resize(depth, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
-            
+            # Note: infer_image already returns depth at original image size
             # Post-process depth map
             if normalize:
-                depth = (depth - depth.min()) / (depth.max() - depth.min() + 1e-8)
+                if depth.max() > depth.min():
+                    depth = (depth - depth.min()) / (depth.max() - depth.min())
+                else:
+                    depth = depth  # Keep as-is if uniform
             
             if invert:
                 depth = 1.0 - depth
@@ -119,6 +125,8 @@ class DepthAnythingProcessor:
             # Convert to uint8
             if grayscale:
                 depth_uint8 = (depth * 255).astype(np.uint8)
+                # Convert to RGB for consistency with system
+                depth_uint8 = cv2.cvtColor(depth_uint8, cv2.COLOR_GRAY2RGB)
             else:
                 # Apply colormap for visualization
                 depth_uint8 = (depth * 255).astype(np.uint8)

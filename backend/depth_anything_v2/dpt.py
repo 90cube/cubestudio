@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -210,7 +211,8 @@ class DepthAnythingV2(nn.Module):
         
         h, w = raw_image.shape[:2]
         
-        image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB) / 255.0
+        # Input is already RGB, so no need to convert
+        image = raw_image.astype(np.float32) / 255.0
         
         image = transform({'image': image})['image']
         image = torch.from_numpy(image).unsqueeze(0)

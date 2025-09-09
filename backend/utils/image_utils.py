@@ -153,7 +153,7 @@ def process_depth_pytorch(image_array: np.ndarray, model_id: str, params: Dict[s
     
     Args:
         image_array: Input image as numpy array (RGB)
-        model_id: Model identifier ('midas_v21', 'dpt_hybrid', or 'depth_anything_v2')
+        model_id: Model identifier ('midas_v21', 'dpt_hybrid', or 'depth_anything_v2_vitb')
         params: Processing parameters
         
     Returns:
@@ -164,7 +164,7 @@ def process_depth_pytorch(image_array: np.ndarray, model_id: str, params: Dict[s
     """
     
     # Route to appropriate processor based on model_id
-    if model_id == "depth_anything_v2":
+    if model_id == "depth_anything_v2_vitb":
         return process_depth_anything_v2(image_array, model_id, available_models, params)
     else:
         # Use original MiDaS processing for other models
@@ -176,7 +176,7 @@ def process_depth_anything_v2(image_array: np.ndarray, model_id: str, available_
     
     Args:
         image_array: Input image as numpy array (RGB)
-        model_id: Model identifier ('depth_anything_v2')
+        model_id: Model identifier ('depth_anything_v2_vitb')
         params: Processing parameters including input_size, grayscale, normalize, invert
         
     Returns:
@@ -230,3 +230,138 @@ def process_depth_anything_v2(image_array: np.ndarray, model_id: str, available_
     except Exception as e:
         logger.error(f"[DEPTH-ANYTHING] Failed to process image: {e}")
         raise Exception(f"Depth Anything V2 processing failed: {e}")
+
+
+def process_depth_original_midas(image_array: np.ndarray, model_id: str, available_models: dict, params: dict = None) -> np.ndarray:
+    """Process depth using original MiDaS models.
+    
+    Args:
+        image_array: Input image as numpy array (RGB)
+        model_id: Model identifier ('midas_v21' or 'dpt_hybrid')
+        available_models: Dictionary of available models
+        params: Processing parameters (brightness, contrast, near_plane, far_plane, etc.)
+        
+    Returns:
+        Processed depth map as RGB numpy array
+        
+    Raises:
+        Exception: If model loading or processing fails
+    """
+    logger.info(f"[MIDAS] Starting original MiDaS processing with {model_id}")
+    
+    if params is None:
+        params = {}
+    
+    try:
+        # Import the proper MiDaS implementation from backend/midas_original
+        from ..midas_original.model_loader import load_model
+        import torch
+        import cv2
+        
+        # Get model information
+        model_info = available_models.get(model_id)
+        if not model_info or not model_info.get('available', False):
+            raise Exception(f"Model {model_id} not available")
+        
+        model_path = model_info['filepath']
+        logger.info(f"[MIDAS] Loading model from: {model_path}")
+        
+        # Map our model IDs to the loader's expected types
+        model_type_mapping = {
+            'midas_v21': 'midas_v21_384',
+            'dpt_hybrid': 'dpt_hybrid_384'
+        }
+        model_type = model_type_mapping.get(model_id, 'midas_v21_384')
+        
+        # Load MiDaS model with proper loader
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model, transform, net_w, net_h = load_model(device, model_path, model_type, optimize=False)
+        
+        # Prepare image for MiDaS - ensure it's in the right format
+        original_image = image_array.copy()
+        
+        # Apply MiDaS preprocessing transform
+        img_input = transform({"image": original_image / 255.0})["image"]
+        
+        # Run inference
+        with torch.no_grad():
+            img_input = torch.from_numpy(img_input).to(device).unsqueeze(0)
+            
+            # Handle different model architectures
+            if hasattr(model, 'forward'):
+                depth_prediction = model.forward(img_input)
+            else:
+                depth_prediction = model(img_input)
+            
+            # Resize prediction to original image size
+            depth_prediction = torch.nn.functional.interpolate(
+                depth_prediction.unsqueeze(1),
+                size=(image_array.shape[0], image_array.shape[1]),
+                mode="bicubic",
+                align_corners=False,
+            ).squeeze()
+            
+            # Convert to numpy
+            depth_numpy = depth_prediction.cpu().numpy()
+        
+        # Apply post-processing based on parameters
+        depth_numpy = _postprocess_midas_depth(depth_numpy, params)
+        
+        # Convert to RGB format
+        depth_rgb = np.stack([depth_numpy, depth_numpy, depth_numpy], axis=-1)
+        depth_rgb = (depth_rgb * 255).astype(np.uint8)
+        
+        logger.info(f"[MIDAS] Successfully processed with {model_id} using {model_type}")
+        return depth_rgb
+        
+    except Exception as e:
+        import traceback
+        logger.error(f"[MIDAS] Failed to process with {model_id}: {e}")
+        logger.error(f"[MIDAS] Full traceback: {traceback.format_exc()}")
+        # Fallback to built-in depth processing
+        logger.warning(f"[MIDAS] Using fallback depth processing for {model_id}")
+        return process_depth_builtin(image_array, params)
+
+
+def _postprocess_midas_depth(depth_numpy: np.ndarray, params: dict) -> np.ndarray:
+    """Post-process MiDaS depth output with user parameters.
+    
+    Args:
+        depth_numpy: Raw depth output from MiDaS model
+        params: Processing parameters
+        
+    Returns:
+        Post-processed depth map as numpy array (0-1 range)
+    """
+    # Normalize to 0-1 range first
+    if depth_numpy.max() > depth_numpy.min():
+        depth_numpy = (depth_numpy - depth_numpy.min()) / (depth_numpy.max() - depth_numpy.min())
+    
+    # Apply near/far plane clipping if specified
+    near_plane = params.get('near_plane', 0.0)
+    far_plane = params.get('far_plane', 1.0)
+    if near_plane > 0.0 or far_plane < 1.0:
+        depth_numpy = np.clip(depth_numpy, near_plane, far_plane)
+        if far_plane > near_plane:
+            depth_numpy = (depth_numpy - near_plane) / (far_plane - near_plane)
+    
+    # Apply brightness and contrast adjustments
+    brightness = params.get('brightness', 0.0)  # -1.0 to 1.0
+    contrast = params.get('contrast', 1.0)      # 0.1 to 3.0
+    
+    # Apply contrast first (around midpoint)
+    if contrast != 1.0:
+        depth_numpy = 0.5 + (depth_numpy - 0.5) * contrast
+    
+    # Then apply brightness
+    if brightness != 0.0:
+        depth_numpy = depth_numpy + brightness
+    
+    # Apply inversion if requested
+    if params.get('invert', False):
+        depth_numpy = 1.0 - depth_numpy
+    
+    # Clamp to valid range
+    depth_numpy = np.clip(depth_numpy, 0.0, 1.0)
+    
+    return depth_numpy

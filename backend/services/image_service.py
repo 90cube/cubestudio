@@ -101,7 +101,7 @@ class ImageService:
             elif proc_config["available"] and proc_config["backend"] == "pytorch":
                 # PyTorch model processing
                 try:
-                    if processor in ["midas_v21", "dpt_hybrid", "dpt_beit_large_512", "depth_anything_v2"]:
+                    if processor in ["midas_v21", "dpt_hybrid", "dpt_beit_large_512", "depth_anything_v2_vitb"]:
                         processed_array = process_depth_pytorch(image_array, processor, parameters, self.available_models)
                         logger.info(f"[OK] Processed with pytorch backend: {processor}")
                     else:
