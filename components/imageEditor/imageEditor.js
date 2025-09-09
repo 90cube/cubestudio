@@ -7,7 +7,8 @@ import { setSelectedImage } from '../canvas/canvas.js';
 import { registerShortcut } from '../keyboardManager/keyboardManager.js';
 import { init as initSliderPanel, showSliderPanel, hideSliderPanel } from './sliderPanel.js';
 import { getNodeRect } from '../../core/coordinates.js';
-import { openPreprocessingPanel } from '../preprocessing/preprocessorManager.js';
+import { openPreprocessingPanel, getImageTypeInfo } from '../preprocessing/preprocessorManager.js';
+import { init as initOpacitySlider, showOpacitySlider, hideOpacitySlider } from './opacitySlider.js';
 
 let stage;
 let layer;
@@ -25,6 +26,7 @@ export function init(konvaStage, konvaLayer) {
     initCrop(stage, layer);
     initTransformer(stage, layer);
     initSliderPanel(); // Initialize slider panel
+    initOpacitySlider(stage); // Initialize opacity slider
     
     setupContextMenu();
     setupDoubleClickHandler();
@@ -51,18 +53,31 @@ function setupDoubleClickHandler() {
             // 캔버스의 선택 상태도 동기화
             setSelectedImage(clickedNode);
             // console.log('Image selected for editing:', selectedImage);
-            const pos = stage.getPointerPosition();
-            showContextMenu(pos.x, pos.y);
+            
+            // 전처리된 이미지인 경우 불투명도 슬라이더 표시
+            const imageType = clickedNode.getAttr('imageType');
+            if (imageType === 'preproc') {
+                console.log('🎚️ Preprocessed image detected, showing opacity slider');
+                hideContextMenu(); // 컨텍스트 메뉴는 숨기고
+                showOpacitySlider(clickedNode); // 불투명도 슬라이더 표시
+            } else {
+                // 일반 이미지인 경우 컨텍스트 메뉴 표시
+                hideOpacitySlider(); // 불투명도 슬라이더는 숨기고
+                const pos = stage.getPointerPosition();
+                showContextMenu(pos.x, pos.y);
+            }
         } else {
             hideContextMenu();
+            hideOpacitySlider();
         }
     });
 
-    // 다른 곳 클릭시 컨텍스트 메뉴 숨김
+    // 다른 곳 클릭시 컨텍스트 메뉴와 슬라이더 숨김
     stage.on('click tap', (e) => {
         if (e.target === stage || e.target.className === 'Rect') {
             hideContextMenu();
             hideSliderPanel(); // Also hide slider panel
+            hideOpacitySlider(); // Also hide opacity slider
         }
     });
 }
@@ -89,8 +104,54 @@ function setupContextMenu() {
         color: #e8eaed;
     `;
     
+    document.body.appendChild(contextMenu);
+}
+
+// 컨텍스트 메뉴 내용 업데이트
+function updateContextMenuContent() {
+    if (!contextMenu) return;
+    
+    // 기존 내용 지우기
+    contextMenu.innerHTML = '';
+    
+    // 현재 선택된 이미지의 타입 정보 가져오기
+    const currentImage = getCurrentSelectedImage();
+    const typeInfo = getImageTypeInfo(currentImage);
+    const imageType = typeInfo ? typeInfo.imageType : 'normal';
+    
+    // 이미지 타입 표시 헤더
+    const typeHeader = document.createElement('div');
+    typeHeader.style.cssText = `
+        padding: 8px 14px;
+        background: rgba(108, 182, 255, 0.15);
+        border-bottom: 1px solid rgba(134, 142, 150, 0.2);
+        margin-bottom: 4px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6cb6ff;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    
+    const typeIcon = imageType === 'preproc' ? '⚙️' : '📷';
+    const typeText = imageType === 'preproc' ? 'Preprocessed' : 'Normal';
+    typeHeader.innerHTML = `<span>${typeIcon} ${typeText}</span>`;
+    
+    contextMenu.appendChild(typeHeader);
+    
     // 단일 기능 메뉴 아이템들 생성
     const menuItems = [
+        {
+            category: 'Change Type',
+            icon: '🏷️',
+            action: () => toggleImageType(),
+            isDirectAction: true,
+            style: 'color: #9ca3af; font-weight: 400; font-size: 12px;'
+        },
         {
             category: 'Flip Horizontal',
             icon: '↔',
@@ -177,12 +238,13 @@ function setupContextMenu() {
         
         contextMenu.appendChild(menuButton);
     });
-    
-    document.body.appendChild(contextMenu);
 }
 
 // 컨텍스트 메뉴 표시
 function showContextMenu(x, y) {
+    // 메뉴 내용을 현재 선택된 이미지 정보로 업데이트
+    updateContextMenuContent();
+    
     contextMenu.style.left = x + 'px';
     contextMenu.style.top = y + 'px';
     contextMenu.style.display = 'block';
@@ -373,6 +435,43 @@ function openImagePreprocessing() {
         console.error('Failed to open preprocessing panel:', error);
         alert('이미지 전처리 기능을 준비 중입니다...');
     }
+}
+
+/**
+ * 이미지 타입 토글 (normal ↔ preproc)
+ */
+function toggleImageType() {
+    const image = getCurrentSelectedImage();
+    if (!image) {
+        console.warn('No image selected for type change');
+        return;
+    }
+    
+    const typeInfo = getImageTypeInfo(image);
+    const currentType = typeInfo ? typeInfo.imageType : 'normal';
+    const newType = currentType === 'normal' ? 'preproc' : 'normal';
+    
+    // 이미지 노드 속성 업데이트
+    image.setAttr('imageType', newType);
+    
+    // 타입 변경 시 추가 속성도 업데이트
+    if (newType === 'preproc') {
+        image.setAttr('processingSource', 'manual');
+        image.setAttr('createdAt', new Date().toISOString());
+    } else {
+        // normal로 바뀔 때는 전처리 관련 속성 제거
+        image.setAttr('processingSource', 'user');
+        image.setAttr('originalImageId', null);
+        image.setAttr('processingParams', {});
+    }
+    
+    console.log(`🏷️ Image type changed: ${currentType} → ${newType}`);
+    
+    // 메뉴 닫기 (변경 사항이 바로 보이도록)
+    hideContextMenu();
+    
+    // 변경 완료 알림 (선택사항)
+    // alert(`Image type changed to: ${newType === 'preproc' ? 'Preprocessed' : 'Normal'}`);
 }
 
 export { showContextMenu, hideContextMenu };

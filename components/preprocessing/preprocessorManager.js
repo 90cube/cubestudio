@@ -17,6 +17,7 @@ import {
 } from './processors/depthProcessor.js';
 
 import pathConfig from '../../core/pathConfig.js';
+import { setSelectedImage } from '../canvas/canvas.js';
 
 /**
  * 이미지 전처리 관리자
@@ -655,6 +656,14 @@ async function handleEdgePreview(container, previewDiv) {
         // 처리된 캔버스를 컨테이너에 저장 (적용 시 사용)
         container._processedCanvas = processedCanvas;
         
+        // 마지막 처리 파라미터 저장 (Edge)
+        container._lastProcessingParams = {
+            type: 'edge_detection',
+            model: selectedModelId,
+            params: params,
+            timestamp: new Date().toISOString()
+        };
+        
     } catch (error) {
         console.error('Edge preview failed:', error);
         previewDiv.innerHTML = '<div style="color: #e74c3c;">처리 중 오류 발생</div>';
@@ -747,6 +756,14 @@ async function handleDepthPreview(container, previewDiv) {
         
         // 처리된 캔버스를 컨테이너에 저장 (적용 시 사용)
         container._processedCanvas = processedCanvas;
+        
+        // 마지막 처리 파라미터 저장 (Depth)
+        container._lastProcessingParams = {
+            type: 'depth_estimation',
+            model: selectedModelId,
+            params: params,
+            timestamp: new Date().toISOString()
+        };
         
     } catch (error) {
         console.error('Depth preview failed:', error);
@@ -908,16 +925,94 @@ async function konvaImageToDataUrl(imageNode) {
  * Edge 적용
  */
 async function handleEdgeApply(container) {
-    // TODO: 캔버스에 결과 적용
-    console.log('Edge apply - implement canvas application');
+    console.log('🔧 Edge apply - implementing canvas application');
+    
+    // 처리된 캔버스 또는 미리보기 영역에서 결과 찾기
+    const processedCanvas = container._processedCanvas;
+    const previewArea = container.querySelector('.preview-area');
+    let processedImageSrc = null;
+    
+    if (processedCanvas) {
+        console.log('📋 Using stored processed canvas');
+        processedImageSrc = processedCanvas.toDataURL();
+    } else if (previewArea) {
+        // 미리보기 영역에서 캔버스 찾기
+        const canvasElement = previewArea.querySelector('canvas');
+        if (canvasElement) {
+            console.log('🎨 Found canvas in preview area');
+            processedImageSrc = canvasElement.toDataURL();
+        }
+    }
+    
+    if (!processedImageSrc) {
+        console.error('❌ No preview result to apply');
+        alert('미리보기 결과가 없습니다. 먼저 미리보기를 실행해주세요.');
+        return;
+    }
+
+    try {
+        console.log('🚀 Applying edge processing to canvas');
+        // 캔버스에 적용
+        await applyPreprocessedImageToCanvas(container, processedImageSrc);
+        console.log('✅ Edge preprocessing applied to canvas');
+        
+        // 모달 닫기
+        const imageId = container._imageId;
+        if (imageId) {
+            closePreprocessingPanel(imageId);
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to apply edge preprocessing:', error);
+        alert('Edge 전처리 적용에 실패했습니다.');
+    }
 }
 
 /**
  * Depth 적용
  */
 async function handleDepthApply(container) {
-    // TODO: 캔버스에 결과 적용  
-    console.log('Depth apply - implement canvas application');
+    console.log('🔧 Depth apply - implementing canvas application');
+    
+    // 처리된 캔버스 또는 미리보기 영역에서 결과 찾기
+    const processedCanvas = container._processedCanvas;
+    const previewArea = container.querySelector('.preview-area');
+    let processedImageSrc = null;
+    
+    if (processedCanvas) {
+        console.log('📋 Using stored processed canvas');
+        processedImageSrc = processedCanvas.toDataURL();
+    } else if (previewArea) {
+        // 미리보기 영역에서 캔버스 찾기
+        const canvasElement = previewArea.querySelector('canvas');
+        if (canvasElement) {
+            console.log('🎨 Found canvas in preview area');
+            processedImageSrc = canvasElement.toDataURL();
+        }
+    }
+    
+    if (!processedImageSrc) {
+        console.error('❌ No preview result to apply');
+        alert('미리보기 결과가 없습니다. 먼저 미리보기를 실행해주세요.');
+        return;
+    }
+
+    try {
+        console.log('🚀 Applying depth processing to canvas');
+        // 캔버스에 적용
+        await applyPreprocessedImageToCanvas(container, processedImageSrc);
+        console.log('✅ Depth preprocessing applied to canvas');
+        
+        // 모달 닫기
+        const imageId = container._imageId;
+        if (imageId) {
+            closePreprocessingPanel(imageId);
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to apply depth preprocessing:', error);
+        alert('Depth 전처리 적용에 실패했습니다.');
+    }
 }
 
 /**
@@ -955,4 +1050,154 @@ export function closeAllPreprocessingPanels() {
     }
     activePreprocessingModals.clear();
     console.log('All preprocessing panels closed');
+}
+
+/**
+ * 전처리된 이미지를 캔버스에 적용 (원본 옆에 새로 추가)
+ * @param {HTMLElement} container - 전처리 패널 컨테이너
+ * @param {string} processedImageSrc - 전처리된 이미지의 데이터 URL
+ */
+async function applyPreprocessedImageToCanvas(container, processedImageSrc) {
+    console.log('🎨 Applying preprocessed image to canvas (as new layer)');
+    
+    // 원본 이미지 노드 가져오기
+    const imageNode = container._imageNode;
+    if (!imageNode) {
+        throw new Error('Original image node not found');
+    }
+    
+    console.log('📷 Original image node:', imageNode);
+    
+    // 새 이미지 객체 생성
+    const newImage = new Image();
+    
+    return new Promise((resolve, reject) => {
+        newImage.onload = () => {
+            try {
+                console.log('✅ New processed image loaded');
+                
+                // 원본 이미지 노드의 위치와 크기 정보 가져오기
+                const originalX = imageNode.x();
+                const originalY = imageNode.y();
+                const originalWidth = imageNode.width();
+                const originalHeight = imageNode.height();
+                const originalScaleX = imageNode.scaleX();
+                const originalScaleY = imageNode.scaleY();
+                const originalRotation = imageNode.rotation();
+                
+                console.log(`📍 Original position: (${originalX}, ${originalY}), size: ${originalWidth}x${originalHeight}`);
+                
+                // 전처리된 이미지 타입으로 설정
+                const imageType = 'preproc';
+                
+                // 새로운 전처리된 이미지 노드 생성
+                const processedImageNode = new Konva.Image({
+                    image: newImage,
+                    x: originalX, // 원본과 동일한 위치에 배치
+                    y: originalY,
+                    scaleX: originalScaleX,
+                    scaleY: originalScaleY,
+                    rotation: originalRotation,
+                    draggable: true, // 드래그 가능
+                    name: 'preprocessed-image', // 식별용 이름
+                    // 커스텀 속성들
+                    imageType: imageType, // 이미지 타입
+                    processingSource: 'preprocessing', // 처리 소스
+                    originalImageId: imageNode.id() || imageNode._id, // 원본 이미지 ID
+                    createdAt: new Date().toISOString(), // 생성 시간
+                    processingParams: container._lastProcessingParams || {} // 마지막 사용된 파라미터
+                });
+                
+                console.log(`📋 Image type set to: ${imageType}`);
+                
+                // 새 이미지의 중심점을 원본과 동일하게 설정
+                processedImageNode.offsetX(newImage.width / 2);
+                processedImageNode.offsetY(newImage.height / 2);
+                
+                // 레이어에 새 이미지 추가
+                const layer = imageNode.getLayer();
+                if (layer) {
+                    layer.add(processedImageNode);
+                    layer.batchDraw();
+                    console.log(`🎨 New preprocessed image added at (${processedImageNode.x()}, ${processedImageNode.y()})`);
+                    
+                    // 새로 추가된 이미지를 선택 상태로 만들기
+                    // 캔버스의 선택 시스템과 연동
+                    setSelectedImage(processedImageNode);
+                    
+                    // 불투명도 슬라이더는 imageEditor.js에서 이미지 타입 감지로 자동 표시됩니다
+                    
+                } else {
+                    console.warn('⚠️  Layer not found for image node');
+                }
+                
+                resolve(processedImageNode);
+                
+            } catch (error) {
+                console.error('❌ Error applying image to canvas:', error);
+                reject(error);
+            }
+        };
+        
+        newImage.onerror = (error) => {
+            console.error('❌ Failed to load processed image:', error);
+            reject(new Error('Failed to load processed image'));
+        };
+        
+        // 이미지 로딩 시작
+        newImage.src = processedImageSrc;
+    });
+}
+
+/**
+ * 이미지 노드의 타입 정보 가져오기
+ * @param {Konva.Image} imageNode - Konva 이미지 노드
+ * @returns {Object} 이미지 타입 정보
+ */
+export function getImageTypeInfo(imageNode) {
+    if (!imageNode) return null;
+    
+    return {
+        imageType: imageNode.getAttr('imageType') || 'normal', // 'normal' 또는 'preproc'
+        processingSource: imageNode.getAttr('processingSource') || 'user',
+        originalImageId: imageNode.getAttr('originalImageId') || null,
+        createdAt: imageNode.getAttr('createdAt') || null,
+        processingParams: imageNode.getAttr('processingParams') || {}
+    };
+}
+
+/**
+ * 캔버스에서 특정 타입의 이미지들 찾기
+ * @param {string} imageType - 찾을 이미지 타입 ('normal', 'preproc')
+ * @returns {Promise<Array>} 해당 타입의 이미지 노드들
+ */
+export async function findImagesByType(imageType) {
+    // 캔버스 레이어에서 모든 이미지 노드 가져오기
+    const { getLayer } = await import('../canvas/canvas.js');
+    const layer = getLayer();
+    
+    if (!layer) return [];
+    
+    const imageNodes = layer.find('Image');
+    return imageNodes.filter(node => node.getAttr('imageType') === imageType);
+}
+
+/**
+ * 원본 이미지에서 파생된 전처리 이미지들 찾기
+ * @param {Konva.Image} originalImageNode - 원본 이미지 노드
+ * @returns {Array} 파생된 전처리 이미지 노드들
+ */
+export function findDerivedImages(originalImageNode) {
+    if (!originalImageNode) return [];
+    
+    const originalId = originalImageNode.id() || originalImageNode._id;
+    const layer = originalImageNode.getLayer();
+    
+    if (!layer || !originalId) return [];
+    
+    const allImages = layer.find('Image');
+    return allImages.filter(node => 
+        node.getAttr('originalImageId') === originalId && 
+        node !== originalImageNode
+    );
 }
