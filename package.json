@@ -1,15 +1,26 @@
 {
   "name": "cubestudio",
   "version": "1.0.0",
-  "description": "CUBE Studio - Web-based image generation and manipulation tool",
+  "description": "CUBE Studio - Web-based image generation and manipulation tool with ControlNet preprocessing",
   "main": "index.html",
   "scripts": {
-    "start": "live-server --port=9000 --ignore=renewal",
-    "dev": "live-server --port=9000 --ignore=renewal --open=index.html",
+    "start": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__",
+    "dev": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__ --open=index.html",
     "build": "echo \"No build process required - vanilla JS project\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "echo \"Cleaning temporary files...\" && rm -f *.log",
+    "serve": "npm run start"
   },
-  "keywords": ["image-generation", "canvas", "ui", "web-app", "konva"],
+  "keywords": [
+    "image-generation",
+    "canvas",
+    "ui",
+    "web-app",
+    "konva",
+    "controlnet",
+    "ai-art",
+    "preprocessing"
+  ],
   "author": "Cube Studio",
   "license": "ISC",
   "devDependencies": {
@@ -22,5 +33,10 @@
   "repository": {
     "type": "git",
     "url": "."
-  }
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11"
+  ],
+  "private": true
 }

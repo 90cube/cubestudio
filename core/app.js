@@ -13,7 +13,6 @@ import { init as initElementsMenu } from '../components/elementsMenu/elementsMen
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    // console.log('Initializing Canvas Studio...');
 
     // 1. 키보드 매니저 초기화 (먼저 초기화하여 웹 단축키 비활성화)
     initKeyboardManager();
@@ -57,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // console.log('✅ Generation Panel created and should be ready for image selection');
     }, 100);
 
-    // console.log('Canvas Studio initialized successfully');
 });
 
 // 애플리케이션 단축키 설정
@@ -79,7 +77,6 @@ function setupApplicationShortcuts() {
         e.preventDefault = () => {}; // preventDefault 비활성화
     }, {}, 'Toggle fullscreen');
 
-    // console.log('Application shortcuts registered');
 }
 
 // 글로벌 이미지 편집 단축키 설정
@@ -174,7 +171,6 @@ function setupImageEditingShortcuts() {
         }
     }, {}, 'Delete selected image (alternative)');
     
-    // console.log('Image editing shortcuts registered');
 }
 
 // 선택된 이미지 찾기 함수
@@ -501,6 +497,18 @@ function createGenerationPanel() {
             // console.log('- All subscribers:', Array.from(subscribers.keys()));
         }
     };
-    
-    // console.log('🛠️ Debug helpers available in window.debugHelpers');
+}
+
+/**
+ * Helper function to check if the user is currently typing in an input field
+ * @returns {boolean} True if user is typing in an input field
+ */
+function isTextInputActive() {
+    // 포커스된 요소가 입력 필드인지 확인
+    const activeElement = document.activeElement;
+    return activeElement && (
+        activeElement.tagName === 'INPUT' || 
+        activeElement.tagName === 'TEXTAREA' || 
+        activeElement.contentEditable === 'true'
+    );
 }

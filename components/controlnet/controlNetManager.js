@@ -443,49 +443,20 @@ function createDepthUI(imageNode) {
         <p style="color: #bbb; margin: 0; font-size: 13px;">깊이 맵, 법선 맵을 통한 3D 공간 정보 추출</p>
     `;
     
-    // 모델 선택 카드 영역
-    const modelSection = createModelSelectionSection('depth', [
-        { 
-            id: 'midas_v3', 
-            name: 'MiDaS v3.1 (DPT-Large)', 
-            description: '최신 비전 트랜스포머 기반 깊이 추정',
-            capabilities: ['고정밀도', '실외/실내 범용'],
-            requirements: 'GPU 필요',
-            icon: '🏔️'
-        },
-        { 
-            id: 'midas_v2', 
-            name: 'MiDaS v2.1 (ResNet)', 
-            description: 'ResNet 기반 안정적인 깊이 추정',
-            capabilities: ['균형잡힌 성능', '빠른 처리'],
-            requirements: 'GPU 권장',
+    // 백엔드 API에서 가져온 depth estimation 모델들만 사용
+    const depthModels = availablePreprocessors
+        .filter(processor => processor.type === 'depth_estimation')
+        .map(processor => ({
+            id: processor.id,
+            name: processor.name,
+            description: `${processor.name} 전처리기`,
+            capabilities: ['깊이 정보 추출'],
+            requirements: processor.available ? 'GPU 권장' : 'GPU 필요',
+            available: processor.available,
             icon: '⛰️'
-        },
-        { 
-            id: 'dpt_hybrid', 
-            name: 'DPT-Hybrid', 
-            description: 'CNN + Transformer 하이브리드 모델',
-            capabilities: ['세밀한 디테일', '경계 보존'],
-            requirements: 'GPU 필요',
-            icon: '🗻'
-        },
-        { 
-            id: 'zoedepth', 
-            name: 'ZoeDepth', 
-            description: '영상 기하학 기반 제로샷 깊이 추정',
-            capabilities: ['실내 특화', '메트릭 깊이'],
-            requirements: 'GPU 필요',
-            icon: '🏠'
-        },
-        { 
-            id: 'normal_map', 
-            name: 'Normal Map', 
-            description: '표면 법선 벡터 추출',
-            capabilities: ['라이팅 정보', '표면 디테일'],
-            requirements: 'GPU 권장',
-            icon: '🎯'
-        }
-    ]);
+        }));
+
+    const modelSection = createModelSelectionSection('depth', depthModels);
     
     // 파라미터 섹션
     const parametersSection = createParametersSection('depth', {
@@ -1274,15 +1245,15 @@ async function processWithExternalModel(imageNode, model, params = {}) {
         console.log(`🎛️  ${model.name} 전처리 시작...`);
         
         // 백엔드 API 호출
-        const response = await fetch('http://localhost:9004/api/preprocess', {
+        const response = await fetch('http://localhost:9004/api/v3/process', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 image: imageDataUrl,
-                model: model.id,
-                params: params
+                processor: model.id,
+                parameters: params
             })
         });
         
@@ -1578,18 +1549,20 @@ async function handleDepthPreview(container, previewDiv) {
     const imageNode = container._imageNode;
     if (!imageNode) return;
     
-    // 선택된 모델 확인
-    const modelSelect = container.querySelector('#depth-model-selector');
-    const selectedModelId = modelSelect ? modelSelect.value : 'builtin_depth';
+    // 선택된 모델 확인 - 카드 기반 UI에서 선택된 모델 가져오기
+    const depthSection = container.querySelector('[data-category="depth"]');
+    const selectedCard = depthSection ? depthSection.querySelector('.model-card.selected') : null;
+    const selectedModelId = selectedCard ? selectedCard.dataset.modelId : 'midas_v21';
     
-    // 모델 정보 찾기
-    const depthModels = [
-        { id: 'builtin_depth', name: '내장 알고리즘 (JavaScript)', type: 'builtin', available: true },
-        { id: 'midas_v3', name: 'MiDaS v3.1 (DPT-Large)', type: 'ai_model', available: true },
-        { id: 'midas_v2', name: 'MiDaS v2.1 (ResNet)', type: 'ai_model', available: true },
-        { id: 'dpt_hybrid', name: 'DPT-Hybrid', type: 'ai_model', available: true },
-        { id: 'depth_anything', name: 'Depth Anything V2', type: 'ai_model', available: true }
-    ];
+    // 백엔드 API에서 가져온 depth estimation 모델들 사용
+    const depthModels = availablePreprocessors
+        .filter(processor => processor.type === 'depth_estimation')
+        .map(processor => ({
+            id: processor.id,
+            name: processor.name,
+            type: 'external_model',  // 백엔드 모델이므로 외부 모델로 처리
+            available: processor.available
+        }));
     
     const selectedModel = depthModels.find(m => m.id === selectedModelId);
     
@@ -1606,16 +1579,19 @@ async function handleDepthPreview(container, previewDiv) {
             processedCanvas = processDepthMap(htmlImage, params);
         } else {
             // 외부 AI 모델 사용 - 백엔드 API 호출
-            const params = getDepthParameters(container);
-            processedCanvas = await processDepthWithExternalModel(imageNode, selectedModel, params);
+            processedCanvas = await processDepthWithExternalModel(imageNode, selectedModel, {});
         }
         
-        // 미리보기 영역에 결과 표시
+        // 파라미터 가져와서 CSS 필터 적용
+        const params = getDepthParameters(container);
+        
+        // 미리보기 영역에 결과 표시 + CSS 필터로 contrast/brightness 조정
         processedCanvas.style.cssText = `
             max-width: 100%;
             max-height: 150px;
             border-radius: 4px;
             image-rendering: crisp-edges;
+            filter: contrast(${params.contrast}) brightness(${1 + params.brightness});
         `;
         
         previewDiv.innerHTML = '';
@@ -1627,6 +1603,36 @@ async function handleDepthPreview(container, previewDiv) {
     } catch (error) {
         console.error('Depth preview failed:', error);
         previewDiv.innerHTML = '<div style="color: #e74c3c;">처리 중 오류 발생</div>';
+    }
+}
+
+/**
+ * 실시간 Depth 미리보기 CSS 필터 업데이트
+ * @param {HTMLElement} contentContainer - ControlNet 컨텐츠 컨테이너
+ */
+function updateDepthPreviewFilters(contentContainer) {
+    try {
+        // 현재 표시된 depth 미리보기 이미지 찾기
+        const previewCanvas = contentContainer.querySelector('.preview-area canvas');
+        if (!previewCanvas) {
+            return; // 미리보기가 없으면 업데이트하지 않음
+        }
+        
+        // 현재 파라미터 값 가져오기
+        const depthContainer = contentContainer.querySelector('[data-category="depth"]');
+        if (!depthContainer) {
+            return;
+        }
+        
+        const params = getDepthParameters(depthContainer);
+        
+        // CSS 필터 업데이트
+        previewCanvas.style.filter = `contrast(${params.contrast}) brightness(${1 + params.brightness})`;
+        
+        console.log('실시간 필터 업데이트:', { contrast: params.contrast, brightness: params.brightness });
+        
+    } catch (error) {
+        console.error('실시간 필터 업데이트 실패:', error);
     }
 }
 
@@ -1840,15 +1846,15 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
         console.log(`🏔️  ${model.name} Depth 전처리 시작...`);
         
         // 백엔드 API 호출 (Depth 전용 엔드포인트)
-        const response = await fetch('http://localhost:9004/api/depth', {
+        const response = await fetch('http://localhost:9004/api/v3/process', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 image: imageDataUrl,
-                model: model.id,
-                params: {
+                processor: model.id,
+                parameters: {
                     ...params,
                     // Depth 전용 파라미터 추가
                     model_type: model.id,
@@ -1875,6 +1881,11 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
         }
         
         console.log(`✅ ${model.name} Depth 전처리 완료`);
+        console.log('🖼️ Response image data length:', result.processed_image?.length || 0);
+        console.log('🖼️ Response image data preview:', result.processed_image?.substring(0, 100) + '...');
+        
+        // 전역 변수에 저장 (디버깅용)
+        window.lastProcessedImage = result.processed_image;
         
         // 결과 이미지를 캔버스로 변환
         const canvas = document.createElement('canvas');
@@ -1883,12 +1894,20 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
         
         return new Promise((resolve, reject) => {
             img.onload = () => {
+                console.log('✅ 이미지 로드 성공:', img.width, 'x', img.height);
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
+                console.log('✅ 캔버스에 이미지 그리기 완료');
                 resolve(canvas);
             };
-            img.onerror = () => reject(new Error('Failed to load processed depth image'));
+            img.onerror = (error) => {
+                console.error('❌ 이미지 로드 실패:', error);
+                console.error('❌ 시도한 이미지 src:', result.processed_image?.substring(0, 100) + '...');
+                reject(new Error('Failed to load processed depth image'));
+            };
+            
+            console.log('🔄 이미지 로드 시작...');
             img.src = result.processed_image || result.depth_map; // Base64 데이터 URL
         });
         
@@ -1939,11 +1958,13 @@ function getDepthParameters(container) {
     const contrast = parseFloat(container.querySelector('#contrast').value);
     const brightness = parseFloat(container.querySelector('#brightness').value);
     const smoothing = parseInt(container.querySelector('#smoothing').value);
-    const depthStrength = parseFloat(container.querySelector('#depth-strength').value);
+    const depthStrength = parseFloat(container.querySelector('#depth_strength').value);
+    
+    console.log('📊 Depth 파라미터:', { contrast, brightness, smoothing, depthStrength });
     
     return {
         contrast,
-        brightness,
+        brightness: Math.max(-0.5, Math.min(brightness, 0.5)), // brightness 범위 제한
         smoothing,
         depthStrength
     };
@@ -1979,6 +2000,7 @@ function getCannyParameters(container) {
 function createModelSelectionSection(category, models) {
     const section = document.createElement('div');
     section.className = `model-selection-section ${category}-models`;
+    section.dataset.category = category;
     section.style.cssText = `
         padding: 0 16px 20px 16px;
         background: rgba(0, 0, 0, 0.1);
@@ -2257,6 +2279,12 @@ function createParameterControl(param) {
                 // 슬라이더 배경 그라디언트 업데이트
                 const percent = ((e.target.value - e.target.min) / (e.target.max - e.target.min)) * 100;
                 e.target.style.background = `linear-gradient(to right, #3498db ${percent}%, rgba(255, 255, 255, 0.2) ${percent}%)`;
+                
+                // 실시간 CSS 필터 업데이트 (depth 카테고리의 contrast/brightness만)
+                const currentCategory = container.closest('[data-category]')?.dataset.category;
+                if ((param.id === 'contrast' || param.id === 'brightness') && currentCategory === 'depth') {
+                    updateDepthPreviewFilters(container.closest('.controlnet-content'));
+                }
             });
             
             // 초기 슬라이더 배경 설정
@@ -2562,10 +2590,30 @@ function createActionButtonsSection(category, container) {
         });
     });
     
-    // TODO: 실제 이벤트 핸들러 연결
-    previewBtn.addEventListener('click', () => {
-        console.log(`Preview ${category} processing...`);
-        // handlePreview 함수 호출
+    // 실제 이벤트 핸들러 연결
+    previewBtn.addEventListener('click', async () => {
+        if (category === 'depth') {
+            // container는 UI 컨테이너이고, 그 부모는 전체 depth UI 컨테이너
+            const depthContainer = container;
+            const previewSection = depthContainer.querySelector('.preview-section');
+            const previewDiv = previewSection ? previewSection.querySelector('.preview-area') : null;
+            
+            console.log('🔍 Depth preview clicked:', {
+                depthContainer: !!depthContainer,
+                previewSection: !!previewSection, 
+                previewDiv: !!previewDiv,
+                imageNode: !!depthContainer._imageNode
+            });
+            
+            if (previewDiv) {
+                await handleDepthPreview(depthContainer, previewDiv);
+            } else {
+                console.error('Preview div not found for depth processing');
+            }
+        } else {
+            console.log(`Preview ${category} processing...`);
+            // 다른 카테고리의 핸들러 함수들이 구현되면 여기에 추가
+        }
     });
     
     applyBtn.addEventListener('click', () => {
@@ -2617,9 +2665,9 @@ function getPresetsByCategory(category) {
             { name: '강력한', icon: '💪', params: { threshold_low: 150, threshold_high: 255, edge_strength: 1.5 } }
         ],
         depth: [
-            { name: '실내', icon: '🏠', params: { depth_range: 'near', depth_strength: 1.2, contrast: 1.1 } },
-            { name: '실외', icon: '🌄', params: { depth_range: 'far', depth_strength: 1.0, contrast: 1.3 } },
-            { name: '균형', icon: '⚖️', params: { depth_range: 'auto', depth_strength: 1.0, contrast: 1.2 } }
+            { name: '실내', icon: '🏠', params: { depth_range: 'near', depth_strength: 1.2, contrast: 1.1, brightness: -0.2 } },
+            { name: '실외', icon: '🌄', params: { depth_range: 'far', depth_strength: 1.0, contrast: 1.3, brightness: -0.1 } },
+            { name: '균형', icon: '⚖️', params: { depth_range: 'auto', depth_strength: 1.0, contrast: 1.2, brightness: 0.0 } }
         ],
         pose: [
             { name: '전신', icon: '🤸', params: { pose_model: 'BODY_25', multi_person: true, confidence_threshold: 0.4 } },

@@ -41,3 +41,17 @@ test-*.html
 # Ignore development artifacts
 TEST_REPORT.md
 package-lock.json
+
+# Ignore cleanup folder
+to_delete_in_renewal/
+
+# Ignore preprocessor models and archives
+preprocessors/
+models_arch/
+
+# Ignore enhanced processor files
+ENHANCED_PREPROCESSORS_README.md
+enhanced_backend_patch.py
+integrate_enhanced_preprocessors.py
+test_enhanced_preprocessors.py
+test_simple.py

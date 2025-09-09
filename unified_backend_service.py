@@ -1,44 +1,36 @@
 #!/usr/bin/env python3
 """
 CUBE Studio - Unified Backend Service (v4.0)
-Real preprocessor implementation with actual model file scanning
+Real preprocessor implementation with actual model file scanning and PyTorch integration.
+
+Provides:
+- Real MiDaS depth preprocessing with PyTorch models
+- ControlNet preprocessor system
+- Model file scanning and validation
+- Comprehensive parameter processing
 """
 
-import os
-import json
+# Standard library imports
 import base64
-import io
-import logging
-import time
-from pathlib import Path
-from typing import List, Dict, Optional, Union, Any
-from enum import Enum
-from dataclasses import dataclass, field
-from functools import wraps
-import glob
-
-import uvicorn
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
-import numpy as np
-import cv2
-from PIL import Image
 import datetime
+import io
+import json
+import logging
+import os
+import time
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-# PyTorch imports (with graceful fallback)
-try:
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    from torchvision.transforms import Compose, Resize, ToTensor, Normalize
-    PYTORCH_AVAILABLE = True
-    print("[OK] PyTorch loaded successfully")
-except ImportError as e:
-    PYTORCH_AVAILABLE = False
-    print(f"[ERROR] PyTorch not available: {e}")
+# Third-party imports
+import cv2
+import numpy as np
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from PIL import Image
+from pydantic import BaseModel, Field
 
 # Configure logging
 logging.basicConfig(
@@ -50,6 +42,31 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# PyTorch imports (with graceful fallback)
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    from torchvision.transforms import Compose, Resize, ToTensor, Normalize
+    PYTORCH_AVAILABLE = True
+    logger.info("PyTorch loaded successfully")
+except ImportError as e:
+    PYTORCH_AVAILABLE = False
+    logger.error(f"PyTorch not available: {e}")
+
+# Enhanced preprocessing system import
+try:
+    from integrate_enhanced_preprocessors import (
+        integrate_enhanced_preprocessors,
+        get_enhanced_processor_stats,
+        get_enhanced_processor_info
+    )
+    ENHANCED_PREPROCESSING_AVAILABLE = True
+    logger.info("Enhanced preprocessing system available")
+except ImportError as e:
+    ENHANCED_PREPROCESSING_AVAILABLE = False
+    logger.warning(f"Enhanced preprocessing not available: {e}")
 
 # FastAPI app
 app = FastAPI(
@@ -70,11 +87,14 @@ app.add_middleware(
 # 실제 모델 파일 경로 설정
 MODELS_BASE_PATH = r"D:\Comfyui\Original_comfyui\ComfyUI_windows_portable\ComfyUI\models"
 PREPROCESSOR_MODELS_PATH = os.path.join(MODELS_BASE_PATH, "preprocessors")
+CHECKPOINTS_PATH = os.path.join(MODELS_BASE_PATH, "checkpoints")
+VAE_PATH = os.path.join(MODELS_BASE_PATH, "vae")
 
 # Real model file mapping based on actual files
 REAL_MODEL_FILES = {
     # Depth models
     "dpt_hybrid": "dpt_hybrid-midas-501f0c75.pt",
+    "dpt_beit_large_512": "dpt_beit_large_512.pt",
     "midas_v21": "midas_v21_384.pt",
     
     # Edge detection
@@ -99,8 +119,12 @@ REAL_MODEL_FILES = {
     "realesrgan": "RealESRGAN_x4plus.pth",
 }
 
-def scan_available_models():
-    """실제 모델 파일 스캔"""
+def scan_available_models() -> Dict[str, Dict[str, Any]]:
+    """Scan for available preprocessor model files.
+    
+    Returns:
+        Dict containing model information including availability, file paths, and sizes.
+    """
     available_models = {}
     
     if not os.path.exists(PREPROCESSOR_MODELS_PATH):
@@ -130,9 +154,124 @@ def scan_available_models():
     
     return available_models
 
-# 시스템 시작 시 모델 스캔
+def scan_checkpoints() -> List[Dict[str, Any]]:
+    """Scan for checkpoint model files in the checkpoints directory.
+    
+    Returns:
+        List of checkpoint file information with name, path, subfolder, and preview_image.
+    """
+    checkpoints = []
+    
+    if not os.path.exists(CHECKPOINTS_PATH):
+        logger.warning(f"Checkpoints path not found: {CHECKPOINTS_PATH}")
+        return checkpoints
+    
+    # Supported checkpoint file extensions
+    checkpoint_extensions = ['.safetensors', '.ckpt', '.pt', '.bin']
+    
+    for root, dirs, files in os.walk(CHECKPOINTS_PATH):
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in checkpoint_extensions):
+                full_path = os.path.join(root, file)
+                
+                # Calculate relative subfolder from CHECKPOINTS_PATH
+                rel_path = os.path.relpath(root, CHECKPOINTS_PATH)
+                subfolder = rel_path if rel_path != '.' else ''
+                
+                # Look for preview images
+                preview_image = None
+                base_name = os.path.splitext(file)[0]
+                for ext in ['.png', '.jpg', '.jpeg', '.webp']:
+                    preview_path = os.path.join(root, base_name + ext)
+                    if os.path.exists(preview_path):
+                        # Store relative path from checkpoints folder
+                        preview_rel_path = os.path.relpath(preview_path, CHECKPOINTS_PATH)
+                        preview_image = preview_rel_path.replace('\\', '/')
+                        break
+                
+                checkpoint_info = {
+                    "name": file,
+                    "path": full_path.replace('\\', '/'),
+                    "subfolder": subfolder.replace('\\', '/'),
+                    "size_mb": round(os.path.getsize(full_path) / (1024 * 1024), 2),
+                    "preview_image": preview_image
+                }
+                checkpoints.append(checkpoint_info)
+                
+    logger.info(f"Scanned {len(checkpoints)} checkpoint files")
+    return checkpoints
+
+def scan_vaes() -> List[Dict[str, Any]]:
+    """Scan for VAE model files in the vae directory.
+    
+    Returns:
+        List of VAE file information with name, path, subfolder, and preview_image.
+    """
+    vaes = []
+    
+    if not os.path.exists(VAE_PATH):
+        logger.warning(f"VAE path not found: {VAE_PATH}")
+        return vaes
+    
+    # Supported VAE file extensions
+    vae_extensions = ['.safetensors', '.ckpt', '.pt', '.bin']
+    
+    for root, dirs, files in os.walk(VAE_PATH):
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in vae_extensions):
+                full_path = os.path.join(root, file)
+                
+                # Calculate relative subfolder from VAE_PATH
+                rel_path = os.path.relpath(root, VAE_PATH)
+                subfolder = rel_path if rel_path != '.' else ''
+                
+                # Look for preview images
+                preview_image = None
+                base_name = os.path.splitext(file)[0]
+                for ext in ['.png', '.jpg', '.jpeg', '.webp']:
+                    preview_path = os.path.join(root, base_name + ext)
+                    if os.path.exists(preview_path):
+                        # Store relative path from vae folder
+                        preview_rel_path = os.path.relpath(preview_path, VAE_PATH)
+                        preview_image = preview_rel_path.replace('\\', '/')
+                        break
+                
+                vae_info = {
+                    "name": file,
+                    "path": full_path.replace('\\', '/'),
+                    "subfolder": subfolder.replace('\\', '/'),
+                    "size_mb": round(os.path.getsize(full_path) / (1024 * 1024), 2),
+                    "preview_image": preview_image
+                }
+                vaes.append(vae_info)
+                
+    logger.info(f"Scanned {len(vaes)} VAE files")
+    return vaes
+
+# System initialization: scan for available models
 AVAILABLE_MODELS = scan_available_models()
-logger.info(f"[SCAN] Model scan complete: {len([m for m in AVAILABLE_MODELS.values() if m['available']])}/{len(AVAILABLE_MODELS)} models available")
+available_count = len([m for m in AVAILABLE_MODELS.values() if m['available']])
+total_count = len(AVAILABLE_MODELS)
+logger.info(f"Model scan complete: {available_count}/{total_count} models available")
+
+# Initialize enhanced preprocessing if available
+ENHANCED_PROCESSING_ENABLED = False
+if ENHANCED_PREPROCESSING_AVAILABLE:
+    try:
+        # Set up globals that the integration script expects
+        globals()['PREPROCESSOR_MODELS_PATH'] = PREPROCESSOR_MODELS_PATH
+        
+        # Integrate enhanced preprocessors
+        integration_success = integrate_enhanced_preprocessors()
+        
+        if integration_success:
+            logger.info("Enhanced preprocessing system integrated successfully")
+            ENHANCED_PROCESSING_ENABLED = True
+        else:
+            logger.warning("Enhanced preprocessing integration failed, using fallback")
+    except Exception as e:
+        logger.error(f"Enhanced preprocessing initialization failed: {e}")
+        logger.info("Using standard preprocessing system")
 
 # Model registry based on actual files
 class ProcessorType(str, Enum):
@@ -143,49 +282,9 @@ class ProcessorType(str, Enum):
     LINE_DETECTION = "line_detection"
     ENHANCEMENT = "enhancement"
 
-# Real processor configuration based on available models
+# Real processor configuration - ONLY tested working models for preprocessing
 PROCESSOR_REGISTRY = {
-    # Edge Detection
-    "canny_builtin": {
-        "id": "canny_builtin",
-        "name": "Canny (Built-in)",
-        "type": ProcessorType.EDGE_DETECTION,
-        "category": "edge_lines",
-        "available": True,  # Always available
-        "model_file": None,
-        "backend": "builtin",
-        "parameters": {
-            "low_threshold": {"min": 0, "max": 255, "default": 100},
-            "high_threshold": {"min": 0, "max": 255, "default": 200},
-        }
-    },
-    "hed": {
-        "id": "hed", 
-        "name": "HED Edge Detection",
-        "type": ProcessorType.EDGE_DETECTION,
-        "category": "edge_lines",
-        "available": AVAILABLE_MODELS.get("hed", {}).get("available", False),
-        "model_file": AVAILABLE_MODELS.get("hed", {}).get("filepath"),
-        "backend": "pytorch",
-        "parameters": {
-            "threshold": {"min": 0.0, "max": 1.0, "default": 0.5},
-        }
-    },
-    
-    # Depth Estimation
-    "depth_builtin": {
-        "id": "depth_builtin",
-        "name": "Depth (Built-in)",
-        "type": ProcessorType.DEPTH_ESTIMATION,
-        "category": "depth_normals",
-        "available": True,
-        "model_file": None,
-        "backend": "builtin",
-        "parameters": {
-            "contrast": {"min": 0.5, "max": 3.0, "default": 1.2},
-            "brightness": {"min": -0.5, "max": 0.5, "default": 0.1},
-        }
-    },
+    # Depth Estimation - All working models
     "midas_v21": {
         "id": "midas_v21",
         "name": "MiDaS v2.1 Depth", 
@@ -197,116 +296,81 @@ PROCESSOR_REGISTRY = {
         "parameters": {
             "near_plane": {"min": 0.1, "max": 10.0, "default": 0.1},
             "far_plane": {"min": 10.0, "max": 1000.0, "default": 100.0},
+            "brightness": {"min": -0.5, "max": 0.5, "default": 0.1},
+            "contrast": {"min": 0.5, "max": 3.0, "default": 1.2},
         }
     },
     "dpt_hybrid": {
         "id": "dpt_hybrid",
-        "name": "DPT-Hybrid Depth",
-        "type": ProcessorType.DEPTH_ESTIMATION, 
-        "category": "depth_normals",
+        "name": "DPT Hybrid Depth",
+        "type": ProcessorType.DEPTH_ESTIMATION,
+        "category": "depth_normals", 
         "available": AVAILABLE_MODELS.get("dpt_hybrid", {}).get("available", False),
         "model_file": AVAILABLE_MODELS.get("dpt_hybrid", {}).get("filepath"),
         "backend": "pytorch",
         "parameters": {
             "near_plane": {"min": 0.1, "max": 10.0, "default": 0.1},
             "far_plane": {"min": 10.0, "max": 1000.0, "default": 100.0},
+            "brightness": {"min": -0.5, "max": 0.5, "default": 0.1},
+            "contrast": {"min": 0.5, "max": 3.0, "default": 1.2},
         }
     },
-    
-    # Pose Estimation
-    "openpose_builtin": {
-        "id": "openpose_builtin",
-        "name": "OpenPose (Built-in)", 
-        "type": ProcessorType.POSE_ESTIMATION,
-        "category": "pose_human",
-        "available": True,
-        "model_file": None,
-        "backend": "builtin",
+    # Edge Detection - OpenCV built-in
+    "canny_opencv": {
+        "id": "canny_opencv",
+        "name": "Canny Edge Detection",
+        "type": ProcessorType.EDGE_DETECTION,
+        "category": "edge_lines",
+        "available": True,  # Always available (OpenCV built-in)
+        "model_file": None,  # No model file needed
+        "backend": "opencv",
         "parameters": {
-            "detect_body": {"type": "boolean", "default": True},
-            "detect_hand": {"type": "boolean", "default": False},
-            "detect_face": {"type": "boolean", "default": False},
-        }
-    },
-    "openpose_body": {
-        "id": "openpose_body",
-        "name": "OpenPose Body",
-        "type": ProcessorType.POSE_ESTIMATION,
-        "category": "pose_human", 
-        "available": AVAILABLE_MODELS.get("body_pose", {}).get("available", False),
-        "model_file": AVAILABLE_MODELS.get("body_pose", {}).get("filepath"),
-        "backend": "pytorch",
-        "parameters": {
-            "body_threshold": {"min": 0.1, "max": 1.0, "default": 0.4},
-        }
-    },
-    "openpose_hand": {
-        "id": "openpose_hand",
-        "name": "OpenPose Hand",
-        "type": ProcessorType.POSE_ESTIMATION,
-        "category": "pose_human",
-        "available": AVAILABLE_MODELS.get("hand_pose", {}).get("available", False),
-        "model_file": AVAILABLE_MODELS.get("hand_pose", {}).get("filepath"),
-        "backend": "pytorch",
-        "parameters": {
-            "hand_threshold": {"min": 0.1, "max": 1.0, "default": 0.4},
-        }
-    },
-    
-    # Segmentation
-    "oneformer_coco": {
-        "id": "oneformer_coco", 
-        "name": "OneFormer COCO",
-        "type": ProcessorType.SEGMENTATION,
-        "category": "segmentation",
-        "available": AVAILABLE_MODELS.get("oneformer_coco", {}).get("available", False),
-        "model_file": AVAILABLE_MODELS.get("oneformer_coco", {}).get("filepath"),
-        "backend": "pytorch",
-        "parameters": {
-            "num_classes": {"min": 1, "max": 133, "default": 133},
-        }
-    },
-    "oneformer_ade20k": {
-        "id": "oneformer_ade20k",
-        "name": "OneFormer ADE20K", 
-        "type": ProcessorType.SEGMENTATION,
-        "category": "segmentation",
-        "available": AVAILABLE_MODELS.get("oneformer_ade20k", {}).get("available", False),
-        "model_file": AVAILABLE_MODELS.get("oneformer_ade20k", {}).get("filepath"),
-        "backend": "pytorch",
-        "parameters": {
-            "num_classes": {"min": 1, "max": 150, "default": 150},
-        }
-    },
-    
-    # Line Detection
-    "mlsd": {
-        "id": "mlsd",
-        "name": "M-LSD Line Detection",
-        "type": ProcessorType.LINE_DETECTION,
-        "category": "advanced",
-        "available": AVAILABLE_MODELS.get("mlsd", {}).get("available", False),
-        "model_file": AVAILABLE_MODELS.get("mlsd", {}).get("filepath"),
-        "backend": "pytorch",
-        "parameters": {
-            "score_threshold": {"min": 0.0, "max": 1.0, "default": 0.1},
-            "distance_threshold": {"min": 0.0, "max": 100.0, "default": 20.0},
+            "low_threshold": {"min": 50, "max": 200, "default": 100},
+            "high_threshold": {"min": 100, "max": 300, "default": 200},
+            "blur_kernel": {"min": 1, "max": 9, "default": 3}
         }
     }
 }
 
 # Built-in processing algorithms
-def process_canny_builtin(image_array, params):
-    """Built-in Canny edge detection"""
+def process_canny_opencv(image_array: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """OpenCV Canny edge detection algorithm.
+    
+    Args:
+        image_array: Input image as numpy array
+        params: Parameters including low_threshold, high_threshold, and blur_kernel
+        
+    Returns:
+        Processed image as RGB numpy array
+    """
+    # Convert to grayscale if needed
     gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
+    
+    # Get parameters
     low_threshold = params.get('low_threshold', 100)
     high_threshold = params.get('high_threshold', 200)
+    blur_kernel = params.get('blur_kernel', 3)
     
+    # Apply Gaussian blur to reduce noise
+    if blur_kernel > 1:
+        gray = cv2.GaussianBlur(gray, (blur_kernel, blur_kernel), 0)
+    
+    # Apply Canny edge detection
     edges = cv2.Canny(gray, low_threshold, high_threshold)
+    
+    # Convert to RGB for consistency
     return cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
 
-def process_depth_builtin(image_array, params):
-    """Built-in depth estimation using brightness"""
+def process_depth_builtin(image_array: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """Built-in depth estimation fallback using brightness analysis.
+    
+    Args:
+        image_array: Input image as numpy array
+        params: Parameters including contrast and brightness
+        
+    Returns:
+        Depth map as RGB numpy array
+    """
     gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
     
     contrast = params.get('contrast', 1.2)
@@ -321,8 +385,16 @@ def process_depth_builtin(image_array, params):
     depth_rgb = np.stack([depth, depth, depth], axis=-1)
     return (depth_rgb * 255).astype(np.uint8)
 
-def process_openpose_builtin(image_array, params):
-    """Built-in pose estimation placeholder"""
+def process_openpose_builtin(image_array: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """Built-in pose estimation fallback using edge detection.
+    
+    Args:
+        image_array: Input image as numpy array
+        params: Processing parameters (unused in fallback)
+        
+    Returns:
+        Skeleton outline as RGB numpy array
+    """
     # For now, return a simple skeletal outline
     gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY) if len(image_array.shape) == 3 else image_array
     edges = cv2.Canny(gray, 50, 150)
@@ -333,8 +405,20 @@ def process_openpose_builtin(image_array, params):
     
     return cv2.cvtColor(skeleton, cv2.COLOR_GRAY2RGB)
 
-def process_depth_pytorch(image_array, model_id, params):
-    """PyTorch-based depth estimation using MiDaS or DPT models"""
+def process_depth_pytorch(image_array: np.ndarray, model_id: str, params: Dict[str, Any]) -> np.ndarray:
+    """PyTorch-based depth estimation using MiDaS or DPT models.
+    
+    Args:
+        image_array: Input image as numpy array (RGB)
+        model_id: Model identifier ('midas_v21' or 'dpt_hybrid')
+        params: Processing parameters including brightness, contrast, smoothing, depthStrength
+        
+    Returns:
+        Processed depth map as RGB numpy array
+        
+    Raises:
+        Exception: If PyTorch is unavailable or model loading fails
+    """
     if not PYTORCH_AVAILABLE:
         raise Exception("PyTorch not available, cannot process depth with neural networks")
     
@@ -356,52 +440,42 @@ def process_depth_pytorch(image_array, model_id, params):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         logger.info(f"[PYTORCH] Using device: {device}")
         
-        # Load model using torch.hub for compatibility
+        # Load model using original MiDaS implementation
         try:
+            # Add original MiDaS path to sys.path
+            import sys
+            midas_path = r"D:\MaDiS\MiDaS"
+            if midas_path not in sys.path:
+                sys.path.insert(0, midas_path)
+            
+            # Import original MiDaS implementation
+            from midas.model_loader import load_model
+            
             if model_id == "midas_v21":
-                logger.info("[PYTORCH] Loading MiDaS v2.1 from torch.hub")
-                model = torch.hub.load('intel-isl/MiDaS', 'MiDaS', pretrained=True)
-                midas_transforms = torch.hub.load('intel-isl/MiDaS', 'transforms')
-                transform = midas_transforms.default_transform
+                logger.info("[PYTORCH] Loading MiDaS v2.1 using original implementation")
+                model, transform, net_w, net_h = load_model(device, model_path, "midas_v21_384", optimize=False)
+                logger.info(f"[PYTORCH] MiDaS v2.1 loaded successfully from {model_path}")
+                logger.info(f"[PYTORCH] Model input size: {net_w}x{net_h}")
             elif model_id == "dpt_hybrid":
-                logger.info("[PYTORCH] Loading DPT-Hybrid from torch.hub") 
-                model = torch.hub.load('intel-isl/MiDaS', 'DPT_Hybrid', pretrained=True)
-                midas_transforms = torch.hub.load('intel-isl/MiDaS', 'transforms')
-                transform = midas_transforms.dpt_transform
+                logger.info("[PYTORCH] Loading DPT Hybrid using original implementation")
+                model, transform, net_w, net_h = load_model(device, model_path, "dpt_hybrid_384", optimize=False)
+                logger.info(f"[PYTORCH] DPT Hybrid loaded successfully from {model_path}")
+                logger.info(f"[PYTORCH] Model input size: {net_w}x{net_h}")
             else:
-                raise Exception(f"Unsupported model_id: {model_id}")
+                raise Exception(f"Unsupported model_id: {model_id}. Supported: midas_v21, dpt_hybrid")
                 
-            model.to(device)
-            model.eval()
-            logger.info(f"[PYTORCH] {model_id} model loaded successfully")
-            
         except Exception as e:
-            logger.error(f"[PYTORCH] Failed to load model from torch.hub: {e}")
-            logger.info("[PYTORCH] Trying to load from local file...")
-            
-            # Fallback: try to load from local file
-            try:
-                model_state = torch.load(model_path, map_location=device)
-                if model_id == "midas_v21":
-                    model = torch.hub.load('intel-isl/MiDaS', 'MiDaS', pretrained=False)
-                    midas_transforms = torch.hub.load('intel-isl/MiDaS', 'transforms')
-                    transform = midas_transforms.default_transform
-                else:  # dpt_hybrid
-                    model = torch.hub.load('intel-isl/MiDaS', 'DPT_Hybrid', pretrained=False)
-                    midas_transforms = torch.hub.load('intel-isl/MiDaS', 'transforms')
-                    transform = midas_transforms.dpt_transform
-                    
-                model.load_state_dict(model_state, strict=False)
-                model.to(device)
-                model.eval()
-                logger.info(f"[PYTORCH] {model_id} loaded from local file")
-                
-            except Exception as local_error:
-                logger.error(f"[PYTORCH] Failed to load from local file: {local_error}")
-                raise Exception(f"Could not load {model_id} model")
+            logger.error(f"[PYTORCH] Failed to load model with original MiDaS: {e}")
+            raise Exception(f"Could not load {model_id} model: {e}")
         
-        # Apply MiDaS-specific transform
-        input_tensor = transform(pil_image).unsqueeze(0).to(device)
+        # Convert PIL to numpy in correct format for MiDaS
+        # MiDaS expects RGB values in 0-1 range
+        image_rgb = np.array(pil_image) / 255.0
+        logger.info(f"[PYTORCH] Image converted to RGB: {image_rgb.shape}")
+        
+        # Apply MiDaS-specific transform (expects dict with 'image' key)
+        input_tensor = transform({"image": image_rgb})["image"]
+        input_tensor = torch.from_numpy(input_tensor).to(device).unsqueeze(0)
         logger.info(f"[PYTORCH] Input tensor prepared: {input_tensor.shape}")
         
         # Run actual model inference
@@ -421,35 +495,24 @@ def process_depth_pytorch(image_array, model_id, params):
             depth_numpy = depth_prediction.cpu().numpy()
             depth_numpy = (depth_numpy - depth_numpy.min()) / (depth_numpy.max() - depth_numpy.min())
             
-            # Apply ALL user parameters AFTER depth estimation
-            brightness = params.get('brightness', 0.0)    # -1 to 1
-            contrast = params.get('contrast', 1.0)        # 0.5 to 2.0
-            smoothing = params.get('smoothing', 0)        # 0 to 5 (blur radius)
-            depth_strength = params.get('depthStrength', 1.0)  # 0.5 to 2.0
+            # Output RAW depth map - all adjustments handled by frontend
+            logger.info("[PYTORCH] Outputting raw depth map (no backend processing)")
             
-            logger.info(f"[PYTORCH] Applying post-processing: brightness={brightness}, contrast={contrast}, smoothing={smoothing}, depthStrength={depth_strength}")
-            
-            # Apply depth strength (enhance depth differences)
-            if depth_strength != 1.0:
-                depth_center = 0.5
-                depth_numpy = depth_center + (depth_numpy - depth_center) * depth_strength
-                logger.info(f"[PYTORCH] Applied depth strength: {depth_strength}")
-            
-            # Apply smoothing (Gaussian blur)
-            if smoothing > 0:
-                kernel_size = max(1, int(smoothing * 2) + 1)  # Convert to odd kernel size
-                depth_numpy = cv2.GaussianBlur(depth_numpy, (kernel_size, kernel_size), smoothing)
-                logger.info(f"[PYTORCH] Applied smoothing: kernel_size={kernel_size}, sigma={smoothing}")
-            
-            # Apply contrast and brightness
-            depth_numpy = depth_numpy * contrast + brightness
+            # Keep raw depth map - no post-processing 
+            # Frontend will handle: brightness, contrast, smoothing, depthStrength via CSS filters
             depth_numpy = np.clip(depth_numpy, 0, 1)  # Ensure values stay in range
             
-            # Convert to 0-255 range
-            depth_numpy = (depth_numpy * 255).astype(np.uint8)
+            # DEBUG: Check actual depth values
+            logger.info(f"[DEBUG] Depth range: {depth_numpy.min():.4f} to {depth_numpy.max():.4f}")
+            logger.info(f"[DEBUG] Depth mean: {depth_numpy.mean():.4f}, std: {depth_numpy.std():.4f}")
             
-            # Convert to RGB
-            depth_rgb = np.stack([depth_numpy, depth_numpy, depth_numpy], axis=-1)
+            # Simple grayscale conversion for testing
+            depth_8bit = (depth_numpy * 255).astype(np.uint8)
+            logger.info(f"[DEBUG] 8-bit range: {depth_8bit.min()} to {depth_8bit.max()}")
+            
+            # Convert to RGB (simple grayscale)
+            depth_rgb = np.stack([depth_8bit, depth_8bit, depth_8bit], axis=-1)
+            logger.info("[PYTORCH] Simple grayscale conversion for debugging")
         
         logger.info(f"[PYTORCH] {model_id} processing completed with proper tensor handling")
         return depth_rgb
@@ -460,28 +523,34 @@ def process_depth_pytorch(image_array, model_id, params):
 
 # Processing function dispatcher
 PROCESSING_FUNCTIONS = {
-    "canny_builtin": process_canny_builtin,
+    "canny_opencv": process_canny_opencv,
     "depth_builtin": process_depth_builtin, 
     "openpose_builtin": process_openpose_builtin,
 }
 
 # API Models
 class ProcessRequest(BaseModel):
-    image: str  # Base64 encoded image
-    processor: str
-    parameters: Dict[str, Any] = Field(default_factory=dict)
+    """Request model for v3 processing endpoint."""
+    image: str = Field(..., description="Base64 encoded image data")
+    processor: str = Field(..., description="Processor identifier")
+    parameters: Dict[str, Any] = Field(default_factory=dict, description="Processing parameters")
 
 class ProcessV2Request(BaseModel):
-    image_base64: str  # Base64 encoded image with data: prefix
-    model_id: str     # Model ID (midas_v21, dpt_hybrid, etc.)
-    parameters: Dict[str, Any] = Field(default_factory=dict)
+    """Request model for v2 processing endpoint (ControlNet compatible)."""
+    image_base64: str = Field(..., description="Base64 encoded image with data: prefix")
+    model_id: str = Field(..., description="Model ID (midas_v21, dpt_hybrid, etc.)")
+    parameters: Dict[str, Any] = Field(
+        default_factory=dict, 
+        description="Processing parameters (brightness, contrast, smoothing, depthStrength)"
+    )
 
 class ProcessResponse(BaseModel):
-    success: bool
-    processed_image: Optional[str] = None
-    processing_time: float
-    processor_used: str
-    fallback_used: bool = False
+    """Response model for processing endpoints."""
+    success: bool = Field(..., description="Whether processing succeeded")
+    processed_image: Optional[str] = Field(None, description="Base64 encoded processed image")
+    processing_time: float = Field(..., description="Processing time in seconds")
+    processor_used: str = Field(..., description="Actual processor used")
+    fallback_used: bool = Field(False, description="Whether fallback processing was used")
     error: Optional[str] = None
 
 # API Endpoints
@@ -556,6 +625,71 @@ async def get_processor_stats():
     logger.info(f"[API] Stats requested: {available_processors}/{total_processors} processors, {available_models}/{total_models} models")
     return stats
 
+@app.get("/api/processors/enhanced")
+async def get_enhanced_processors():
+    """Get enhanced processor information and capabilities"""
+    if not ENHANCED_PROCESSING_ENABLED:
+        return {
+            "available": False,
+            "reason": "Enhanced processing system not available or not initialized"
+        }
+    
+    try:
+        enhanced_info = get_enhanced_processor_info()
+        enhanced_stats = get_enhanced_processor_stats()
+        
+        return {
+            "available": True,
+            "processors": enhanced_info,
+            "stats": enhanced_stats,
+            "backend": "enhanced"
+        }
+    except Exception as e:
+        logger.error(f"Error getting enhanced processor info: {e}")
+        return {
+            "available": False,
+            "reason": f"Error retrieving enhanced processor information: {str(e)}"
+        }
+
+@app.get("/api/models/checkpoints")
+async def get_checkpoints():
+    """Get available checkpoint models"""
+    try:
+        checkpoints = scan_checkpoints()
+        logger.info(f"[API] Checkpoints list requested: {len(checkpoints)} models found")
+        return checkpoints
+    except Exception as e:
+        logger.error(f"[API] Error scanning checkpoints: {e}")
+        raise HTTPException(status_code=500, detail=f"Error scanning checkpoints: {str(e)}")
+
+@app.get("/api/models/vaes")
+async def get_vaes():
+    """Get available VAE models"""
+    try:
+        vaes = scan_vaes()
+        logger.info(f"[API] VAEs list requested: {len(vaes)} models found")
+        return vaes
+    except Exception as e:
+        logger.error(f"[API] Error scanning VAEs: {e}")
+        raise HTTPException(status_code=500, detail=f"Error scanning VAEs: {str(e)}")
+
+@app.get("/api/preprocessors")
+async def get_preprocessors():
+    """Get all available preprocessors (alias for /api/processors)"""
+    processors = []
+    for processor_id, config in PROCESSOR_REGISTRY.items():
+        processors.append({
+            "id": processor_id,
+            "name": config["name"],
+            "type": config["type"].value,
+            "category": config["category"],
+            "available": config["available"],
+            "parameters": config["parameters"]
+        })
+    
+    logger.info(f"[API] Preprocessors list requested: {len(processors)} preprocessors available")
+    return processors
+
 @app.post("/api/v3/process")
 async def process_image_v3(request: ProcessRequest):
     """Unified processing endpoint v3"""
@@ -598,7 +732,7 @@ async def process_image_v3(request: ProcessRequest):
         elif proc_config["available"] and proc_config["backend"] == "pytorch":
             # PyTorch model processing
             try:
-                if request.processor in ["midas_v21", "dpt_hybrid"]:
+                if request.processor in ["midas_v21", "dpt_hybrid", "dpt_beit_large_512"]:
                     processed_array = process_depth_pytorch(image_array, request.processor, request.parameters)
                     logger.info(f"[OK] Processed with pytorch backend: {request.processor}")
                 else:
@@ -613,20 +747,11 @@ async def process_image_v3(request: ProcessRequest):
             logger.warning(f"[WARN] Model not available for {request.processor}, using fallback")
             fallback_used = True
         
-        # Fallback processing
+        # NO FALLBACK - If processing failed, return error
         if processed_array is None or fallback_used:
-            # Use most appropriate fallback
-            if proc_config["type"] == ProcessorType.EDGE_DETECTION:
-                processed_array = process_canny_builtin(image_array, {"low_threshold": 100, "high_threshold": 200})
-            elif proc_config["type"] == ProcessorType.DEPTH_ESTIMATION:
-                processed_array = process_depth_builtin(image_array, {"contrast": 1.2, "brightness": 0.1})
-            elif proc_config["type"] == ProcessorType.POSE_ESTIMATION:
-                processed_array = process_openpose_builtin(image_array, {})
-            else:
-                # Generic edge detection fallback
-                processed_array = process_canny_builtin(image_array, {"low_threshold": 100, "high_threshold": 200})
-            
-            fallback_used = True
+            error_msg = f"Processing failed for {request.processor}. Backend processing is required."
+            logger.error(f"[CRITICAL] {error_msg}")
+            raise HTTPException(status_code=500, detail=error_msg)
         
         # Convert back to base64
         processed_pil = Image.fromarray(processed_array)
