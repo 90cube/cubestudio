@@ -9,10 +9,10 @@ Extracted from unified_backend_service.py for better modularity.
 import datetime
 import logging
 from typing import Dict, List, Any, Optional
-from backend.models.processor import (
+from ..models.processor import (
     ProcessorType, scan_available_models, create_processor_registry, PROCESSOR_CATEGORIES
 )
-from backend.models.config import Config
+from ..models.config import Config
 
 logger = logging.getLogger(__name__)
 

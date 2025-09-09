@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 from fastapi import HTTPException
 
-from backend.utils.image_utils import (
+from ..utils.image_utils import (
     decode_base64_image,
     encode_image_to_base64,
     process_canny_opencv,
@@ -18,7 +18,7 @@ from backend.utils.image_utils import (
     process_openpose_builtin,
     process_depth_pytorch
 )
-from backend.models.config import Config
+from ..models.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class ImageService:
             elif proc_config["available"] and proc_config["backend"] == "pytorch":
                 # PyTorch model processing
                 try:
-                    if processor in ["midas_v21", "dpt_hybrid", "dpt_beit_large_512"]:
+                    if processor in ["midas_v21", "dpt_hybrid", "dpt_beit_large_512", "depth_anything_v2"]:
                         processed_array = process_depth_pytorch(image_array, processor, parameters, self.available_models)
                         logger.info(f"[OK] Processed with pytorch backend: {processor}")
                     else:

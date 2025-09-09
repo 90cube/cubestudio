@@ -6,7 +6,7 @@ Handles all image processing API endpoints.
 import logging
 from fastapi import APIRouter, Request, HTTPException
 
-from backend.models.api_models import (
+from ..models.api_models import (
     ProcessRequest, ProcessV2Request, ProcessResponse, ProcessV2Response
 )
 

@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List
 
-from backend.models.config_manager import ConfigManager
+from ..models.config_manager import ConfigManager
 
 
 class ModelScanner:

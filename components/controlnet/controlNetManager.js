@@ -1805,10 +1805,16 @@ async function processDepthWithExternalModel(imageNode, model, params = {}) {
  * @returns {Object} Depth 파라미터
  */
 function getDepthParameters(container) {
-    const contrast = parseFloat(container.querySelector('#contrast').value);
-    const brightness = parseFloat(container.querySelector('#brightness').value);
-    const smoothing = parseInt(container.querySelector('#smoothing').value);
-    const depthStrength = parseFloat(container.querySelector('#depth_strength').value);
+    // Handle missing elements gracefully with fallback values
+    const contrastEl = container.querySelector('#contrast');
+    const brightnessEl = container.querySelector('#brightness');
+    const smoothingEl = container.querySelector('#smoothing');
+    const depthStrengthEl = container.querySelector('#depth_strength');
+    
+    const contrast = contrastEl ? parseFloat(contrastEl.value) : 1.2;
+    const brightness = brightnessEl ? parseFloat(brightnessEl.value) : 0.1;
+    const smoothing = smoothingEl ? parseInt(smoothingEl.value) : 1;
+    const depthStrength = depthStrengthEl ? parseFloat(depthStrengthEl.value) : 1.0;
     
     console.log('📊 Depth 파라미터:', { contrast, brightness, smoothing, depthStrength });
     

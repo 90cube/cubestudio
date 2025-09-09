@@ -17,18 +17,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # Backend imports
-from backend.models.config_manager import get_config_manager
-from backend.models.processor import (
+from .models.config_manager import get_config_manager
+from .models.processor import (
     ProcessorType, scan_available_models, create_processor_registry, PROCESSOR_CATEGORIES
 )
-from backend.services.model_scanner import ModelScanner
-from backend.services.processor_service import ProcessorService
-from backend.services.image_service import ImageService
+from .services.model_scanner import ModelScanner
+from .services.processor_service import ProcessorService
+from .services.image_service import ImageService
 
 # API routes
-from backend.api.processors import router as processors_router
-from backend.api.models import router as models_router
-from backend.api.processing import router as processing_router
+from .api.processors import router as processors_router
+from .api.models import router as models_router
+from .api.processing import router as processing_router
 
 # Initialize configuration
 config_manager = get_config_manager()
