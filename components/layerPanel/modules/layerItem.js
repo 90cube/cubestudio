@@ -198,8 +198,8 @@ export class LayerItem {
             this.opacityDisplay.style.background = 'none';
         });
 
-        // 타입 아이콘 더블클릭 - 타입 토글
-        this.typeIcon.addEventListener('dblclick', (e) => {
+        // 타입 아이콘 단일클릭 - 타입 토글 (레이어 패널에서만)
+        this.typeIcon.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             this.toggleImageType();
