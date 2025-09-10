@@ -16,6 +16,7 @@ export class LayerItem {
         
         this.createElement();
         this.setupEventListeners();
+        this.setupDragHandlers();
     }
 
     /**
@@ -44,50 +45,81 @@ export class LayerItem {
         this.visibilityBtn.innerHTML = this.layerData.visible ? '👁️' : '🚫';
         this.visibilityBtn.title = this.layerData.visible ? 'Hide layer' : 'Show layer';
         this.visibilityBtn.style.cssText = `
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 16px;
             cursor: pointer;
             margin-right: 8px;
-            padding: 2px 4px;
-            border-radius: 3px;
-            transition: background 0.2s ease;
-            width: 24px;
-            height: 24px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
         `;
 
-        // 타입 아이콘 (우클릭 가능)
+        // 타입 아이콘 (클릭으로 토글)
         this.typeIcon = document.createElement('span');
         this.typeIcon.className = 'layer-type-icon';
         this.typeIcon.innerHTML = this.getTypeIcon();
-        this.typeIcon.title = 'Double-click to toggle image type';
+        this.typeIcon.title = 'Click to toggle image type';
         this.typeIcon.style.cssText = `
             font-size: 14px;
             margin-right: 8px;
-            opacity: 0.8;
-            cursor: context-menu;
-            padding: 2px 4px;
-            border-radius: 3px;
-            transition: background 0.2s ease;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            min-width: 24px;
+            text-align: center;
         `;
 
-        // 레이어 이름
+        // 드래그 핸들
+        this.dragHandle = document.createElement('span');
+        this.dragHandle.className = 'drag-handle';
+        this.dragHandle.innerHTML = '⋮';
+        this.dragHandle.title = 'Drag to reorder layers';
+        this.dragHandle.style.cssText = `
+            font-size: 14px;
+            margin-right: 8px;
+            cursor: grab;
+            padding: 6px 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            min-width: 20px;
+            text-align: center;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        `;
+
+        // 레이어 이름 (더블클릭으로 편집)
         this.nameElement = document.createElement('span');
         this.nameElement.className = 'layer-name';
         this.nameElement.textContent = this.layerData.name;
+        this.nameElement.title = 'Double-click to edit name';
         this.nameElement.style.cssText = `
             flex: 1;
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.95);
             font-size: 12px;
             font-weight: 500;
             cursor: text;
-            padding: 2px 4px;
-            border-radius: 3px;
+            padding: 4px 8px;
+            border-radius: 4px;
             min-width: 0;
             word-break: break-word;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
         `;
 
         // 불투명도 표시 (클릭 가능)
@@ -96,19 +128,22 @@ export class LayerItem {
         this.opacityDisplay.textContent = Math.round(this.layerData.opacity * 100) + '%';
         this.opacityDisplay.title = 'Click to adjust opacity';
         this.opacityDisplay.style.cssText = `
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
             font-size: 10px;
             font-weight: 600;
             margin-left: 8px;
-            min-width: 30px;
-            text-align: right;
+            min-width: 32px;
+            text-align: center;
             cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 3px;
-            transition: background 0.2s ease;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            background: rgba(106, 182, 255, 0.1);
+            border: 1px solid rgba(106, 182, 255, 0.2);
         `;
 
-        // 요소들 조립
+        // 요소들 조립 (드래그 핸들을 맨 왼쪽으로)
+        this.element.appendChild(this.dragHandle);
         this.element.appendChild(this.visibilityBtn);
         this.element.appendChild(this.typeIcon);
         this.element.appendChild(this.nameElement);
@@ -144,18 +179,47 @@ export class LayerItem {
             this.updateVisibilityButton();
         });
 
-        // 레이어 선택
+        // 더블클릭 방지를 위한 타이머
+        let clickTimer = null;
+        let clickCount = 0;
+
+        // 레이어 선택 - 더블클릭과 충돌 방지
         this.element.addEventListener('click', (e) => {
             if (e.target === this.nameElement && this.isNameEditing) {
                 return; // 이름 편집 중일 때는 선택하지 않음
             }
+            
+            // 이름 요소 클릭 시 더블클릭 체크
+            if (e.target === this.nameElement) {
+                clickCount++;
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => {
+                        // 단일 클릭 - 레이어 선택
+                        selectLayer(this.layerData.imageNode);
+                        this.onUpdate();
+                        clickCount = 0;
+                    }, 500); // 500ms 대기
+                }
+                return;
+            }
+            
+            // 다른 부분 클릭 시 즉시 선택
             selectLayer(this.layerData.imageNode);
             this.onUpdate();
         });
 
-        // 이름 편집 (더블클릭)
+        // 이름 편집 (더블클릭) - 개선된 감지
         this.nameElement.addEventListener('dblclick', (e) => {
+            e.preventDefault();
             e.stopPropagation();
+            
+            // 타이머 클리어 및 더블클릭 처리
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+            }
+            clickCount = 0;
+            
             this.startNameEditing();
         });
 
@@ -176,11 +240,13 @@ export class LayerItem {
 
         // 가시성 버튼 호버
         this.visibilityBtn.addEventListener('mouseenter', () => {
-            this.visibilityBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+            this.visibilityBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+            this.visibilityBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
         });
 
         this.visibilityBtn.addEventListener('mouseleave', () => {
-            this.visibilityBtn.style.background = 'none';
+            this.visibilityBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+            this.visibilityBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
         });
 
         // 불투명도 클릭 이벤트
@@ -191,11 +257,13 @@ export class LayerItem {
 
         // 불투명도 호버
         this.opacityDisplay.addEventListener('mouseenter', () => {
-            this.opacityDisplay.style.background = 'rgba(139, 92, 246, 0.2)';
+            this.opacityDisplay.style.background = 'rgba(106, 182, 255, 0.2)';
+            this.opacityDisplay.style.borderColor = 'rgba(106, 182, 255, 0.4)';
         });
 
         this.opacityDisplay.addEventListener('mouseleave', () => {
-            this.opacityDisplay.style.background = 'none';
+            this.opacityDisplay.style.background = 'rgba(106, 182, 255, 0.1)';
+            this.opacityDisplay.style.borderColor = 'rgba(106, 182, 255, 0.2)';
         });
 
         // 타입 아이콘 단일클릭 - 타입 토글 (레이어 패널에서만)
@@ -210,10 +278,37 @@ export class LayerItem {
         // 타입 아이콘 호버
         this.typeIcon.addEventListener('mouseenter', () => {
             this.typeIcon.style.background = 'rgba(139, 92, 246, 0.2)';
+            this.typeIcon.style.borderColor = 'rgba(139, 92, 246, 0.4)';
         });
 
         this.typeIcon.addEventListener('mouseleave', () => {
-            this.typeIcon.style.background = 'none';
+            this.typeIcon.style.background = 'rgba(139, 92, 246, 0.1)';
+            this.typeIcon.style.borderColor = 'rgba(139, 92, 246, 0.2)';
+        });
+
+        // 드래그 핸들 호버 효과
+        this.dragHandle.addEventListener('mouseenter', () => {
+            this.dragHandle.style.background = 'rgba(139, 92, 246, 0.2)';
+            this.dragHandle.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+            this.dragHandle.style.color = 'rgba(255, 255, 255, 0.9)';
+            this.dragHandle.style.cursor = 'grab';
+        });
+
+        this.dragHandle.addEventListener('mouseleave', () => {
+            this.dragHandle.style.background = 'rgba(139, 92, 246, 0.1)';
+            this.dragHandle.style.borderColor = 'rgba(139, 92, 246, 0.2)';
+            this.dragHandle.style.color = 'rgba(255, 255, 255, 0.6)';
+        });
+
+        // 이름 편집 호버 효과
+        this.nameElement.addEventListener('mouseenter', () => {
+            this.nameElement.style.background = 'rgba(255, 255, 255, 0.08)';
+            this.nameElement.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        });
+
+        this.nameElement.addEventListener('mouseleave', () => {
+            this.nameElement.style.background = 'rgba(255, 255, 255, 0.03)';
+            this.nameElement.style.borderColor = 'rgba(255, 255, 255, 0.05)';
         });
     }
 
@@ -825,9 +920,286 @@ export class LayerItem {
     }
 
     /**
+     * 드래그 핸들러 설정
+     */
+    setupDragHandlers() {
+        let isDragging = false;
+        let startY = 0;
+        let dragGhost = null;
+        let insertMarker = null;
+        
+        // 드래그 시작
+        this.dragHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDragging = true;
+            startY = e.clientY;
+            
+            this.dragHandle.style.cursor = 'grabbing';
+            
+            // 드래그 고스트 생성
+            this.createDragGhost();
+            
+            // 전역 이벤트 리스너 추가
+            document.addEventListener('mousemove', this.handleDragMove.bind(this));
+            document.addEventListener('mouseup', this.handleDragEnd.bind(this));
+            
+            // 다른 레이어들에 드래그 가능 상태 표시
+            this.highlightDropZones(true);
+            
+            console.log('🎯 Started dragging layer:', this.layerData.name);
+        });
+        
+        // 마우스 이동 핸들러 바인딩
+        this.handleDragMove = (e) => {
+            if (!isDragging) return;
+            
+            // 드래그 고스트 위치 업데이트
+            if (this.dragGhost) {
+                this.dragGhost.style.left = e.clientX + 10 + 'px';
+                this.dragGhost.style.top = e.clientY - 10 + 'px';
+            }
+            
+            // 드롭 위치 계산
+            this.updateDropIndicator(e);
+        };
+        
+        // 마우스 업 핸들러 바인딩
+        this.handleDragEnd = (e) => {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            this.dragHandle.style.cursor = 'grab';
+            
+            // 드래그 고스트 제거
+            this.removeDragGhost();
+            
+            // 드롭 처리
+            this.handleDrop(e);
+            
+            // 드롭 존 하이라이트 제거
+            this.highlightDropZones(false);
+            
+            // 전역 이벤트 리스너 제거
+            document.removeEventListener('mousemove', this.handleDragMove);
+            document.removeEventListener('mouseup', this.handleDragEnd);
+            
+            console.log('🎯 Finished dragging layer');
+        };
+    }
+    
+    /**
+     * 드래그 고스트 생성
+     */
+    createDragGhost() {
+        const dragGhost = document.createElement('div');
+        dragGhost.className = 'layer-drag-ghost';
+        dragGhost.style.cssText = `
+            position: fixed;
+            z-index: 10000;
+            pointer-events: none;
+            background: rgba(139, 92, 246, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transform: rotate(-2deg);
+        `;
+        
+        dragGhost.innerHTML = `${this.getTypeIcon()} ${this.layerData.name}`;
+        document.body.appendChild(dragGhost);
+        
+        // 참조 저장
+        this.dragGhost = dragGhost;
+    }
+    
+    /**
+     * 드래그 고스트 제거
+     */
+    removeDragGhost() {
+        if (this.dragGhost) {
+            this.dragGhost.remove();
+            this.dragGhost = null;
+        }
+        this.removeInsertMarker();
+    }
+    
+    /**
+     * 드롭 존 하이라이트
+     */
+    highlightDropZones(highlight) {
+        const layerItems = document.querySelectorAll('.layer-item');
+        layerItems.forEach(item => {
+            if (item !== this.element) {
+                if (highlight) {
+                    item.style.background = 'rgba(255, 255, 255, 0.08)';
+                    item.style.borderTop = '2px dashed rgba(139, 92, 246, 0.3)';
+                    item.style.borderBottom = '2px dashed rgba(139, 92, 246, 0.3)';
+                } else {
+                    item.style.background = '';
+                    item.style.borderTop = '';
+                    item.style.borderBottom = '';
+                }
+            }
+        });
+    }
+    
+    /**
+     * 드롭 인디케이터 업데이트
+     */
+    updateDropIndicator(e) {
+        this.removeInsertMarker();
+        
+        const layerItems = Array.from(document.querySelectorAll('.layer-item'));
+        let targetElement = null;
+        let insertBefore = true;
+        let minDistance = Infinity;
+        
+        // 마우스 위치에서 가장 가까운 레이어 아이템 찾기
+        for (const item of layerItems) {
+            if (item === this.element) continue;
+            
+            const rect = item.getBoundingClientRect();
+            const itemCenterY = rect.top + rect.height / 2;
+            const distance = Math.abs(e.clientY - itemCenterY);
+            
+            // 가장 가까운 아이템을 찾거나, 마우스가 아이템 위에 있는 경우
+            if (distance < minDistance || (e.clientY >= rect.top && e.clientY <= rect.bottom)) {
+                minDistance = distance;
+                targetElement = item;
+                insertBefore = e.clientY < itemCenterY;
+            }
+        }
+        
+        if (targetElement) {
+            this.createInsertMarker(targetElement, insertBefore);
+        }
+        
+        console.log('🎯 Drop target:', targetElement ? targetElement.dataset.layerId : 'none', 'insertBefore:', insertBefore);
+    }
+    
+    /**
+     * 삽입 마커 생성
+     */
+    createInsertMarker(targetElement, insertBefore) {
+        const marker = document.createElement('div');
+        marker.className = 'layer-insert-marker';
+        marker.style.cssText = `
+            height: 3px;
+            background: linear-gradient(90deg, #8b5cf6, #6366f1);
+            border-radius: 2px;
+            margin: 2px 12px;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+            animation: pulse 1s infinite;
+        `;
+        
+        // CSS 애니메이션 추가
+        if (!document.querySelector('#drag-marker-styles')) {
+            const style = document.createElement('style');
+            style.id = 'drag-marker-styles';
+            style.textContent = `
+                @keyframes pulse {
+                    0% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.6; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        if (insertBefore) {
+            targetElement.parentNode.insertBefore(marker, targetElement);
+        } else {
+            targetElement.parentNode.insertBefore(marker, targetElement.nextSibling);
+        }
+        
+        this.insertMarker = marker;
+        this.dropTarget = { element: targetElement, insertBefore };
+    }
+    
+    /**
+     * 삽입 마커 제거
+     */
+    removeInsertMarker() {
+        if (this.insertMarker) {
+            this.insertMarker.remove();
+            this.insertMarker = null;
+            this.dropTarget = null;
+        }
+    }
+    
+    /**
+     * 드롭 처리
+     */
+    handleDrop(e) {
+        // 드롭 타겟이 없으면 가장 가까운 레이어를 찾아서 처리
+        if (!this.dropTarget) {
+            console.log('🔍 No stored drop target, finding closest layer...');
+            
+            const layerItems = Array.from(document.querySelectorAll('.layer-item'));
+            let closestElement = null;
+            let minDistance = Infinity;
+            let insertBefore = true;
+            
+            for (const item of layerItems) {
+                if (item === this.element) continue;
+                
+                const rect = item.getBoundingClientRect();
+                const itemCenterY = rect.top + rect.height / 2;
+                const distance = Math.abs(e.clientY - itemCenterY);
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestElement = item;
+                    insertBefore = e.clientY < itemCenterY;
+                }
+            }
+            
+            if (!closestElement) {
+                console.log('🚫 No valid drop target found');
+                return;
+            }
+            
+            this.dropTarget = { element: closestElement, insertBefore };
+        }
+        
+        const targetLayerId = this.dropTarget.element.dataset.layerId;
+        const insertBefore = this.dropTarget.insertBefore;
+        
+        console.log(`🎯 Dropping layer ${this.layerData.name} (${this.layerData.id}) ${insertBefore ? 'before' : 'after'} ${targetLayerId}`);
+        
+        // 같은 레이어면 아무것도 하지 않음
+        if (this.layerData.id === targetLayerId) {
+            console.log('🚫 Cannot drop on self');
+            return;
+        }
+        
+        // 레이어 패널에게 재정렬 요청
+        const reorderEvent = new CustomEvent('layerReorder', {
+            detail: {
+                draggedLayerId: this.layerData.id,
+                targetLayerId: targetLayerId,
+                insertBefore: insertBefore
+            }
+        });
+        document.dispatchEvent(reorderEvent);
+        
+        console.log('📡 Layer reorder event dispatched');
+    }
+
+    /**
      * 컴포넌트 정리
      */
     destroy() {
+        // 드래그 관련 정리
+        this.removeDragGhost();
+        this.highlightDropZones(false);
+        
         // 모든 열린 메뉴들 정리
         this.removeExistingContextMenu();
         this.removeExistingOpacityControl();

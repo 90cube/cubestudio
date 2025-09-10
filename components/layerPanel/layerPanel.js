@@ -1,7 +1,7 @@
 // components/layerPanel/layerPanel.js
 
 import { createFloatingPanel } from '../ui/floatingPanel/floatingPanel.js';
-import { getAllLayers, getLayerStats, onLayerUpdate, offLayerUpdate } from './modules/layerDataManager.js';
+import { getAllLayers, getLayerStats, onLayerUpdate, offLayerUpdate, reorderLayers } from './modules/layerDataManager.js';
 import { createLayerItem } from './modules/layerItem.js';
 
 /**
@@ -152,10 +152,14 @@ export class LayerPanel {
         // 레이어 업데이트 감지
         onLayerUpdate(this.onLayerUpdateBound);
 
-        // 캔버스 이벤트 감지 (이미지 추가/삭제)
+        // 캔버스 이벤트 감지 (이미지 추가/삭제/타입변경)
         document.addEventListener('canvasImageAdded', this.onLayerUpdateBound);
         document.addEventListener('canvasImageDeleted', this.onLayerUpdateBound);
         document.addEventListener('canvasImageSelected', this.onLayerUpdateBound);
+        document.addEventListener('canvasImageTypeChanged', this.onLayerUpdateBound);
+
+        // 레이어 재정렬 이벤트 감지
+        document.addEventListener('layerReorder', this.onLayerReorder.bind(this));
 
         console.log('📡 Layer panel event listeners set up');
     }
@@ -167,6 +171,70 @@ export class LayerPanel {
         if (this.isInitialized) {
             this.refreshLayers();
         }
+    }
+
+    /**
+     * 레이어 재정렬 핸들러
+     */
+    onLayerReorder(event) {
+        if (!this.isInitialized) return;
+
+        const { draggedLayerId, targetLayerId, insertBefore } = event.detail;
+        
+        console.log(`🔄 Reordering layers: ${draggedLayerId} → ${insertBefore ? 'before' : 'after'} ${targetLayerId}`);
+        
+        try {
+            // 현재 레이어들 가져오기
+            const layers = getAllLayers(this.layer);
+            
+            console.log('📋 Current layers:', layers.map(l => `${l.name} (${l.id})`));
+            
+            // 드래그된 레이어와 타겟 레이어 찾기
+            const draggedLayer = layers.find(layer => String(layer.id) === String(draggedLayerId));
+            const targetLayer = layers.find(layer => String(layer.id) === String(targetLayerId));
+            
+            if (!draggedLayer || !targetLayer) {
+                console.error('❌ Could not find layers for reordering');
+                console.error('Dragged:', draggedLayerId, 'Target:', targetLayerId);
+                console.error('Available layers:', layers.map(l => l.id));
+                return;
+            }
+            
+            // 새로운 순서로 레이어 배열 재구성
+            const reorderedLayers = this.calculateNewOrder(layers, draggedLayer, targetLayer, insertBefore);
+            
+            // 직접 reorderLayers 함수 호출
+            reorderLayers(reorderedLayers);
+            console.log('✅ Layer reordering completed');
+            
+            // UI 업데이트 (약간 지연으로 캔버스 업데이트 후 진행)
+            setTimeout(() => {
+                this.refreshLayers();
+            }, 50);
+            
+        } catch (error) {
+            console.error('❌ Layer reorder error:', error);
+        }
+    }
+
+    /**
+     * 새로운 레이어 순서 계산
+     */
+    calculateNewOrder(layers, draggedLayer, targetLayer, insertBefore) {
+        // 드래그된 레이어를 제외한 배열 생성
+        const otherLayers = layers.filter(layer => layer.id !== draggedLayer.id);
+        
+        // 타겟 레이어의 인덱스 찾기
+        const targetIndex = otherLayers.findIndex(layer => layer.id === targetLayer.id);
+        
+        // 새로운 위치에 드래그된 레이어 삽입
+        const insertIndex = insertBefore ? targetIndex : targetIndex + 1;
+        const reorderedLayers = [...otherLayers];
+        reorderedLayers.splice(insertIndex, 0, draggedLayer);
+        
+        console.log('📋 New layer order:', reorderedLayers.map(l => l.name));
+        
+        return reorderedLayers;
     }
 
     /**
