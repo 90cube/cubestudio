@@ -10,6 +10,7 @@ temp/
 
 # Ignore claude files
 .claude/
+CLAUDE.md
 
 # Ignore models
 models/
