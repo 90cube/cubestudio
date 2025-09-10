@@ -297,11 +297,11 @@ function calculateSymmetricPositions() {
     const rightTop = topMargin;
     const rightBottom = rightTop + panelHeight + 20;
     
-    // 레이어 패널 위치 (오른쪽 아래, 다른 패널들과 동일한 여백)
+    // 레이어 패널 위치 (오른쪽 아래, 아래쪽으로 20px 더 내림)
     const layerPanelWidth = 320;
     const layerPanelHeight = 380;
     const layerPanelX = viewportWidth - layerPanelWidth - edgeMargin; // 다른 패널들과 동일한 30px 여백
-    const layerPanelY = viewportHeight - layerPanelHeight - edgeMargin; // 다른 패널들과 동일한 30px 여백
+    const layerPanelY = viewportHeight - layerPanelHeight - (edgeMargin - 20); // 기본 30px - 20px = 10px 여백
     
     return {
         modelExplorer: { x: leftX, y: leftTop },

@@ -52,7 +52,7 @@ async def get_model_status(api_request: Request) -> Dict[str, Any]:
             if hasattr(api_request.app.state, 'depth_processor'):
                 depth_processor = api_request.app.state.depth_processor
             else:
-                from ..services.depth_anything_processor import DepthAnythingProcessor
+                from ..services.processors.depth_anything_processor import DepthAnythingProcessor
                 from ..models.config_manager import get_config_manager
                 
                 config_manager = get_config_manager()
@@ -118,7 +118,7 @@ async def load_model(model_id: str, api_request: Request) -> Dict[str, Any]:
         start_time = time.time()
         
         if model_id == "depth_anything_v2_vitb":
-            from ..services.depth_anything_processor import DepthAnythingProcessor
+            from ..services.processors.depth_anything_processor import DepthAnythingProcessor
             from ..models.config_manager import get_config_manager
             
             config_manager = get_config_manager()

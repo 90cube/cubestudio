@@ -417,7 +417,7 @@ export class ModelExplorerComponent {
                 const subfolder = fileElement.dataset.subfolder || '';
                 
                 // 로컬 파일 시스템 경로로 이미지 URL 구성 (preview_image에 이미 전체 경로 포함됨)
-                const imageUrl = `models/checkpoints/${previewImage}`.replace(/\\/g, '/').replace(/\/+/g, '/');
+                const imageUrl = `./models/checkpoints/${previewImage}`.replace(/\\/g, '/').replace(/\/+/g, '/');
                 
                 const content = `
                     <div class="tooltip-caption">${filename}</div>

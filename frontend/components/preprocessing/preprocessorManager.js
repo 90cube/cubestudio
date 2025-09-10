@@ -218,7 +218,8 @@ function createPreprocessingUI(imageNode) {
     
     const tabs = [
         { id: 'edge', name: 'Edge & Lines', icon: '🖋️' },
-        { id: 'depth', name: 'Depth & Normals', icon: '🏔️' }
+        { id: 'depth', name: 'Depth & Normals', icon: '🏔️' },
+        { id: 'pose', name: 'Pose & Human', icon: '🤸' }
     ];
     
     tabs.forEach((tab, index) => {
@@ -260,7 +261,7 @@ function switchTab(tabId, container, imageNode) {
     // 탭 헤더 업데이트
     const tabButtons = container.querySelectorAll('button');
     tabButtons.forEach((button, index) => {
-        const isActive = (tabId === 'edge' && index === 0) || (tabId === 'depth' && index === 1);
+        const isActive = (tabId === 'edge' && index === 0) || (tabId === 'depth' && index === 1) || (tabId === 'pose' && index === 2);
         button.style.color = isActive ? '#4a9eff' : '#888';
         button.style.borderBottomColor = isActive ? '#4a9eff' : 'transparent';
     });
@@ -273,6 +274,8 @@ function switchTab(tabId, container, imageNode) {
         contentArea.appendChild(createEdgeUI(imageNode));
     } else if (tabId === 'depth') {
         contentArea.appendChild(createDepthUI(imageNode));
+    } else if (tabId === 'pose') {
+        contentArea.appendChild(createPoseUI(imageNode));
     }
 }
 
@@ -474,6 +477,429 @@ function createDepthUI(imageNode) {
     setupDepthEventListeners(depthContainer, imageNode);
     
     return depthContainer;
+}
+
+/**
+ * Pose & Human UI 생성
+ */
+function createPoseUI(imageNode) {
+    const poseContainer = document.createElement('div');
+    poseContainer.dataset.category = 'pose';
+    poseContainer._imageNode = imageNode; // 이미지 노드 저장
+    
+    // 모델 선택 카드들
+    const modelsSection = document.createElement('div');
+    modelsSection.innerHTML = `
+        <h3 style="color: #e8eaed; margin-bottom: 15px; font-size: 16px;">Pose Detection Models</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 25px;">
+            <div class="model-card selected" data-model-id="dwpose_builtin" style="
+                background: rgba(74, 158, 255, 0.1);
+                border: 2px solid #4a9eff;
+                border-radius: 8px;
+                padding: 15px;
+                cursor: pointer;
+                transition: all 0.3s;
+            ">
+                <h4 style="color: #4a9eff; margin: 0 0 8px 0;">DWPose (Built-in)</h4>
+                <p style="color: #ccc; margin: 0; font-size: 13px;">Fast fallback pose detection</p>
+            </div>
+            <div class="model-card" data-model-id="openpose_body" style="
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 15px;
+                cursor: pointer;
+                transition: all 0.3s;
+            ">
+                <h4 style="color: #e8eaed; margin: 0 0 8px 0;">OpenPose Body</h4>
+                <p style="color: #ccc; margin: 0; font-size: 13px;">Body pose detection</p>
+            </div>
+            <div class="model-card" data-model-id="openpose_hand" style="
+                background: rgba(255, 255, 255, 0.05);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 15px;
+                cursor: pointer;
+                transition: all 0.3s;
+            ">
+                <h4 style="color: #e8eaed; margin: 0 0 8px 0;">OpenPose Hand</h4>
+                <p style="color: #ccc; margin: 0; font-size: 13px;">Hand pose detection</p>
+            </div>
+        </div>
+    `;
+    
+    // 매개변수 조정 영역
+    const parametersSection = document.createElement('div');
+    parametersSection.innerHTML = `
+        <h3 style="color: #e8eaed; margin-bottom: 15px; font-size: 16px;">Parameters</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+            <div>
+                <label style="display: block; color: #ccc; margin-bottom: 8px; font-size: 14px;">
+                    Confidence Threshold: <span class="threshold-value">0.3</span>
+                </label>
+                <input type="range" class="pose-threshold" min="0.1" max="1.0" step="0.1" value="0.3" 
+                       style="width: 100%; margin-bottom: 15px;">
+                
+                <label style="display: block; color: #ccc; margin-bottom: 8px; font-size: 14px;">
+                    Line Width: <span class="line-width-value">2</span>
+                </label>
+                <input type="range" class="pose-line-width" min="1" max="10" step="1" value="2" 
+                       style="width: 100%; margin-bottom: 15px;">
+                
+                <label style="display: block; color: #ccc; margin-bottom: 8px; font-size: 14px;">
+                    Point Radius: <span class="point-radius-value">4</span>
+                </label>
+                <input type="range" class="pose-point-radius" min="1" max="10" step="1" value="4" 
+                       style="width: 100%;">
+            </div>
+            <div>
+                <label style="display: block; color: #ccc; margin-bottom: 12px; font-size: 14px;">Detection Options</label>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; color: #ccc; cursor: pointer;">
+                        <input type="checkbox" class="detect-body" checked style="margin-right: 8px;">
+                        Detect Body
+                    </label>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; color: #ccc; cursor: pointer;">
+                        <input type="checkbox" class="detect-hand" style="margin-right: 8px;">
+                        Detect Hands
+                    </label>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; color: #ccc; cursor: pointer;">
+                        <input type="checkbox" class="detect-face" style="margin-right: 8px;">
+                        Detect Face
+                    </label>
+                </div>
+                
+                <label style="display: block; color: #ccc; margin-bottom: 8px; font-size: 14px;">Output Format</label>
+                <select class="output-format" style="width: 100%; padding: 8px; background: #3a3d4a; border: 1px solid #555; border-radius: 4px; color: #e8eaed;">
+                    <option value="image">Skeleton Image</option>
+                    <option value="json">JSON Data (for editing)</option>
+                    <option value="both">Both</option>
+                </select>
+            </div>
+        </div>
+    `;
+    
+    // 액션 버튼들
+    const buttonsSection = document.createElement('div');
+    buttonsSection.innerHTML = `
+        <div style="display: flex; gap: 15px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <button class="btn-process" style="
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #4a9eff, #0f7b0f);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.3s;
+            ">🚀 Process Image</button>
+            <button class="btn-save" style="
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.3s;
+            " disabled>💾 Save Result</button>
+        </div>
+    `;
+    
+    poseContainer.appendChild(modelsSection);
+    poseContainer.appendChild(parametersSection);
+    poseContainer.appendChild(buttonsSection);
+    
+    // 결과 미리보기 영역 추가
+    const previewSection = document.createElement('div');
+    previewSection.className = 'pose-preview-section';
+    previewSection.style.cssText = `
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+    `;
+    poseContainer.appendChild(previewSection);
+    
+    // 이벤트 리스너 추가
+    setupPoseEventListeners(poseContainer, imageNode);
+    
+    return poseContainer;
+}
+
+// Pose 탭 이벤트 리스너 설정
+function setupPoseEventListeners(poseContainer, imageNode) {
+    let selectedProcessor = 'dwpose_builtin';
+    
+    // 모델 카드 선택 이벤트
+    const modelCards = poseContainer.querySelectorAll('.model-card');
+    modelCards.forEach(card => {
+        card.addEventListener('click', () => {
+            // 기존 선택 해제
+            modelCards.forEach(c => {
+                c.classList.remove('selected');
+                c.style.background = 'rgba(255, 255, 255, 0.05)';
+                c.style.border = '2px solid rgba(255, 255, 255, 0.1)';
+            });
+            // 새 선택 표시
+            card.classList.add('selected');
+            card.style.background = 'rgba(74, 158, 255, 0.1)';
+            card.style.border = '2px solid #4a9eff';
+            selectedProcessor = card.dataset.modelId;
+            
+            console.log(`[POSE] Selected processor: ${selectedProcessor}`);
+        });
+    });
+    
+    // 파라미터 슬라이더 업데이트
+    const confidenceSlider = poseContainer.querySelector('.pose-threshold');
+    const confidenceValue = poseContainer.querySelector('.threshold-value');
+    if (confidenceSlider) {
+        confidenceSlider.addEventListener('input', (e) => {
+            confidenceValue.textContent = e.target.value;
+        });
+    }
+    
+    const lineWidthSlider = poseContainer.querySelector('.pose-line-width');
+    const lineWidthValue = poseContainer.querySelector('.line-width-value');
+    if (lineWidthSlider) {
+        lineWidthSlider.addEventListener('input', (e) => {
+            lineWidthValue.textContent = e.target.value;
+        });
+    }
+    
+    const pointRadiusSlider = poseContainer.querySelector('.pose-point-radius');
+    const pointRadiusValue = poseContainer.querySelector('.point-radius-value');
+    if (pointRadiusSlider) {
+        pointRadiusSlider.addEventListener('input', (e) => {
+            pointRadiusValue.textContent = e.target.value;
+        });
+    }
+    
+    // Process 버튼 이벤트
+    const processButton = poseContainer.querySelector('.btn-process');
+    if (processButton) {
+        processButton.addEventListener('click', async () => {
+            await processPoseImage(poseContainer, imageNode, selectedProcessor);
+        });
+    }
+    
+    // Save 버튼 이벤트
+    const saveButton = poseContainer.querySelector('.btn-save');
+    if (saveButton) {
+        saveButton.addEventListener('click', () => {
+            savePoseResult(poseContainer, imageNode);
+        });
+    }
+}
+
+// Pose 이미지 처리 함수
+async function processPoseImage(poseContainer, imageNode, processor) {
+    const processButton = poseContainer.querySelector('.btn-process');
+    const previewSection = poseContainer.querySelector('.preview-section');
+    
+    try {
+        processButton.disabled = true;
+        processButton.innerHTML = '🔄 Processing...';
+        
+        // 파라미터 수집
+        const confidence = poseContainer.querySelector('.pose-threshold')?.value || '0.3';
+        const lineWidth = poseContainer.querySelector('.pose-line-width')?.value || '2';
+        const pointRadius = poseContainer.querySelector('.pose-point-radius')?.value || '4';
+        const detectBody = poseContainer.querySelector('.detect-body')?.checked || true;
+        const detectHand = poseContainer.querySelector('.detect-hand')?.checked || false;
+        const detectFace = poseContainer.querySelector('.detect-face')?.checked || false;
+        const outputFormat = poseContainer.querySelector('.output-format')?.value || 'image';
+        
+        const parameters = {
+            confidence_threshold: parseFloat(confidence),
+            line_width: parseInt(lineWidth),
+            point_radius: parseInt(pointRadius),
+            detect_body: detectBody,
+            detect_hands: detectHand,
+            detect_face: detectFace,
+            output_format: outputFormat
+        };
+        
+        console.log(`[POSE] Processing with ${processor}`, parameters);
+        
+        // 이미지를 base64로 변환
+        const canvas = imageNode.toCanvas();
+        const imageBase64 = canvas.toDataURL().split(',')[1];
+        
+        // 백엔드 API 호출
+        let result;
+        if (outputFormat === 'json') {
+            // JSON 추출 API 호출
+            const response = await fetch('http://127.0.0.1:8080/api/pose/extract', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    processor: processor,
+                    image: imageBase64,
+                    parameters: parameters
+                })
+            });
+            result = await response.json();
+        } else {
+            // 일반 이미지 처리 API 호출
+            const response = await fetch('http://127.0.0.1:8080/api/processing/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    processor: processor,
+                    image: `data:image/png;base64,${imageBase64}`,
+                    parameters: parameters
+                })
+            });
+            result = await response.json();
+        }
+        
+        if (result.success) {
+            displayPoseResult(poseContainer, result, outputFormat);
+            console.log(`[POSE] Processing completed successfully`);
+        } else {
+            throw new Error(result.error || 'Processing failed');
+        }
+        
+    } catch (error) {
+        console.error('[POSE] Processing error:', error);
+        previewSection.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #ff6b6b;">
+                ❌ Processing failed: ${error.message}
+            </div>
+        `;
+    } finally {
+        processButton.disabled = false;
+        processButton.innerHTML = '🚀 Process Image';
+    }
+}
+
+// Pose 결과 표시 함수
+function displayPoseResult(poseContainer, result, outputFormat) {
+    const previewSection = poseContainer.querySelector('.preview-section');
+    
+    if (outputFormat === 'json' && result.pose_data) {
+        // JSON 데이터 표시
+        previewSection.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <h4 style="color: #e8eaed; margin: 0 0 10px 0;">📊 Pose Data (JSON)</h4>
+                <div style="background: #2a2d3a; border: 1px solid #444; border-radius: 4px; padding: 15px; max-height: 300px; overflow-y: auto;">
+                    <pre style="color: #a8dadc; font-family: monospace; font-size: 12px; margin: 0;">${JSON.stringify(result.pose_data, null, 2)}</pre>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn-edit-pose" style="
+                    padding: 8px 16px;
+                    background: #4a9eff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">✏️ Edit Pose</button>
+                <button class="btn-render-skeleton" style="
+                    padding: 8px 16px;
+                    background: #0f7b0f;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">🎨 Render Skeleton</button>
+            </div>
+        `;
+        
+        // JSON 편집 버튼 이벤트
+        const editButton = previewSection.querySelector('.btn-edit-pose');
+        editButton.addEventListener('click', () => {
+            openPoseEditor(result.pose_data);
+        });
+        
+        // 스켈레톤 렌더링 버튼 이벤트
+        const renderButton = previewSection.querySelector('.btn-render-skeleton');
+        renderButton.addEventListener('click', () => {
+            renderSkeletonFromJSON(poseContainer, result.pose_data);
+        });
+        
+    } else if (result.processed_image) {
+        // 이미지 결과 표시
+        previewSection.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <h4 style="color: #e8eaed; margin: 0 0 10px 0;">🎨 Processed Result</h4>
+                <div style="text-align: center; background: #2a2d3a; border: 1px solid #444; border-radius: 4px; padding: 15px;">
+                    <img src="${result.processed_image}" style="max-width: 100%; max-height: 300px; border-radius: 4px;" alt="Pose Result">
+                </div>
+                <div style="text-align: center; margin-top: 10px; color: #999; font-size: 12px;">
+                    Processing time: ${result.processing_time}s
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Pose 편집기 열기 (향후 구현)
+function openPoseEditor(poseData) {
+    console.log('[POSE] Opening pose editor with data:', poseData);
+    // TODO: Konva.js 기반 포즈 편집기 구현
+    alert('Pose editor will be implemented in the next phase.\n\nThis will allow you to:\n• Drag and adjust pose keypoints\n• Add/remove joints\n• Edit connections\n• Preview changes in real-time');
+}
+
+// JSON에서 스켈레톤 렌더링
+async function renderSkeletonFromJSON(poseContainer, poseData) {
+    try {
+        console.log('[POSE] Rendering skeleton from JSON:', poseData);
+        
+        // 스켈레톤 렌더링 API 호출
+        const response = await fetch('http://127.0.0.1:8080/api/pose/render', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pose_data: poseData,
+                image_width: 512,
+                image_height: 512,
+                parameters: {
+                    skeleton_color: 'white',
+                    point_color: 'red',
+                    background_color: 'black',
+                    line_width: 2,
+                    point_radius: 4
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // 렌더링된 스켈레톤 이미지 표시
+            const previewSection = poseContainer.querySelector('.preview-section');
+            previewSection.innerHTML += `
+                <div style="margin-top: 15px;">
+                    <h4 style="color: #e8eaed; margin: 0 0 10px 0;">🦴 Rendered Skeleton</h4>
+                    <div style="text-align: center; background: #2a2d3a; border: 1px solid #444; border-radius: 4px; padding: 15px;">
+                        <img src="data:image/png;base64,${result.skeleton_image}" style="max-width: 100%; max-height: 300px; border-radius: 4px;" alt="Skeleton Result">
+                    </div>
+                </div>
+            `;
+        } else {
+            throw new Error(result.error || 'Skeleton rendering failed');
+        }
+        
+    } catch (error) {
+        console.error('[POSE] Skeleton rendering error:', error);
+        alert(`Skeleton rendering failed: ${error.message}`);
+    }
+}
+
+// Pose 결과 저장 함수
+function savePoseResult(poseContainer, imageNode) {
+    console.log('[POSE] Saving pose result');
+    // TODO: 결과를 캔버스에 추가하거나 다운로드 기능 구현
+    alert('Save functionality will be implemented to:\n• Add result to canvas as new layer\n• Download processed image\n• Export JSON data\n• Save to project');
 }
 
 /**

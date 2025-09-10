@@ -10,7 +10,6 @@ temp/
 
 # Ignore claude files
 .claude/
-CLAUDE.md
 
 # Ignore models
 models/
@@ -45,6 +44,8 @@ test-*.html
 # Ignore development artifacts
 TEST_REPORT.md
 package-lock.json
+nul
+test_image_b64.txt
 
 # Ignore cleanup folder
 to_delete_in_renewal/

@@ -30,6 +30,7 @@ from .api.processors import router as processors_router
 from .api.models import router as models_router
 from .api.processing import router as processing_router
 from .api.model_status import router as model_status_router
+from .api.pose import router as pose_router
 
 # Initialize configuration
 config_manager = get_config_manager()
@@ -145,6 +146,7 @@ def create_app() -> FastAPI:
     app.include_router(models_router, prefix="/api", tags=["models"])
     app.include_router(processing_router, prefix="/api", tags=["processing"])
     app.include_router(model_status_router, prefix="/api", tags=["model-status"])
+    app.include_router(pose_router, prefix="/api/pose", tags=["pose"])
 
     return app
 

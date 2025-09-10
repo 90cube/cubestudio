@@ -42,7 +42,7 @@ class DepthAnythingProcessor:
             True if model loaded successfully, False otherwise
         """
         try:
-            from ..depth_anything_v2.dpt import DepthAnythingV2
+            from ...depth_anything_v2.dpt import DepthAnythingV2
             
             # Set device - use same detection as DPT module
             if torch.cuda.is_available():

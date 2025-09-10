@@ -16,7 +16,9 @@ from ..utils.image_utils import (
     process_canny_opencv,
     process_depth_builtin,
     process_openpose_builtin,
-    process_depth_pytorch
+    process_depth_pytorch,
+    process_pose_dwpose,
+    process_pose_openpose
 )
 from ..models.config import Config
 
@@ -47,6 +49,10 @@ class ImageService:
             "canny_opencv": process_canny_opencv,
             "depth_builtin": process_depth_builtin,
             "openpose_builtin": process_openpose_builtin,
+            "dwpose_builtin": lambda image, params: process_pose_dwpose(image, "dwpose_builtin", params),
+            "dwpose_wholebody": lambda image, params: process_pose_dwpose(image, "dwpose_wholebody", params),
+            "openpose_body": lambda image, params: process_pose_openpose(image, "openpose_body", params, self.available_models),
+            "openpose_hand": lambda image, params: process_pose_openpose(image, "openpose_hand", params, self.available_models),
         }
         
         logger.info(f"ImageService initialized with {len(self.processing_functions)} built-in processors")
@@ -86,13 +92,13 @@ class ImageService:
                 raise HTTPException(status_code=400, detail=str(e))
             
             # Process image
-            processed_array = None
+            processed_result = None
             fallback_used = False
             
             if proc_config["available"] and processor in self.processing_functions:
                 # Use built-in processor
                 try:
-                    processed_array = self.processing_functions[processor](image_array, parameters)
+                    processed_result = self.processing_functions[processor](image_array, parameters)
                     logger.info(f"[OK] Processed with built-in: {processor}")
                 except Exception as e:
                     logger.error(f"[ERROR] Built-in processing failed for {processor}: {e}")
@@ -102,7 +108,7 @@ class ImageService:
                 # PyTorch model processing
                 try:
                     if processor in ["midas_v21", "dpt_hybrid", "dpt_beit_large_512", "depth_anything_v2_vitb"]:
-                        processed_array = process_depth_pytorch(image_array, processor, parameters, self.available_models)
+                        processed_result = process_depth_pytorch(image_array, processor, parameters, self.available_models)
                         logger.info(f"[OK] Processed with pytorch backend: {processor}")
                     else:
                         logger.warning(f"[WARN] PyTorch processor {processor} not implemented, using fallback")
@@ -117,23 +123,33 @@ class ImageService:
                 fallback_used = True
             
             # NO FALLBACK - If processing failed, return error
-            if processed_array is None or fallback_used:
+            if processed_result is None or fallback_used:
                 error_msg = f"Processing failed for {processor}. Backend processing is required."
                 logger.error(f"[CRITICAL] {error_msg}")
                 raise HTTPException(status_code=500, detail=error_msg)
             
-            # Convert back to base64
-            processed_b64 = encode_image_to_base64(processed_array)
-            
             processing_time = time.time() - start_time
             
-            response = {
-                "success": True,
-                "processed_image": processed_b64,
-                "processing_time": round(processing_time, 3),
-                "processor_used": processor,
-                "fallback_used": fallback_used
-            }
+            # Handle different return types (image array vs JSON data)
+            if isinstance(processed_result, dict):
+                # JSON data (pose data)
+                response = {
+                    "success": True,
+                    "processed_result": processed_result,
+                    "processing_time": round(processing_time, 3),
+                    "processor_used": processor,
+                    "fallback_used": fallback_used
+                }
+            else:
+                # Image array - convert to base64
+                processed_b64 = encode_image_to_base64(processed_result)
+                response = {
+                    "success": True,
+                    "processed_image": processed_b64,
+                    "processing_time": round(processing_time, 3),
+                    "processor_used": processor,
+                    "fallback_used": fallback_used
+                }
             
             logger.info(f"[PROCESS] Processing complete: {processor} ({processing_time:.3f}s, fallback: {fallback_used})")
             return response

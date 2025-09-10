@@ -198,8 +198,8 @@ def process_depth_anything_v2(image_array: np.ndarray, model_id: str, available_
     
     try:
         # Import and initialize processor
-        from ..services.depth_anything_processor import DepthAnythingProcessor
-        from ..models.config_manager import get_config_manager
+        from backend.services.processors.depth_anything_processor import DepthAnythingProcessor
+        from backend.models.config_manager import get_config_manager
         
         config_manager = get_config_manager()
         processor = DepthAnythingProcessor(config_manager)
@@ -365,3 +365,104 @@ def _postprocess_midas_depth(depth_numpy: np.ndarray, params: dict) -> np.ndarra
     depth_numpy = np.clip(depth_numpy, 0.0, 1.0)
     
     return depth_numpy
+
+
+def process_pose_dwpose(image_array: np.ndarray, processor_id: str, params: dict) -> Union[np.ndarray, dict]:
+    """
+    Process image for pose detection using DWPose processors.
+    
+    Args:
+        image_array: RGB image array
+        processor_id: Pose processor ID (dwpose_builtin, dwpose_wholebody, etc.)
+        params: Processing parameters
+        
+    Returns:
+        Processed image array or pose data dict (depending on output_format)
+    """
+    try:
+        # Import the appropriate processor
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        
+        if processor_id == "dwpose_builtin":
+            from ..services.processors.dwpose_processor import DWPoseBuiltinPreprocessor
+            processor = DWPoseBuiltinPreprocessor(processor_id)
+        elif processor_id == "dwpose_wholebody":
+            from ..services.processors.dwpose_processor import DWPoseWholeBodyPreprocessor
+            processor = DWPoseWholeBodyPreprocessor(processor_id)
+        else:
+            # Default to built-in
+            from ..services.processors.dwpose_processor import DWPoseBuiltinPreprocessor
+            processor = DWPoseBuiltinPreprocessor("dwpose_builtin")
+        
+        # Process the image
+        result = processor.process(image_array, params)
+        
+        logger.info(f"[DWPOSE] Successfully processed with {processor_id}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"[DWPOSE] Failed to process with {processor_id}: {e}")
+        # Fallback to built-in OpenPose
+        logger.warning(f"[DWPOSE] Using fallback pose processing")
+        return process_openpose_builtin(image_array, params)
+
+
+def process_pose_openpose(image_array: np.ndarray, processor_id: str, params: dict, available_models: dict = None) -> np.ndarray:
+    """
+    Process image for pose detection using OpenPose models.
+    
+    Args:
+        image_array: RGB image array
+        processor_id: Pose processor ID (openpose_body, openpose_hand)
+        params: Processing parameters
+        available_models: Available model configurations
+        
+    Returns:
+        Processed skeleton image array
+    """
+    try:
+        # Import the appropriate processor
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        
+        if processor_id == "openpose_body":
+            from ..services.processors.pose_processor import OpenPoseBodyPreprocessor
+            # Get model path if available
+            model_path = None
+            if available_models and "body_pose" in available_models:
+                model_info = available_models["body_pose"]
+                if model_info.get("available", False):
+                    model_path = model_info.get("filepath")
+            
+            processor = OpenPoseBodyPreprocessor(processor_id, model_path)
+            
+        elif processor_id == "openpose_hand":
+            from ..services.processors.pose_processor import OpenPoseHandPreprocessor
+            # Get model path if available
+            model_path = None
+            if available_models and "hand_pose" in available_models:
+                model_info = available_models["hand_pose"]
+                if model_info.get("available", False):
+                    model_path = model_info.get("filepath")
+            
+            processor = OpenPoseHandPreprocessor(processor_id, model_path)
+            
+        else:
+            # Default to built-in
+            from ..services.processors.pose_processor import BuiltinPosePreprocessor
+            processor = BuiltinPosePreprocessor("openpose_builtin")
+        
+        # Process the image
+        result = processor.process(image_array, params)
+        
+        logger.info(f"[OPENPOSE] Successfully processed with {processor_id}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"[OPENPOSE] Failed to process with {processor_id}: {e}")
+        # Fallback to built-in
+        logger.warning(f"[OPENPOSE] Using fallback pose processing")
+        return process_openpose_builtin(image_array, params)

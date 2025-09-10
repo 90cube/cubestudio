@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__",
-    "dev": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__ --open=index.html",
+    "dev": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__ --open=frontend/index.html",
     "build": "echo \"No build process required - vanilla JS project\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "echo \"Cleaning temporary files...\" && rm -f *.log",
