@@ -14,9 +14,9 @@ export class ParametersComponent {
         this.parameters = {
             width: 1024,
             height: 1024,
-            steps: 25,
-            sampler: 'Euler a',
-            scheduler: 'normal',
+            steps: 20,
+            sampler: 'DPM++ 2M Karras',  // 2025년 기준 가장 인기있는 샘플러
+            scheduler: 'karras',  // Karras가 기본값
             cfgScale: 7.5,
             seed: -1,
             addNoise: false,
@@ -31,6 +31,29 @@ export class ParametersComponent {
         this.currentPresetIndex = 0;
         this.lastClickTime = 0;
         this.doubleClickDelay = 300; // 300ms 내 두 번 클릭하면 비율 역전
+
+        // 샘플러별 권장 스텝 수
+        this.samplerSteps = {
+            // 최고 품질
+            'DPM++ 3M SDE Karras': 25,
+            'DPM++ 2M SDE Karras': 20,
+            'UniPC': 20,
+            'Restart': 25,
+            // 균형
+            'DPM++ 2M Karras': 20,
+            'DPM++ 2S a Karras': 20,
+            'DPM++ 2M SDE': 20,
+            'Euler a': 25,
+            // 속도 우선
+            'LCM': 6,
+            'DPM++ SDE Turbo': 8,
+            'DDIM': 10,
+            'Euler': 30,
+            // 실험적
+            'DPM++ 3M SDE': 25,
+            'DPM++ 2S a': 20,
+            'PLMS': 25
+        };
 
         // 해상도 프리셋 정의
         this.resolutionPresets = {
@@ -121,25 +144,41 @@ export class ParametersComponent {
                     <div class="input-group">
                         <label for="param-sampler">샘플러:</label>
                         <select id="param-sampler">
-                            <option value="Euler a">Euler a</option>
-                            <option value="Euler">Euler</option>
-                            <option value="LMS">LMS</option>
-                            <option value="Heun">Heun</option>
-                            <option value="DPM2">DPM2</option>
-                            <option value="DPM2 a">DPM2 a</option>
-                            <option value="DPM++ 2S a">DPM++ 2S a</option>
-                            <option value="DPM++ 2M">DPM++ 2M</option>
-                            <option value="DPM++ SDE">DPM++ SDE</option>
-                            <option value="DDIM">DDIM</option>
+                            <optgroup label="🏆 최고 품질 (20-30 steps)">
+                                <option value="DPM++ 3M SDE Karras">DPM++ 3M SDE Karras</option>
+                                <option value="DPM++ 2M SDE Karras">DPM++ 2M SDE Karras</option>
+                                <option value="UniPC">UniPC</option>
+                                <option value="Restart">Restart</option>
+                            </optgroup>
+                            <optgroup label="⚖️ 균형 (15-20 steps)">
+                                <option value="DPM++ 2M Karras">DPM++ 2M Karras</option>
+                                <option value="DPM++ 2S a Karras">DPM++ 2S a Karras</option>
+                                <option value="DPM++ 2M SDE">DPM++ 2M SDE</option>
+                                <option value="Euler a" selected>Euler a</option>
+                            </optgroup>
+                            <optgroup label="⚡ 속도 우선 (4-10 steps)">
+                                <option value="LCM">LCM</option>
+                                <option value="DPM++ SDE Turbo">DPM++ SDE Turbo</option>
+                                <option value="DDIM">DDIM</option>
+                                <option value="Euler">Euler</option>
+                            </optgroup>
+                            <optgroup label="🔬 실험적">
+                                <option value="DPM++ 3M SDE">DPM++ 3M SDE</option>
+                                <option value="DPM++ 2S a">DPM++ 2S a</option>
+                                <option value="PLMS">PLMS</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="input-group">
                         <label for="param-scheduler">스케줄러:</label>
                         <select id="param-scheduler">
                             <option value="normal">Normal</option>
-                            <option value="karras">Karras</option>
+                            <option value="karras">Karras (권장)</option>
+                            <option value="sgm_uniform">SGM Uniform</option>
                             <option value="exponential">Exponential</option>
+                            <option value="beta">Beta</option>
                             <option value="simple">Simple</option>
+                            <option value="ays">AYS (10 steps 이하)</option>
                         </select>
                     </div>
                 </div>
@@ -169,14 +208,14 @@ export class ParametersComponent {
                         <input type="number" id="param-seed" value="${this.parameters.seed}">
                         <button id="random-seed-btn" type="button">🎲</button>
                     </div>
-                    <div class="checkbox-group">
-                        <label>
+                    <div class="checkbox-group-horizontal">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="param-fixed-seed" ${this.parameters.fixedSeed ? 'checked' : ''}>
-                            고정 시드
+                            <span>고정 시드</span>
                         </label>
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="param-add-noise" ${this.parameters.addNoise ? 'checked' : ''}>
-                            노이즈 추가
+                            <span>노이즈 추가</span>
                         </label>
                     </div>
                 </div>
@@ -371,6 +410,43 @@ export class ParametersComponent {
                 margin-top: 4px;
             }
             
+            .checkbox-group-horizontal {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                margin-top: 10px;
+                padding: 8px 12px;
+                background: rgba(0, 0, 0, 0.02);
+                border-radius: 6px;
+            }
+            
+            .checkbox-label {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                cursor: pointer;
+                user-select: none;
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .checkbox-label input[type="checkbox"] {
+                margin: 0;
+                cursor: pointer;
+            }
+            
+            .checkbox-label span {
+                color: #495057;
+                font-weight: 500;
+            }
+            
+            .checkbox-label:hover span {
+                color: #212529;
+            }
+            
             .checkbox-group label {
                 display: flex;
                 align-items: center;
@@ -449,6 +525,35 @@ export class ParametersComponent {
             samplerSelect.value = this.parameters.sampler;
             samplerSelect.addEventListener('change', (e) => {
                 this.parameters.sampler = e.target.value;
+                
+                // 샘플러 변경 시 권장 스텝 자동 설정
+                const recommendedSteps = this.samplerSteps[e.target.value];
+                if (recommendedSteps) {
+                    this.parameters.steps = recommendedSteps;
+                    
+                    // UI 업데이트
+                    const stepsRange = this.containerElement.querySelector('#param-steps-range');
+                    const stepsInput = this.containerElement.querySelector('#param-steps');
+                    if (stepsRange) stepsRange.value = recommendedSteps;
+                    if (stepsInput) stepsInput.value = recommendedSteps;
+                    
+                    // LCM 샘플러는 CFG Scale도 조정
+                    if (e.target.value === 'LCM') {
+                        this.parameters.cfgScale = 1.5;
+                        const cfgRange = this.containerElement.querySelector('#param-cfg-range');
+                        const cfgInput = this.containerElement.querySelector('#param-cfg-scale');
+                        if (cfgRange) cfgRange.value = 1.5;
+                        if (cfgInput) cfgInput.value = 1.5;
+                    } else if (this.parameters.cfgScale < 5) {
+                        // LCM에서 다른 샘플러로 변경 시 CFG 복구
+                        this.parameters.cfgScale = 7.5;
+                        const cfgRange = this.containerElement.querySelector('#param-cfg-range');
+                        const cfgInput = this.containerElement.querySelector('#param-cfg-scale');
+                        if (cfgRange) cfgRange.value = 7.5;
+                        if (cfgInput) cfgInput.value = 7.5;
+                    }
+                }
+                
                 this.notifyParameterChange();
             });
         }
