@@ -665,6 +665,7 @@ function createBackgroundContextMenu() {
     const menuItems = [
         { icon: '📦', label: 'Add Elements', action: openElementsMenu },
         { icon: '🖼️', label: 'Add Image', action: openFileDialog },
+        { icon: '🎨', label: 'Create Blank Canvas', action: createBlankCanvas },
         { icon: '📝', label: 'Add Text', action: addTextElement }
     ];
 
@@ -1393,6 +1394,302 @@ function changeImageType(imageNode, newType) {
     if (selectedImage === imageNode) {
         updateHighlightPosition();
     }
+}
+
+/**
+ * 빈 캔버스 생성 기능
+ */
+function createBlankCanvas() {
+    // 색상 선택 모달 생성
+    createCanvasColorModal();
+}
+
+/**
+ * 색상 선택 모달 생성
+ */
+function createCanvasColorModal() {
+    // 기존 모달이 있으면 제거
+    const existingModal = document.getElementById('canvas-color-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // 모달 컨테이너 생성
+    const modal = document.createElement('div');
+    modal.id = 'canvas-color-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+    `;
+
+    // 모달 내용 컨테이너
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: #2a2a2a;
+        border-radius: 16px;
+        padding: 32px;
+        min-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+
+    // 제목
+    const title = document.createElement('h3');
+    title.textContent = '빈 캔버스 생성';
+    title.style.cssText = `
+        margin: 0 0 24px 0;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+        text-align: center;
+    `;
+
+    // 설명
+    const description = document.createElement('p');
+    description.textContent = '캔버스 배경 색상을 선택하세요:';
+    description.style.cssText = `
+        margin: 0 0 24px 0;
+        color: #cccccc;
+        font-size: 14px;
+        text-align: center;
+    `;
+
+    // 색상 선택 버튼들 컨테이너
+    const colorContainer = document.createElement('div');
+    colorContainer.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 32px;
+    `;
+
+    // 흰색 버튼
+    const whiteButton = document.createElement('button');
+    whiteButton.style.cssText = `
+        width: 120px;
+        height: 80px;
+        background: #ffffff;
+        border: 3px solid #666;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    `;
+
+    const whiteLabel = document.createElement('div');
+    whiteLabel.textContent = '흰색';
+    whiteLabel.style.cssText = `
+        position: absolute;
+        bottom: -28px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+    `;
+    whiteButton.appendChild(whiteLabel);
+
+    // 검정색 버튼
+    const blackButton = document.createElement('button');
+    blackButton.style.cssText = `
+        width: 120px;
+        height: 80px;
+        background: #000000;
+        border: 3px solid #666;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    `;
+
+    const blackLabel = document.createElement('div');
+    blackLabel.textContent = '검정색';
+    blackLabel.style.cssText = `
+        position: absolute;
+        bottom: -28px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+    `;
+    blackButton.appendChild(blackLabel);
+
+    // 호버 효과
+    whiteButton.addEventListener('mouseenter', () => {
+        whiteButton.style.transform = 'scale(1.05)';
+        whiteButton.style.border = '3px solid #3498db';
+        whiteButton.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
+    });
+
+    whiteButton.addEventListener('mouseleave', () => {
+        whiteButton.style.transform = 'scale(1)';
+        whiteButton.style.border = '3px solid #666';
+        whiteButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+    });
+
+    blackButton.addEventListener('mouseenter', () => {
+        blackButton.style.transform = 'scale(1.05)';
+        blackButton.style.border = '3px solid #3498db';
+        blackButton.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
+    });
+
+    blackButton.addEventListener('mouseleave', () => {
+        blackButton.style.transform = 'scale(1)';
+        blackButton.style.border = '3px solid #666';
+        blackButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+    });
+
+    colorContainer.appendChild(whiteButton);
+    colorContainer.appendChild(blackButton);
+
+    // 취소 버튼
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = '취소';
+    cancelButton.style.cssText = `
+        width: 100%;
+        background: #666;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.2s;
+        margin-top: 8px;
+    `;
+
+    cancelButton.addEventListener('mouseenter', () => {
+        cancelButton.style.background = '#777';
+    });
+
+    cancelButton.addEventListener('mouseleave', () => {
+        cancelButton.style.background = '#666';
+    });
+
+    // 모달 내용 구성
+    modalContent.appendChild(title);
+    modalContent.appendChild(description);
+    modalContent.appendChild(colorContainer);
+    modalContent.appendChild(cancelButton);
+    modal.appendChild(modalContent);
+
+    // 이벤트 핸들러
+    whiteButton.addEventListener('click', () => {
+        generateBlankCanvas('#FFFFFF');
+        modal.remove();
+    });
+
+    blackButton.addEventListener('click', () => {
+        generateBlankCanvas('#000000');
+        modal.remove();
+    });
+
+    cancelButton.addEventListener('click', () => {
+        modal.remove();
+    });
+
+    // 모달 배경 클릭 시 닫기
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    // ESC 키로 닫기
+    const handleKeyPress = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', handleKeyPress);
+        }
+    };
+    document.addEventListener('keydown', handleKeyPress);
+
+    document.body.appendChild(modal);
+}
+
+/**
+ * 현재 파라미터에서 크기 정보를 가져오는 함수
+ */
+function getCurrentCanvasSize() {
+    // parameters 컴포넌트에서 현재 설정값 가져오기
+    const parametersChangeEvent = document.querySelector('*'); // 임시로 문서에서 찾기
+    
+    // 기본값 설정 (SDXL 기준)
+    let defaultWidth = 1024;
+    let defaultHeight = 1024;
+    
+    try {
+        // parameters:changed 이벤트가 있었는지 확인하거나 직접 DOM에서 값 읽기
+        const widthInput = document.querySelector('#param-width');
+        const heightInput = document.querySelector('#param-height');
+        
+        if (widthInput && heightInput) {
+            defaultWidth = parseInt(widthInput.value) || defaultWidth;
+            defaultHeight = parseInt(heightInput.value) || defaultHeight;
+        }
+    } catch (error) {
+        console.log('📐 Using default canvas size:', defaultWidth, 'x', defaultHeight);
+    }
+    
+    return { width: defaultWidth, height: defaultHeight };
+}
+
+/**
+ * 실제 빈 캔버스를 생성하는 함수
+ */
+function generateBlankCanvas(backgroundColor) {
+    const { width, height } = getCurrentCanvasSize();
+    
+    // HTML5 Canvas로 빈 이미지 생성
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // 배경색 채우기
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Canvas를 Image 객체로 변환
+    const img = new window.Image();
+    img.onload = () => {
+        // 저장된 더블클릭 위치에 이미지 추가 (화면 좌표를 캔버스 좌표로 변환)
+        const canvasContainer = document.getElementById('canvas-container');
+        const rect = canvasContainer.getBoundingClientRect();
+        
+        // 화면 좌표를 스테이지 좌표로 변환
+        const stageX = lastDoubleClickPosition.x - rect.left;
+        const stageY = lastDoubleClickPosition.y - rect.top;
+        
+        // 스테이지 변환 (줌, 팬닝) 고려하여 실제 캔버스 좌표로 변환
+        const transform = stage.getAbsoluteTransform().copy();
+        transform.invert();
+        const canvasPos = transform.point({ x: stageX, y: stageY });
+        
+        addImageToCanvas(img, canvasPos.x, canvasPos.y);
+        
+        const colorName = backgroundColor === '#FFFFFF' ? '흰색' : '검정색';
+        console.log(`🎨 Blank canvas created: ${width}x${height} ${colorName} canvas at position (${canvasPos.x.toFixed(1)}, ${canvasPos.y.toFixed(1)})`);
+    };
+    
+    img.src = canvas.toDataURL('image/png');
 }
 
 
