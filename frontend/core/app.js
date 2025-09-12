@@ -1,4 +1,4 @@
-import { init as initCanvas, getStage, getLayer, getSelectedImage, deleteSelectedImage } from '../components/canvas/canvas.js';
+import { init as initCanvas, getStage, getLayer, getSelectedImage, deleteSelectedImage, addImageFromElement } from '../components/canvas/canvas.js';
 import { init as initCoords } from './coordinates.js';
 import { init as initImageEditor } from '../components/imageEditor/imageEditor.js';
 import { init as initKeyboardManager, registerShortcut } from '../components/keyboardManager/keyboardManager.js';
@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. 캔버스 모듈 초기화
     initCanvas('canvas-container');
+    
+    // 캔버스 컴포넌트를 전역으로 설정 (페인팅 도구에서 사용)
+    window.canvasComponent = { addImageFromElement };
 
     // 3. 이미지 에디터 및 좌표계 유틸리티 초기화
     const stage = getStage();

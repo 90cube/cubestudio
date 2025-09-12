@@ -1692,4 +1692,47 @@ function generateBlankCanvas(backgroundColor) {
     img.src = canvas.toDataURL('image/png');
 }
 
+/**
+ * 페인팅 도구에서 사용할 이미지 추가 함수
+ * @param {HTMLImageElement} imageElement - 추가할 이미지 요소
+ * @param {Object} options - 이미지 옵션 (x, y, imageType 등)
+ */
+export function addImageFromElement(imageElement, options = {}) {
+    const { x = 50, y = 50, imageType = 'normal', processingSource = 'user', createdAt = new Date().toISOString() } = options;
+    
+    const konvaImage = new Konva.Image({
+        image: imageElement,
+        x: x,
+        y: y,
+        draggable: true,
+        // 메타데이터 추가
+        imageType: imageType,
+        processingSource: processingSource,
+        createdAt: createdAt
+    });
+    
+    // 이미지 중심 정렬
+    konvaImage.offsetX(konvaImage.width() / 2);
+    konvaImage.offsetY(konvaImage.height() / 2);
+    
+    // 드래그 이벤트 설정
+    konvaImage.on('dragmove', () => {
+        if (selectedImage === konvaImage) {
+            updateHighlightPosition();
+        }
+    });
+    
+    layer.add(konvaImage);
+    layer.batchDraw();
+    
+    console.log('🎨 Image added from painting tool:', {
+        type: imageType,
+        source: processingSource,
+        position: { x, y },
+        size: { width: konvaImage.width(), height: konvaImage.height() }
+    });
+    
+    return konvaImage;
+}
+
 

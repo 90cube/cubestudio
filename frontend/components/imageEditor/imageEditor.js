@@ -3,6 +3,7 @@ import { init as initTransform, rotate, flip } from './tools/transform.js';
 import { init as initFilters, adjustBrightness, adjustContrast, applyColorFilter, applyBlur, applySharpen, resetFilters } from './tools/filters.js';
 import { init as initCrop, startCropMode, applyCrop, cancelCropMode, isCropMode, activateLassoCrop } from './tools/crop.js';
 import { init as initTransformer, startTransformMode, exitTransformMode, isTransformModeActive } from './tools/transformer.js';
+import { init as initPainting, startPainting, stopPainting, isActive as isPaintingActive } from './tools/painting/index.js';
 import { setSelectedImage } from '../canvas/canvas.js';
 import { registerShortcut } from '../keyboardManager/keyboardManager.js';
 import { init as initSliderPanel, showSliderPanel, hideSliderPanel } from './sliderPanel.js';
@@ -25,6 +26,7 @@ export function init(konvaStage, konvaLayer) {
     initFilters(layer);
     initCrop(stage, layer);
     initTransformer(stage, layer);
+    initPainting(stage, layer); // Initialize painting system
     initSliderPanel(); // Initialize slider panel
     initOpacitySlider(stage); // Initialize opacity slider
     
@@ -151,6 +153,13 @@ function updateContextMenuContent() {
             action: () => toggleImageType(),
             isDirectAction: true,
             style: 'color: #9ca3af; font-weight: 400; font-size: 12px;'
+        },
+        {
+            category: 'Painting',
+            icon: '🎨',
+            action: () => startImagePainting(),
+            isDirectAction: true,
+            style: 'color: #ff6b6b; font-weight: 600; font-size: 13px;'
         },
         {
             category: 'Flip Horizontal',
@@ -472,6 +481,33 @@ function toggleImageType() {
     
     // 변경 완료 알림 (선택사항)
     // alert(`Image type changed to: ${newType === 'preproc' ? 'Preprocessed' : 'Normal'}`);
+}
+
+/**
+ * 이미지 페인팅 모드 시작
+ */
+function startImagePainting() {
+    const image = getCurrentSelectedImage();
+    if (!image) {
+        console.warn('No image selected for painting');
+        return;
+    }
+    
+    console.log('🎨 Starting painting mode for image:', image);
+    
+    // 컨텍스트 메뉴 숨기기
+    hideContextMenu();
+    hideSliderPanel();
+    hideOpacitySlider();
+    
+    // 페인팅 모드 활성화
+    const success = startPainting(image);
+    if (success) {
+        console.log('✅ Painting mode activated successfully');
+    } else {
+        console.error('❌ Failed to activate painting mode');
+        alert('페인팅 모드를 시작할 수 없습니다.');
+    }
 }
 
 export { showContextMenu, hideContextMenu };
