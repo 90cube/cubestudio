@@ -74,6 +74,14 @@ export function init(containerId) {
 
         // isImageSelected 초기 상태 설정
         stateManager.updateState('isImageSelected', false);
+        
+        // 글로벌 인스턴스로 내보내기 (다른 모듈에서 접근 가능하도록)
+        window.canvasInstance = {
+            getLayer: getLayer,
+            setSelectedImage: setSelectedImage,
+            getSelectedImage: getSelectedImage,
+            getStage: getStage
+        };
 }
 
 // 키보드 이벤트 설정 (스페이스바 팬닝)
@@ -785,11 +793,21 @@ function openFileDialog() {
                 const img = new window.Image();
                 img.src = reader.result;
                 img.onload = () => {
-                    // 화면 중앙에 이미지 추가
-                    const centerX = 0; // 캔버스 좌표계에서의 중앙
-                    const centerY = 0;
-                    addImageToCanvas(img, centerX, centerY);
-                    // console.log('🖼️ Image added from file dialog');
+                    // 더블클릭한 위치에 이미지 추가 (화면 좌표를 캔버스 좌표로 변환)
+                    const canvasContainer = document.getElementById('canvas-container');
+                    const rect = canvasContainer.getBoundingClientRect();
+                    
+                    // 화면 좌표를 스테이지 좌표로 변환
+                    const stageX = lastDoubleClickPosition.x - rect.left;
+                    const stageY = lastDoubleClickPosition.y - rect.top;
+                    
+                    // 스테이지 변환 (줌, 팬닝) 고려하여 실제 캔버스 좌표로 변환
+                    const transform = stage.getAbsoluteTransform().copy();
+                    transform.invert();
+                    const canvasPos = transform.point({ x: stageX, y: stageY });
+                    
+                    addImageToCanvas(img, canvasPos.x, canvasPos.y);
+                    console.log(`🖼️ Image added at clicked position: (${canvasPos.x.toFixed(1)}, ${canvasPos.y.toFixed(1)})`);
                 };
             };
             reader.readAsDataURL(file);
