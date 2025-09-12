@@ -119,6 +119,8 @@ function startBrushStroke(pos, layer) {
     });
     
     layer.add(lastLine);
+    // 브러시 시작 즉시 표시
+    layer.draw();
 }
 
 /**
@@ -130,7 +132,8 @@ function continueBrushStroke(pos, layer) {
     const newPoints = lastLine.points().concat([pos.x, pos.y]);
     lastLine.points(newPoints);
     
-    layer.batchDraw();
+    // 실시간 렌더링을 위해 즉시 다시 그리기
+    layer.draw();
 }
 
 /**
@@ -148,6 +151,8 @@ function startEraserStroke(pos, layer) {
     });
     
     layer.add(lastLine);
+    // 지우개 시작 즉시 표시
+    layer.draw();
 }
 
 /**
@@ -159,7 +164,8 @@ function continueEraserStroke(pos, layer) {
     const newPoints = lastLine.points().concat([pos.x, pos.y]);
     lastLine.points(newPoints);
     
-    layer.batchDraw();
+    // 실시간 렌더링을 위해 즉시 다시 그리기
+    layer.draw();
 }
 
 /**

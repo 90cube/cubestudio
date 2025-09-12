@@ -10,7 +10,8 @@ let targetImagePosition = null; // 원본 이미지의 위치와 크기 정보
 let backgroundImageBounds = null; // 페인팅 캔버스 내 배경 이미지의 실제 영역
 let paintingOverlay;
 let paintingCanvas;
-let paintingLayer;
+let backgroundLayer;  // 배경 이미지 전용 레이어 (지워지지 않음)
+let drawingLayer;     // 그림 그리기 전용 레이어 (지우개 대상)
 let blockingLayer;
 
 // 키보드 이벤트 차단용
@@ -96,7 +97,8 @@ export function deactivatePaintingMode() {
     isActive = false;
     targetImage = null;
     paintingCanvas = null;
-    paintingLayer = null;
+    backgroundLayer = null;
+    drawingLayer = null;
     
     console.log('✅ Painting Mode deactivated');
 }
@@ -1173,8 +1175,13 @@ function setupPaintingCanvas() {
         }
     }, 50);
     
-    paintingLayer = new Konva.Layer();
-    paintingCanvas.add(paintingLayer);
+    // 배경 이미지 레이어 (맨 아래)
+    backgroundLayer = new Konva.Layer();
+    paintingCanvas.add(backgroundLayer);
+    
+    // 그리기 레이어 (위에)
+    drawingLayer = new Konva.Layer();
+    paintingCanvas.add(drawingLayer);
     
     console.log('🎨 High-quality canvas setup:', {
         pixelRatio: pixelRatio,
@@ -1186,9 +1193,10 @@ function setupPaintingCanvas() {
     
     // 백그라운드 이미지 추가 후 레이어 캐싱 활성화 (지우개 기능 위해 필요)
     setTimeout(() => {
-        paintingLayer.cache();
-        paintingLayer.batchDraw();
-        console.log('🎨 Painting layer cached for eraser functionality');
+        backgroundLayer.batchDraw();
+        drawingLayer.cache();
+        drawingLayer.batchDraw();
+        console.log('🎨 Background and drawing layers initialized');
     }, 100);
     
     paintingOverlay.appendChild(canvasContainer);
@@ -1239,8 +1247,13 @@ function createPaintingCanvasWithFallback(canvasSize, canvasPos) {
         }
     }, 50);
     
-    paintingLayer = new Konva.Layer();
-    paintingCanvas.add(paintingLayer);
+    // 배경 이미지 레이어 (맨 아래)
+    backgroundLayer = new Konva.Layer();
+    paintingCanvas.add(backgroundLayer);
+    
+    // 그리기 레이어 (위에)
+    drawingLayer = new Konva.Layer();
+    paintingCanvas.add(drawingLayer);
     
     // 백그라운드 텍스트 추가 (이미지 없음 표시)
     const placeholderText = new Konva.Text({
@@ -1255,8 +1268,8 @@ function createPaintingCanvasWithFallback(canvasSize, canvasPos) {
         offsetY: 20
     });
     
-    paintingLayer.add(placeholderText);
-    paintingLayer.batchDraw();
+    backgroundLayer.add(placeholderText);
+    backgroundLayer.batchDraw();
     
     // 폴백 모드에서는 전체 캔버스가 그림 영역
     backgroundImageBounds = {
@@ -1276,7 +1289,7 @@ function createPaintingCanvasWithFallback(canvasSize, canvasPos) {
  * 선택한 이미지를 페인팅 캔버스의 백그라운드로 추가
  */
 function addImageBackground() {
-    if (!targetImage || !paintingCanvas || !paintingLayer) return;
+    if (!targetImage || !paintingCanvas || !backgroundLayer) return;
     
     // 원본 이미지의 이미지 소스 가져오기
     const imageElement = targetImage.image();
@@ -1327,8 +1340,8 @@ function addImageBackground() {
     });
     
     // 백그라운드 레이어에 추가
-    paintingLayer.add(backgroundImage);
-    paintingLayer.batchDraw();
+    backgroundLayer.add(backgroundImage);
+    backgroundLayer.batchDraw();
     
     // 배경 이미지의 실제 영역 저장 (저장 시 사용)
     backgroundImageBounds = {
@@ -1408,17 +1421,17 @@ export function getPaintingCanvas() {
 }
 
 /**
- * 페인팅 레이어 반환 (그리기 도구에서 사용)
+ * 그리기 레이어 반환 (그리기 도구에서 사용)
  */
 export function getPaintingLayer() {
-    return paintingLayer;
+    return drawingLayer;  // 이제 그리기 전용 레이어 반환
 }
 
 /**
  * 페인팅 완료된 이미지 저장
  */
 async function savePaintedImage() {
-    if (!paintingCanvas || !paintingLayer) {
+    if (!paintingCanvas || !drawingLayer) {
         console.error('Painting canvas not available for saving');
         return;
     }
