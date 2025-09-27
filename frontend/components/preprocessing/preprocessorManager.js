@@ -490,9 +490,9 @@ function createPoseUI(imageNode) {
     // 모델 선택 카드들
     const modelsSection = document.createElement('div');
     modelsSection.innerHTML = `
-        <h3 style="color: #e8eaed; margin-bottom: 15px; font-size: 16px;">Pose Detection Models</h3>
+        <h3 style="color: #e8eaed; margin-bottom: 15px; font-size: 16px;">Pose Detection Model</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 25px;">
-            <div class="model-card selected" data-model-id="dwpose_builtin" style="
+            <div class="model-card selected" data-model-id="dwpose_onnx" style="
                 background: rgba(74, 158, 255, 0.1);
                 border: 2px solid #4a9eff;
                 border-radius: 8px;
@@ -500,30 +500,8 @@ function createPoseUI(imageNode) {
                 cursor: pointer;
                 transition: all 0.3s;
             ">
-                <h4 style="color: #4a9eff; margin: 0 0 8px 0;">DWPose (Built-in)</h4>
-                <p style="color: #ccc; margin: 0; font-size: 13px;">Fast fallback pose detection</p>
-            </div>
-            <div class="model-card" data-model-id="openpose_body" style="
-                background: rgba(255, 255, 255, 0.05);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                padding: 15px;
-                cursor: pointer;
-                transition: all 0.3s;
-            ">
-                <h4 style="color: #e8eaed; margin: 0 0 8px 0;">OpenPose Body</h4>
-                <p style="color: #ccc; margin: 0; font-size: 13px;">Body pose detection</p>
-            </div>
-            <div class="model-card" data-model-id="openpose_hand" style="
-                background: rgba(255, 255, 255, 0.05);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                padding: 15px;
-                cursor: pointer;
-                transition: all 0.3s;
-            ">
-                <h4 style="color: #e8eaed; margin: 0 0 8px 0;">OpenPose Hand</h4>
-                <p style="color: #ccc; margin: 0; font-size: 13px;">Hand pose detection</p>
+                <h4 style="color: #4a9eff; margin: 0 0 8px 0;">DWPose (ONNX)</h4>
+                <p style="color: #ccc; margin: 0; font-size: 13px;">High-quality model (YOLOX + RTMPose)</p>
             </div>
         </div>
     `;
@@ -633,7 +611,7 @@ function createPoseUI(imageNode) {
 
 // Pose 탭 이벤트 리스너 설정
 function setupPoseEventListeners(poseContainer, imageNode) {
-    let selectedProcessor = 'dwpose_builtin';
+    let selectedProcessor = 'dwpose_onnx';
     
     // 모델 카드 선택 이벤트
     const modelCards = poseContainer.querySelectorAll('.model-card');
@@ -700,7 +678,7 @@ function setupPoseEventListeners(poseContainer, imageNode) {
 // Pose 이미지 처리 함수
 async function processPoseImage(poseContainer, imageNode, processor) {
     const processButton = poseContainer.querySelector('.btn-process');
-    const previewSection = poseContainer.querySelector('.preview-section');
+    const previewSection = poseContainer.querySelector('.pose-preview-section');
     
     try {
         processButton.disabled = true;
@@ -747,7 +725,7 @@ async function processPoseImage(poseContainer, imageNode, processor) {
             result = await response.json();
         } else {
             // 일반 이미지 처리 API 호출
-            const response = await fetch('http://127.0.0.1:8080/api/processing/process', {
+            const response = await fetch('http://127.0.0.1:8080/api/process', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -762,12 +740,17 @@ async function processPoseImage(poseContainer, imageNode, processor) {
         if (result.success) {
             displayPoseResult(poseContainer, result, outputFormat);
             console.log(`[POSE] Processing completed successfully`);
+            // Show preview section and enable save
+            previewSection.style.display = 'block';
+            const saveBtn = poseContainer.querySelector('.btn-save');
+            if (saveBtn) saveBtn.disabled = false;
         } else {
             throw new Error(result.error || 'Processing failed');
         }
         
     } catch (error) {
         console.error('[POSE] Processing error:', error);
+        previewSection.style.display = 'block';
         previewSection.innerHTML = `
             <div style="padding: 20px; text-align: center; color: #ff6b6b;">
                 ❌ Processing failed: ${error.message}
@@ -781,7 +764,8 @@ async function processPoseImage(poseContainer, imageNode, processor) {
 
 // Pose 결과 표시 함수
 function displayPoseResult(poseContainer, result, outputFormat) {
-    const previewSection = poseContainer.querySelector('.preview-section');
+    const previewSection = poseContainer.querySelector('.pose-preview-section');
+    previewSection.style.display = 'block';
     
     if (outputFormat === 'json' && result.pose_data) {
         // JSON 데이터 표시
@@ -876,7 +860,7 @@ async function renderSkeletonFromJSON(poseContainer, poseData) {
         
         if (result.success) {
             // 렌더링된 스켈레톤 이미지 표시
-            const previewSection = poseContainer.querySelector('.preview-section');
+            const previewSection = poseContainer.querySelector('.pose-preview-section');
             previewSection.innerHTML += `
                 <div style="margin-top: 15px;">
                     <h4 style="color: #e8eaed; margin: 0 0 10px 0;">🦴 Rendered Skeleton</h4>

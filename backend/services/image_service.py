@@ -51,6 +51,7 @@ class ImageService:
             "openpose_builtin": process_openpose_builtin,
             "dwpose_builtin": lambda image, params: process_pose_dwpose(image, "dwpose_builtin", params),
             "dwpose_wholebody": lambda image, params: process_pose_dwpose(image, "dwpose_wholebody", params),
+            "dwpose_onnx": lambda image, params: process_pose_dwpose(image, "dwpose_wholebody", params),
             "openpose_body": lambda image, params: process_pose_openpose(image, "openpose_body", params, self.available_models),
             "openpose_hand": lambda image, params: process_pose_openpose(image, "openpose_hand", params, self.available_models),
         }

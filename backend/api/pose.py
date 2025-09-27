@@ -135,10 +135,17 @@ async def render_skeleton(request: SkeletonRenderRequest, api_request: Request):
             'draw_points': parameters.get('draw_points', True)
         })
         
-        # Render skeleton from pose data
-        skeleton_image = processor._render_skeleton_from_data(
-            dummy_image, request.pose_data, parameters
-        )
+        # Render skeleton from pose data (supports both COCO-style and vendor easy_dwpose format)
+        pose_data = request.pose_data
+        if isinstance(pose_data, dict) and 'people' in pose_data:
+            skeleton_image = processor._render_skeleton_from_data(
+                dummy_image, pose_data, parameters
+            )
+        else:
+            # Assume vendor format with bodies/hands/faces
+            skeleton_image = processor._render_skeleton_from_vendor_data(
+                dummy_image, pose_data, parameters
+            )
         
         # Convert to base64
         pil_image = Image.fromarray(skeleton_image)
@@ -183,6 +190,17 @@ async def get_pose_processors(api_request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/detection")
+async def detect_pose(request: PoseExtractRequest, api_request: Request):
+    """
+    Alternative endpoint for pose detection (compatibility).
+
+    This endpoint provides the same functionality as /extract but with a different name
+    for compatibility with existing frontend code.
+    """
+    return await extract_pose(request, api_request)
+
+
 @router.get("/test")
 async def test_pose_endpoint():
     """Test endpoint to verify pose API is working."""
@@ -191,6 +209,7 @@ async def test_pose_endpoint():
         "message": "Pose API is working",
         "endpoints": {
             "extract": "POST /api/pose/extract - Extract pose data from image",
+            "detection": "POST /api/pose/detection - Detect poses (alias for extract)",
             "render": "POST /api/pose/render - Render skeleton from pose data",
             "processors": "GET /api/pose/processors - Get available pose processors"
         }

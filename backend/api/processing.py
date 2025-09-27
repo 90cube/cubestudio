@@ -28,9 +28,16 @@ async def process_image_v3(request: ProcessRequest, api_request: Request):
     
     # Convert dict result to ProcessResponse if successful
     if result.get("success", False):
+        # Support both image outputs and dict (pose json) outputs
+        processed_image = result.get("processed_image")
+        pose_data = None
+        if not processed_image and isinstance(result.get("processed_result"), dict):
+            # If processor returned a dict, treat it as pose_data for compatibility
+            pose_data = result.get("processed_result")
         return ProcessResponse(
             success=result["success"],
-            processed_image=result["processed_image"],
+            processed_image=processed_image,
+            pose_data=pose_data,
             processing_time=result["processing_time"],
             processor_used=result["processor_used"],
             fallback_used=result["fallback_used"]
@@ -38,8 +45,8 @@ async def process_image_v3(request: ProcessRequest, api_request: Request):
     else:
         return ProcessResponse(
             success=result["success"],
-            processing_time=result["processing_time"],
-            processor_used=result["processor_used"],
+            processing_time=result.get("processing_time", 0.0),
+            processor_used=result.get("processor_used", request.processor),
             error=result.get("error")
         )
 

@@ -43,6 +43,7 @@ external:
 output:
   directory: "./output"
   temp_directory: "./temp"
+  logs_directory: "./logs"
 
 # 처리 설정
 processing:

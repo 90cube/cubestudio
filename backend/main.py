@@ -37,12 +37,12 @@ config_manager = get_config_manager()
 config_manager.create_missing_directories()
 config_manager.print_configuration()
 
-# Configure logging
+# Configure logging - CONSOLE ONLY to prevent frontend restart loops
+# File logging disabled per CLAUDE.md frontend restart prevention rules
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('unified_backend.log'),
         logging.StreamHandler()
     ]
 )
@@ -147,6 +147,39 @@ def create_app() -> FastAPI:
     app.include_router(processing_router, prefix="/api", tags=["processing"])
     app.include_router(model_status_router, prefix="/api", tags=["model-status"])
     app.include_router(pose_router, prefix="/api/pose", tags=["pose"])
+
+    # Add compatibility endpoint for /api/pose-detection
+    @app.post("/api/pose-detection")
+    async def pose_detection_compat(request: dict):
+        """Compatibility endpoint for legacy frontend calls expecting an image result.
+
+        Maps payload keys {model, params} to current processing API {processor, parameters}.
+        Always returns an image result.
+        """
+        try:
+            image_service = app.state.image_service
+
+            processor = request.get('model') or request.get('processor') or 'dwpose_builtin'
+            image = request.get('image')
+            params = request.get('params') or request.get('parameters') or {}
+            # Ensure image output
+            params = dict(params)
+            params['output_format'] = 'image'
+
+            if not image:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=400, detail='Missing image')
+
+            result = image_service.process_image_v3(
+                processor=processor,
+                image=image,
+                parameters=params
+            )
+
+            return result
+        except Exception as e:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=500, detail=str(e))
 
     return app
 

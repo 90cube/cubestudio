@@ -36,6 +36,10 @@ from .pose_processor import (
     BuiltinPosePreprocessor
 )
 
+from .dwpose_processor import (
+    DWPoseBuiltinPreprocessor
+)
+
 __version__ = "1.0.0"
 __author__ = "CUBE Studio"
 
@@ -53,6 +57,8 @@ processor_registry.register_processor_class('laplacian_builtin', LaplacianEdgePr
 processor_registry.register_processor_class('openpose_builtin', BuiltinPosePreprocessor)
 processor_registry.register_processor_class('openpose_body', OpenPoseBodyPreprocessor)
 processor_registry.register_processor_class('openpose_hand', OpenPoseHandPreprocessor)
+
+processor_registry.register_processor_class('dwpose_builtin', DWPoseBuiltinPreprocessor)
 
 __all__ = [
     # Base classes
@@ -80,8 +86,9 @@ __all__ = [
     'LaplacianEdgePreprocessor',
     
     # Pose processors
-    'PosePreprocessor', 
+    'PosePreprocessor',
     'OpenPoseBodyPreprocessor',
     'OpenPoseHandPreprocessor',
-    'BuiltinPosePreprocessor'
+    'BuiltinPosePreprocessor',
+    'DWPoseBuiltinPreprocessor'
 ]

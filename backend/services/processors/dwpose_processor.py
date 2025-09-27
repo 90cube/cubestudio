@@ -10,6 +10,9 @@ import numpy as np
 import cv2
 
 from .base_preprocessor import BasePreprocessor, ModelLoadError, ProcessingError
+from .dwpose_easy_adapter import DWPoseEasyAdapter
+from ..vendors.easy_dwpose.draw.openpose import draw_pose as draw_openpose
+from ...models.config_manager import get_config_manager
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +34,13 @@ class DWPosePreprocessor(BasePreprocessor):
         self.pose_type = self._determine_pose_type()
         self.joint_connections = self._get_joint_connections()
         self.model_files = self._get_required_model_files()
+        self._adapter = None
         
     def _get_required_model_files(self) -> Dict[str, str]:
         """Get required model files with relative paths."""
         return {
-            'det_model': 'models/preprocessors/yolox_l.onnx',
-            'pose_model': 'models/preprocessors/dw-ll_ucoco_384.onnx'
+            'det_model': 'models/preprocessors/DWPose/yolox_l.onnx',
+            'pose_model': 'models/preprocessors/DWPose/dw-ll_ucoco_384.onnx'
         }
         
     def _determine_pose_type(self) -> str:
@@ -95,8 +99,9 @@ class DWPosePreprocessor(BasePreprocessor):
             'threshold': 0.3,         # 0.0 to 1.0
             'line_width': 2,          # 1 to 10
             'point_radius': 4,        # 1 to 10
+            'detect_resolution': 512,  # detection input resolution
             'detect_body': True,      # True/False
-            'detect_hand': True,      # True/False
+            'detect_hand': False,     # True/False (use detect_hands; kept for compatibility)
             'detect_face': False,     # True/False
             'draw_skeleton': True,    # True/False
             'draw_points': True,      # True/False
@@ -201,12 +206,16 @@ class DWPosePreprocessor(BasePreprocessor):
     def _load_model_impl(self) -> Any:
         """Load the DWPose model."""
         try:
-            # Get project root directory
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            
+            # Get project root directory (go up 3 levels from processors)
+            project_root = os.path.abspath(os.path.join(
+                os.path.dirname(__file__), '..', '..', '..'
+            ))
+
             # Check if ONNX models are available
             det_model_path = os.path.join(project_root, self.model_files['det_model'])
             pose_model_path = os.path.join(project_root, self.model_files['pose_model'])
+
+            logger.info(f"Looking for models at: {det_model_path}, {pose_model_path}")
             
             if not os.path.exists(det_model_path) or not os.path.exists(pose_model_path):
                 logger.warning(f"DWPose ONNX models not found, using fallback implementation")
@@ -249,115 +258,99 @@ class DWPosePreprocessor(BasePreprocessor):
         }
         return color_map.get(color_name.lower(), (255, 255, 255))
     
+    def _get_adapter(self) -> DWPoseEasyAdapter:
+        if self._adapter is None:
+            config = get_config_manager()
+            models_dir = os.path.join(str(config.preprocessors_path), 'DWPose')
+            device = 'auto' if self.device in ('cuda', 'auto') else 'cpu'
+            self._adapter = DWPoseEasyAdapter(models_dir=models_dir, device=device)
+        return self._adapter
+
+    # Compatibility entry: some call sites expect a .process(image, params)
+    def process(self, image: np.ndarray, params: Dict[str, Any]) -> Any:
+        # Light parameter aliasing for backward compatibility
+        params = dict(params or {})
+        if 'confidence_threshold' in params and 'threshold' not in params:
+            params['threshold'] = params['confidence_threshold']
+        if 'detect_hands' in params and 'detect_hand' not in params:
+            params['detect_hand'] = params['detect_hands']
+        return self._process_impl(image, params)
+
     def _process_impl(self, image: np.ndarray, params: Dict[str, Any]) -> Any:
-        """Main DWPose detection implementation."""
+        """Main DWPose detection implementation using easy_dwpose adapter."""
         try:
             output_format = params.get('output_format', 'image')
-            
-            if self.model is not None and self.model.get('type') == 'onnx':
-                # Use ONNX model for pose detection
-                pose_data = self._process_onnx_pose(image, params)
-            else:
-                # Use built-in fallback
-                pose_data = self._process_builtin_pose(image, params)
-            
-            # Return based on output format
+            detect_res = int(params.get('detect_resolution', 512))
+            include_face = bool(params.get('detect_face', False))
+            include_hands = bool(params.get('detect_hands', params.get('detect_hand', False)))
+
+            adapter = self._get_adapter()
+            result = adapter.detect(
+                image_rgb=image,
+                detect_resolution=detect_res,
+                output_format='json' if output_format in ('json', 'both') else 'image',
+                include_face=include_face,
+                include_hands=include_hands,
+            )
+
             if output_format == 'json':
-                return pose_data
+                return result
             elif output_format == 'both':
-                skeleton_image = self._render_skeleton_from_data(image, pose_data, params)
-                return {
-                    'image': skeleton_image,
-                    'json': pose_data
-                }
-            else:  # 'image' (default)
-                return self._render_skeleton_from_data(image, pose_data, params)
-                
+                # Render image from pose json
+                if isinstance(result, dict):
+                    skeleton_image = self._render_skeleton_from_vendor_data(image, result, params)
+                    return {'image': skeleton_image, 'json': result}
+                else:
+                    # Already an image; also try to get json in a second pass
+                    pose_json = adapter.detect(
+                        image_rgb=image,
+                        detect_resolution=detect_res,
+                        output_format='json',
+                        include_face=include_face,
+                        include_hands=include_hands,
+                    )
+                    return {'image': result, 'json': pose_json}
+            else:
+                # image
+                if isinstance(result, dict):
+                    return self._render_skeleton_from_vendor_data(image, result, params)
+                return result
+
         except Exception as e:
             raise ProcessingError(f"DWPose detection failed: {e}")
     
     def _process_onnx_pose(self, image: np.ndarray, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Process pose using ONNX model."""
-        # TODO: Implement actual ONNX inference
-        logger.warning("ONNX pose processing not yet implemented, using fallback")
-        return self._process_builtin_pose(image, params)
+        """Deprecated path: retained for compatibility, now uses adapter."""
+        output_format = params.get('output_format', 'json')
+        detect_res = int(params.get('detect_resolution', 512))
+        include_face = bool(params.get('detect_face', False))
+        include_hands = bool(params.get('detect_hand', True))
+        adapter = self._get_adapter()
+        result = adapter.detect(
+            image_rgb=image,
+            detect_resolution=detect_res,
+            output_format='json' if output_format != 'image' else 'image',
+            include_face=include_face,
+            include_hands=include_hands,
+        )
+        if isinstance(result, dict):
+            return result
+        # If image was returned but json expected, run json pass
+        return adapter.detect(
+            image_rgb=image,
+            detect_resolution=detect_res,
+            output_format='json',
+            include_face=include_face,
+            include_hands=include_hands,
+        )
     
     def _process_builtin_pose(self, image: np.ndarray, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Process pose using built-in algorithm (simplified for JSON output)."""
-        height, width = image.shape[:2]
-        
-        # Simple pose estimation using edge detection and contour analysis
-        # Convert to grayscale for analysis
-        if len(image.shape) == 3:
-            gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        else:
-            gray = image
-        
-        # Detect edges and find contours
-        edges = cv2.Canny(gray, 50, 150)
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # Create JSON pose data structure
-        pose_data = {
-            'people': [],
-            'canvas_width': width,
-            'canvas_height': height,
-            'version': '1.0'
-        }
-        
-        if len(contours) > 0:
-            # Find the largest contour (likely the main subject)
-            largest_contour = max(contours, key=cv2.contourArea)
-            
-            if cv2.contourArea(largest_contour) > 1000:  # Minimum area threshold
-                # Generate simplified keypoints from contour
-                keypoints = self._generate_keypoints_from_contour(largest_contour, width, height)
-                
-                person = {
-                    'person_id': 0,
-                    'pose_keypoints_2d': keypoints,
-                    'hand_left_keypoints_2d': [],
-                    'hand_right_keypoints_2d': [],
-                    'face_keypoints_2d': [],
-                    'pose_score': 0.8  # Confidence score
-                }
-                
-                pose_data['people'].append(person)
-        
-        return pose_data
+        """Use adapter path for built-in as well (unified behavior)."""
+        return self._process_onnx_pose(image, params)
     
-    def _generate_keypoints_from_contour(self, contour, width: int, height: int) -> List[float]:
-        """Generate keypoints from contour approximation."""
-        # Approximate contour to get key points
-        epsilon = 0.02 * cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, epsilon, True)
-        
-        # Create 17 keypoints for body pose (COCO format)
-        keypoints = []
-        
-        if len(approx) >= 4:
-            points = [(float(p[0][0]), float(p[0][1])) for p in approx]
-            
-            # Map approximated points to standard pose keypoints
-            # This is a very simplified mapping - real implementation would use trained models
-            for i in range(17):  # COCO has 17 keypoints
-                if i < len(points):
-                    x, y = points[i]
-                    # Normalize coordinates
-                    x_norm = x / width
-                    y_norm = y / height
-                    confidence = 0.8  # Simplified confidence
-                    keypoints.extend([x_norm, y_norm, confidence])
-                else:
-                    keypoints.extend([0.0, 0.0, 0.0])  # No detection
-        else:
-            # No valid keypoints found
-            keypoints = [0.0, 0.0, 0.0] * 17
-        
-        return keypoints
     
     def _render_skeleton_from_data(self, image: np.ndarray, pose_data: Dict[str, Any], params: Dict[str, Any]) -> np.ndarray:
-        """Render skeleton image from pose data."""
+        """Render skeleton image from legacy COCO-style pose data (people list)."""
         height, width = image.shape[:2]
         
         # Create output canvas
@@ -381,10 +374,15 @@ class DWPosePreprocessor(BasePreprocessor):
                 # Extract points
                 points = []
                 for i in range(0, len(keypoints), 3):
-                    x_norm, y_norm, conf = keypoints[i:i+3]
+                    xv, yv, conf = keypoints[i:i+3]
                     if conf > params.get('threshold', 0.3):
-                        x = int(x_norm * width)
-                        y = int(y_norm * height)
+                        # Support both normalized [0..1] and absolute pixel coords
+                        if xv > 1.0 or yv > 1.0:
+                            x = int(np.clip(xv, 0, width - 1))
+                            y = int(np.clip(yv, 0, height - 1))
+                        else:
+                            x = int(xv * width)
+                            y = int(yv * height)
                         points.append((x, y))
                     else:
                         points.append(None)
@@ -405,6 +403,21 @@ class DWPosePreprocessor(BasePreprocessor):
                             cv2.circle(output, point, point_radius, point_color, -1)
         
         return output
+
+    def _render_skeleton_from_vendor_data(self, image: np.ndarray, pose_data: Dict[str, Any], params: Dict[str, Any]) -> np.ndarray:
+        """Render skeleton image from easy_dwpose vendor pose dict (bodies/hands/faces)."""
+        height, width = image.shape[:2]
+        include_face = bool(params.get('detect_face', False))
+        include_hands = bool(params.get('detect_hands', params.get('detect_hand', False)))
+        # Vendor renderer draws on normalized coords; ensure keys exist
+        safe_pose = {
+            'bodies': pose_data.get('bodies', []),
+            'body_scores': pose_data.get('body_scores', []),
+            'hands': pose_data.get('hands', []),
+            'faces': pose_data.get('faces', []),
+        }
+        rendered = draw_openpose(safe_pose, height=height, width=width, include_face=include_face, include_hands=include_hands)
+        return rendered
     
     def _fallback_process(self, image: np.ndarray, params: Dict[str, Any]) -> Any:
         """Fallback pose processing using built-in algorithm."""
@@ -450,6 +463,15 @@ class DWPoseWholeBodyPreprocessor(DWPosePreprocessor):
 
 class DWPoseBuiltinPreprocessor(DWPosePreprocessor):
     """Built-in DWPose detection preprocessor (fallback implementation)."""
-    
+
     def __init__(self, processor_id='dwpose_builtin', **kwargs):
         super().__init__(processor_id, None, **kwargs)
+
+    def process(self, image: np.ndarray, params: Dict[str, Any]) -> Any:
+        """Process method for compatibility with image_utils."""
+        try:
+            # Use the inherited _process_impl method
+            result = self._process_impl(image, params)
+            return result
+        except Exception as e:
+            raise ProcessingError(f"DWPose processing failed: {e}")
