@@ -1434,9 +1434,9 @@ export class GenerationPanel {
 
             let response;
             try {
-                // Call backend API (dev server proxies /api to backend)
+                // Call backend API directly with absolute URL
                 console.log('Calling fetch API...');
-                const apiUrl = '/api/generate';
+                const apiUrl = 'http://127.0.0.1:8080/api/generate';
                 console.log('API URL:', apiUrl);
                 response = await fetch(apiUrl, {
                     method: 'POST',
@@ -1515,7 +1515,7 @@ export class GenerationPanel {
                     console.log(`Processing image ${i + 1}/${result.images.length}`);
                     const imageFilename = result.images[i];
                     console.log(`Image ${i + 1} filename:`, imageFilename);
-                    const imageUrl = `/output/${imageFilename}`;
+                    const imageUrl = `http://127.0.0.1:8080/output/${imageFilename}`;
                     console.log(`Image ${i + 1} URL:`, imageUrl);
 
                     // Create image element
