@@ -26,6 +26,22 @@ node_modules/
 
 # Ignore logs
 *.log
+logs/
+backend.log
+frontend.log
+unified_backend.log
+modular_backend.log
+
+# Ignore debug and temporary files
+*.tmp
+*.temp
+*_test.*
+test_*
+debug_*
+*_debug.*
+*.bak
+*.backup
+*.backup2
 
 # Ignore font files
 assets/fonts/*.ttf
