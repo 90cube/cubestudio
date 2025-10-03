@@ -1,4 +1,5 @@
 // components/generationPanel/generationPanel.js
+// Version: 2.0 - CORS fix applied
 
 /**
  * 하단 고정 통합 생성 패널 컴포넌트
@@ -6,6 +7,7 @@
  */
 
 import stateManager from '../../core/stateManager.js';
+import { getPanelInstance } from '../ui/floatingPanel/floatingPanel.js';
 
 export class GenerationPanel {
     constructor() {
@@ -20,14 +22,14 @@ export class GenerationPanel {
                 positive: '',
                 negative: ''
             },
-            
+
             // 생성 파라미터
             parameters: {
                 batchCount: 1,      // 배치수 (1~8)
                 repeatCount: 1,     // 반복수 (1~1000)
                 denoise: 0.75       // 디노이즈 (0.00~1.00)
             },
-            
+
             // 프리셋 시스템
             presets: {
                 positive: {
@@ -39,12 +41,15 @@ export class GenerationPanel {
                     list: []
                 }
             },
-            
+
             // 생성 상태
             generation: {
                 isGenerating: false,
                 infinityMode: false
-            }
+            },
+
+            // 로드된 모델 정보
+            loadedModel: null
         };
         
         // 프리셋 디렉토리 경로
@@ -218,6 +223,12 @@ export class GenerationPanel {
                 
                 <!-- 패널 본문 -->
                 <div class="panel-body">
+                    <!-- 로드된 모델 표시 -->
+                    <div class="loaded-model-display" id="loaded-model-display" style="display: none;">
+                        <span class="model-label">Model:</span>
+                        <strong class="model-name" id="loaded-model-name"></strong>
+                    </div>
+
                     <!-- 프롬프트 섹션 -->
                     <div class="prompt-section">
                         <!-- Positive 프롬프트 -->
@@ -474,6 +485,34 @@ export class GenerationPanel {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+            }
+
+            /* 로드된 모델 표시 */
+            .loaded-model-display {
+                background: linear-gradient(145deg, #2a3038 0%, #32383f 100%);
+                border: 1px solid rgba(108, 182, 255, 0.3);
+                border-radius: 6px;
+                padding: 8px 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 4px;
+            }
+
+            .loaded-model-display .model-label {
+                font-size: 12px;
+                color: var(--text-secondary, #9aa0a6);
+                font-weight: 500;
+            }
+
+            .loaded-model-display .model-name {
+                font-size: 13px;
+                color: #6cb6ff;
+                font-weight: 700;
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             /* 프롬프트 섹션 */
@@ -932,7 +971,23 @@ export class GenerationPanel {
         
         // 시드 랜덤 버튼
         this.addEventHandler('seed-random-btn', 'click', () => this.generateRandomSeed());
-        
+
+        // 모델 로드 이벤트 리스너
+        document.addEventListener('model:selected', (e) => {
+            console.log('Model loaded event received:', e.detail);
+            this.state.loadedModel = e.detail;
+            this.updateModelDisplay();
+            this.saveState();
+        });
+
+        // 모델 GPU 로드 완료 이벤트 리스너
+        document.addEventListener('model:loaded', (e) => {
+            console.log('Model loaded to GPU event received:', e.detail);
+            this.state.loadedModel = e.detail;
+            this.updateModelDisplay();
+            this.saveState();
+        });
+
         // console.log('Event listeners set up');
     }
     
@@ -1297,47 +1352,241 @@ export class GenerationPanel {
     /**
      * 생성 버튼 클릭
      */
-    generate() {
+    async generate() {
         if (this.state.generation.isGenerating) {
             this.stopGeneration();
             return;
         }
-        
+
         const generationData = this.collectGenerationData();
-        
+
         // stateManager를 통해 생성 요청 전달
         stateManager.updateState('generation_request', generationData);
-        
+
         this.state.generation.isGenerating = true;
         this.updateGenerateButtons();
-        
+
         // 추가적으로 약간의 지연 후 한 번 더 동기화 (접힌 상태 고려)
         setTimeout(() => {
             this.updateGenerateButtons();
             this.updateInfinityButtons();
         }, 50);
-        
+
         this.saveState();
-        
-        // 시뮬레이션을 위한 임시 코드 (실제로는 AI 백엔드로 전송)
-        setTimeout(() => {
+
+        console.log('Generation started:', generationData);
+
+        try {
+            // Check if image is selected for I2I
+            let initImageBase64 = null;
+            if (window.canvasInstance && window.canvasInstance.getSelectedImage) {
+                const selectedImage = window.canvasInstance.getSelectedImage();
+                if (selectedImage && selectedImage.image) {
+                    // Convert Konva image to base64
+                    const konvaImage = selectedImage.image;
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = konvaImage.width();
+                    tempCanvas.height = konvaImage.height();
+                    const ctx = tempCanvas.getContext('2d');
+                    const img = konvaImage.image();
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = tempCanvas.toDataURL('image/png');
+                    initImageBase64 = dataURL.split(',')[1]; // Remove data:image/png;base64, prefix
+                    console.log('I2I mode: Using selected image from canvas');
+                }
+            }
+
+            // Prepare generation request
+            const requestData = {
+                positive_prompt: generationData.prompts.positive || '',
+                negative_prompt: generationData.prompts.negative || '',
+                width: generationData.width || 512,
+                height: generationData.height || 512,
+                batch_count: generationData.batchCount || 1,
+                repeat_count: generationData.repeatCount || 1,
+                steps: generationData.steps || 20,
+                cfg_scale: generationData.cfgScale || 7.5,
+                sampler: generationData.sampler || 'dpm++_2m',
+                use_karras: generationData.useKarras !== false,
+                seed: generationData.seed || -1,
+                // Use relative path (subfolder/name) instead of absolute path for portability
+                base_model: this.state.loadedModel
+                    ? (this.state.loadedModel.subfolder
+                        ? `${this.state.loadedModel.subfolder}/${this.state.loadedModel.name}`
+                        : this.state.loadedModel.name)
+                    : null,
+                vae: generationData.vae || null,
+                clip_skip: generationData.clipSkip || 1,
+                loras: generationData.loras || [],
+                init_image: initImageBase64,
+                denoise: generationData.denoise || 0.75,
+                detailers: generationData.detailers || {}
+            };
+
+            console.log('Sending generation request to backend:', requestData);
+
+            // Create AbortController with 5-minute timeout (for large model loading)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.error('Request timeout after 5 minutes');
+                controller.abort();
+            }, 300000); // 5 minutes
+
+            let response;
+            try {
+                // Call backend API (dev server proxies /api to backend)
+                console.log('Calling fetch API...');
+                const apiUrl = '/api/generate';
+                console.log('API URL:', apiUrl);
+                response = await fetch(apiUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                console.log('Fetch completed successfully');
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                console.error('Fetch failed:', fetchError);
+                console.error('Fetch error name:', fetchError.name);
+                console.error('Fetch error message:', fetchError.message);
+                throw fetchError;
+            }
+
+            console.log('Backend response status:', response.status, response.statusText);
+            console.log('Response headers:', [...response.headers.entries()]);
+
+            if (!response.ok) {
+                console.error('Response not OK:', response.status, response.statusText);
+                let errorData;
+                try {
+                    const errorText = await response.text();
+                    console.log('Error response text:', errorText);
+                    errorData = JSON.parse(errorText);
+                } catch (e) {
+                    console.error('Failed to parse error response:', e);
+                    errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+                }
+                console.error('Backend error response:', errorData);
+                throw new Error(errorData.error || `Server error: ${response.status}`);
+            }
+
+            console.log('Response OK, parsing JSON...');
+            let result;
+            try {
+                const responseText = await response.text();
+                console.log('Response text length:', responseText.length);
+                console.log('Response text preview:', responseText.substring(0, 200));
+                result = JSON.parse(responseText);
+                console.log('JSON parsed successfully');
+            } catch (parseError) {
+                console.error('Failed to parse response JSON:', parseError);
+                throw new Error('Failed to parse server response: ' + parseError.message);
+            }
+            console.log('Backend response data:', result);
+            console.log('Response keys:', Object.keys(result));
+            console.log('Result.success:', result.success);
+            console.log('Result.images type:', typeof result.images);
+            console.log('Result.images:', result.images);
+            console.log('Result.images length:', result.images?.length);
+
+            if (!result.success) {
+                console.error('Generation failed:', result.error);
+                throw new Error(result.error || 'Generation failed');
+            }
+
+            console.log('Generation completed successfully:', result.images?.length, 'images');
+
+            // Add generated images to canvas at viewport center
+            if (result.images && result.images.length > 0) {
+                console.log('Entering image processing loop...');
+                console.log('addImageToCanvasFromElementsMenu available:', typeof window.addImageToCanvasFromElementsMenu);
+                // Calculate viewport center
+                const viewportCenterX = window.innerWidth / 2;
+                const viewportCenterY = window.innerHeight / 2;
+
+                // Add each generated image
+                let addedCount = 0;
+                for (let i = 0; i < result.images.length; i++) {
+                    console.log(`Processing image ${i + 1}/${result.images.length}`);
+                    const imageFilename = result.images[i];
+                    console.log(`Image ${i + 1} filename:`, imageFilename);
+                    const imageUrl = `/output/${imageFilename}`;
+                    console.log(`Image ${i + 1} URL:`, imageUrl);
+
+                    // Create image element
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';  // Enable CORS
+                    img.onload = () => {
+                        console.log(`Image ${i + 1} loaded successfully, dimensions:`, img.width, 'x', img.height);
+                        // Add image to canvas at viewport center
+                        // Use the global function that handles coordinate conversion
+                        if (window.addImageToCanvasFromElementsMenu) {
+                            // Offset multiple images slightly so they don't overlap
+                            const offsetX = viewportCenterX + (i * 20);
+                            const offsetY = viewportCenterY + (i * 20);
+                            console.log(`Calling addImageToCanvasFromElementsMenu for image ${i + 1} at position:`, offsetX, offsetY);
+                            window.addImageToCanvasFromElementsMenu(img, offsetX, offsetY);
+                            console.log(`Generated image ${i + 1} added to canvas at viewport center`);
+                        } else {
+                            console.warn('addImageToCanvasFromElementsMenu function not available');
+                        }
+
+                        addedCount++;
+                        // Show notification after all images are added
+                        if (addedCount === result.images.length && window.showNotification) {
+                            window.showNotification('success', `Generated ${result.images.length} image(s) successfully!`);
+                        }
+                    };
+                    img.onerror = (e) => {
+                        console.error(`Failed to load generated image ${i + 1}`, e);
+                        console.error(`Image URL:`, imageUrl);
+                    };
+                    console.log(`Setting img.src for image ${i + 1}...`);
+                    img.src = imageUrl;
+                }
+            } else {
+                console.warn('No images in response or images array is empty');
+                console.warn('result.images:', result.images);
+                if (window.showNotification) {
+                    window.showNotification('warning', 'Generation completed but no images returned');
+                }
+            }
+
+        } catch (error) {
+            console.error('Generation error:', error);
+            console.error('Error type:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+
+            // Show error notification
+            const errorMsg = error.message || error.toString() || 'Unknown error occurred';
+            if (window.showNotification) {
+                window.showNotification('error', `Generation failed: ${errorMsg}`);
+            } else {
+                alert(`Generation failed: ${errorMsg}`);
+            }
+        } finally {
+            // Reset generating state
             this.state.generation.isGenerating = false;
             this.updateGenerateButtons();
-            
+
             // 생성 완료 후에도 버튼 상태 동기화
             setTimeout(() => {
                 this.updateGenerateButtons();
                 this.updateInfinityButtons();
             }, 50);
-            
+
             // 무한 모드라면 다시 시작
             if (this.state.generation.infinityMode && this.isRandomSeed()) {
                 this.generateRandomSeed();
                 setTimeout(() => this.generate(), 1000);
             }
-        }, 3000);
-        
-        console.log('Generation started:', generationData);
+        }
     }
     
     /**
@@ -1376,12 +1625,65 @@ export class GenerationPanel {
     }
     
     /**
-     * 생성 데이터 수집
+     * 생성 데이터 수집 (Parameters, LoRA, Detailers 포함)
      */
     collectGenerationData() {
+        // FloatingPanel에서 컴포넌트들 가져오기
+        let advancedParameters = {};
+        let selectedLoRAs = [];
+        let activeDetailers = {};
+
+        try {
+            // Parameters 패널에서 컴포넌트 가져오기
+            const parametersPanel = getPanelInstance('parameters-panel');
+            if (parametersPanel && parametersPanel.components) {
+                // 패널의 첫 번째 컴포넌트가 ParametersComponent
+                const component = Array.from(parametersPanel.components.values())[0];
+                if (component && typeof component.getParameters === 'function') {
+                    advancedParameters = component.getParameters();
+                }
+            }
+
+            // LoRA Selector 패널에서 컴포넌트 가져오기
+            const loraPanel = getPanelInstance('lora-selector-panel');
+            if (loraPanel && loraPanel.components) {
+                const component = Array.from(loraPanel.components.values())[0];
+                if (component && typeof component.getSelectedLoRAs === 'function') {
+                    selectedLoRAs = component.getSelectedLoRAs();
+                }
+            }
+
+            // Multi Detailer 패널에서 컴포넌트 가져오기
+            const detailerPanel = getPanelInstance('multi-detailer-panel');
+            if (detailerPanel && detailerPanel.components) {
+                const component = Array.from(detailerPanel.components.values())[0];
+                if (component && typeof component.getActiveDetailers === 'function') {
+                    activeDetailers = component.getActiveDetailers();
+                }
+            }
+        } catch (error) {
+            console.warn('Error collecting component data:', error);
+        }
+
         return {
+            // 프롬프트
             prompts: { ...this.state.prompts },
-            parameters: { ...this.state.parameters },
+
+            // Generation Panel 파라미터
+            batchCount: this.state.parameters.batchCount,
+            repeatCount: this.state.parameters.repeatCount,
+            denoise: this.state.parameters.denoise,
+
+            // Parameters 컴포넌트 파라미터
+            ...advancedParameters,
+
+            // LoRA 정보
+            loras: selectedLoRAs,
+
+            // 디테일러 정보
+            detailers: activeDetailers,
+
+            // 메타 정보
             timestamp: Date.now(),
             infinityMode: this.state.generation.infinityMode
         };
@@ -1424,14 +1726,14 @@ export class GenerationPanel {
             this.containerElement.querySelector('#generate-btn'),
             this.containerElement.querySelector('#generate-btn-collapsed')
         ];
-        
+
         const infinityButtons = [
             this.containerElement.querySelector('#infinity-btn'),
             this.containerElement.querySelector('#infinity-btn-collapsed')
         ];
-        
+
         const text = this.state.generation.isGenerating ? 'Stop' : 'Generate';
-        
+
         generateButtons.forEach(btn => {
             if (btn) {
                 btn.classList.toggle('generating', this.state.generation.isGenerating);
@@ -1440,7 +1742,7 @@ export class GenerationPanel {
                 else if (btn.classList.contains('collapsed')) btn.textContent = text;
             }
         });
-        
+
         // infinity 모드가 활성화된 상태에서 generating이면 infinity 버튼도 주황색으로
         const shouldInfinityGenerate = this.state.generation.isGenerating && this.state.generation.infinityMode;
         infinityButtons.forEach(btn => {
@@ -1448,6 +1750,29 @@ export class GenerationPanel {
                 btn.classList.toggle('generating', shouldInfinityGenerate);
             }
         });
+    }
+
+    /**
+     * 로드된 모델 이름 표시 업데이트
+     */
+    updateModelDisplay() {
+        const displayElement = this.containerElement?.querySelector('#loaded-model-display');
+        const nameElement = this.containerElement?.querySelector('#loaded-model-name');
+
+        if (!displayElement || !nameElement) return;
+
+        if (this.state.loadedModel) {
+            // Extract model name from path or use name property
+            const modelName = this.state.loadedModel.name ||
+                             this.state.loadedModel.path?.split(/[\/\\]/).pop() ||
+                             'Unknown Model';
+
+            nameElement.textContent = modelName;
+            displayElement.style.display = 'flex';
+            console.log('Model display updated:', modelName);
+        } else {
+            displayElement.style.display = 'none';
+        }
     }
     
     /**
@@ -1489,9 +1814,12 @@ export class GenerationPanel {
         // 생성 컨트롤 상태 업데이트
         this.updateInfinityButtons();
         this.updateGenerateButtons();
-        
+
         // 조건부 슬라이더 상태 업데이트
         this.updateRepeatCountState();
+
+        // 모델 표시 업데이트
+        this.updateModelDisplay();
         
         // 추가적으로 약간의 지연 후 한 번 더 상태 동기화
         setTimeout(() => {

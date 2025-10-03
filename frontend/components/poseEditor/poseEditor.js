@@ -696,8 +696,9 @@ async function handleApplyChanges(content) {
             console.log('🖼️ Original image dimensions:', { originalWidth, originalHeight });
             
             // 백엔드에 수정된 포즈 데이터 전송하여 스켈레톤 이미지 생성
-            const response = await fetch('http://127.0.0.1:8080/api/pose/render', {
+            const response = await fetch('/api/pose/render', {
                 method: 'POST',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     pose_data: modifiedPoseData,
@@ -705,7 +706,7 @@ async function handleApplyChanges(content) {
                     image_height: originalHeight,
                     parameters: {
                         skeleton_color: 'white',
-                        point_color: 'red', 
+                        point_color: 'red',
                         background_color: 'black',
                         line_width: 3,
                         point_radius: 6

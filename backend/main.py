@@ -15,6 +15,9 @@ from typing import Any, Dict
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 # Backend imports
 from .models.config_manager import get_config_manager
@@ -24,6 +27,8 @@ from .models.processor import (
 from .services.model_scanner import ModelScanner
 from .services.processor_service import ProcessorService
 from .services.image_service import ImageService
+from .services.checkpoint_loader import CheckpointLoader
+from .services.sd_pipeline_service import SDPipelineService
 
 # API routes
 from .api.processors import router as processors_router
@@ -31,6 +36,7 @@ from .api.models import router as models_router
 from .api.processing import router as processing_router
 from .api.model_status import router as model_status_router
 from .api.pose import router as pose_router
+from .api.generation import router as generation_router
 
 # Initialize configuration
 config_manager = get_config_manager()
@@ -84,13 +90,20 @@ def create_app() -> FastAPI:
         version=config_manager.api_version
     )
 
-    # CORS middleware
+    # CORS middleware - explicit origin for development
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=['*'],
+        allow_origins=[
+            'http://127.0.0.1:9000',
+            'http://localhost:9000',
+            'http://127.0.0.1:8080',
+            'http://localhost:8080'
+        ],
         allow_credentials=True,
         allow_methods=['*'],
         allow_headers=['*'],
+        expose_headers=['*'],
+        max_age=3600
     )
 
     # Initialize model scanner
@@ -128,10 +141,18 @@ def create_app() -> FastAPI:
     # Initialize image service
     image_service = ImageService(processor_registry, available_models, config_manager)
 
+    # Initialize checkpoint loader
+    checkpoint_loader = CheckpointLoader(config_manager)
+
+    # Initialize SD pipeline service
+    sd_pipeline_service = SDPipelineService(config_manager, checkpoint_loader)
+
     # Store services in app state for access in routes
     app.state.model_scanner = model_scanner
     app.state.processor_service = processor_service
     app.state.image_service = image_service
+    app.state.checkpoint_loader = checkpoint_loader
+    app.state.sd_pipeline_service = sd_pipeline_service
     app.state.enhanced_processing_enabled = enhanced_processing_enabled
     app.state.config = config_manager
 
@@ -141,14 +162,7 @@ def create_app() -> FastAPI:
         """Health check"""
         return {"status": "running", "service": f"{config_manager.api_title} {config_manager.api_version}"}
 
-    # Include routers
-    app.include_router(processors_router, prefix="/api", tags=["processors"])
-    app.include_router(models_router, prefix="/api", tags=["models"])
-    app.include_router(processing_router, prefix="/api", tags=["processing"])
-    app.include_router(model_status_router, prefix="/api", tags=["model-status"])
-    app.include_router(pose_router, prefix="/api/pose", tags=["pose"])
-
-    # Add compatibility endpoint for /api/pose-detection
+    # Add compatibility endpoint for /api/pose-detection (must be before routers)
     @app.post("/api/pose-detection")
     async def pose_detection_compat(request: dict):
         """Compatibility endpoint for legacy frontend calls expecting an image result.
@@ -181,6 +195,19 @@ def create_app() -> FastAPI:
             from fastapi import HTTPException
             raise HTTPException(status_code=500, detail=str(e))
 
+    # Include routers (MUST be before static file mounts)
+    app.include_router(processors_router, prefix="/api", tags=["processors"])
+    app.include_router(models_router, prefix="/api", tags=["models"])
+    app.include_router(processing_router, prefix="/api", tags=["processing"])
+    app.include_router(model_status_router, prefix="/api", tags=["model-status"])
+    app.include_router(pose_router, prefix="/api/pose", tags=["pose"])
+    app.include_router(generation_router, prefix="/api", tags=["generation"])
+
+    # Mount output folder as static files (for generated images)
+    output_path = Path("output")
+    output_path.mkdir(exist_ok=True)
+    app.mount("/output", StaticFiles(directory="output"), name="output")
+
     return app
 
 
@@ -195,8 +222,17 @@ def main():
     # Create app
     app = create_app()
     
-    # Start server
-    uvicorn.run(app, host=config_manager.server_host, port=config_manager.server_port, log_level=config_manager.log_level)
+    # Start server with increased limits for large image responses
+    uvicorn.run(
+        app,
+        host=config_manager.server_host,
+        port=config_manager.server_port,
+        log_level=config_manager.log_level,
+        limit_concurrency=1000,
+        limit_max_requests=10000,
+        timeout_keep_alive=300,  # 5 minutes
+        h11_max_incomplete_event_size=100 * 1024 * 1024  # 100MB for large base64 responses
+    )
 
 
 if __name__ == "__main__":

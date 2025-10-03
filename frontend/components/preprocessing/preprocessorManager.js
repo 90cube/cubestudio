@@ -713,8 +713,9 @@ async function processPoseImage(poseContainer, imageNode, processor) {
         let result;
         if (outputFormat === 'json') {
             // JSON 추출 API 호출
-            const response = await fetch('http://127.0.0.1:8080/api/pose/extract', {
+            const response = await fetch('/api/pose/extract', {
                 method: 'POST',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     processor: processor,
@@ -725,8 +726,9 @@ async function processPoseImage(poseContainer, imageNode, processor) {
             result = await response.json();
         } else {
             // 일반 이미지 처리 API 호출
-            const response = await fetch('http://127.0.0.1:8080/api/process', {
+            const response = await fetch('/api/process', {
                 method: 'POST',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     processor: processor,
@@ -839,8 +841,9 @@ async function renderSkeletonFromJSON(poseContainer, poseData) {
         console.log('[POSE] Rendering skeleton from JSON:', poseData);
         
         // 스켈레톤 렌더링 API 호출
-        const response = await fetch('http://127.0.0.1:8080/api/pose/render', {
+        const response = await fetch('/api/pose/render', {
             method: 'POST',
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 pose_data: poseData,

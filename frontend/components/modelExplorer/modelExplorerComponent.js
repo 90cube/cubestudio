@@ -17,6 +17,8 @@ export class ModelExplorerComponent {
         this.tooltip = new Tooltip();
         this.containerElement = null;
         this.isInitialized = false;
+        this.loadedModels = new Set(); // 로딩된 모델 추적
+        this.loadingModels = new Set(); // 로딩 중인 모델 추적
     }
     
     /**
@@ -213,8 +215,23 @@ export class ModelExplorerComponent {
                 color: #6cb6ff;
                 font-weight: 500;
             }
+
+            .model-explorer-component .file.loaded-model {
+                font-weight: 700;
+                color: #4caf50;
+            }
+
+            .model-explorer-component .file.loaded-model:hover {
+                background: rgba(76, 175, 80, 0.15);
+                color: #66bb6a;
+            }
+
+            .model-explorer-component .file.loaded-model.selected {
+                background: rgba(76, 175, 80, 0.25);
+                color: #4caf50;
+            }
         `;
-        
+
         document.head.appendChild(style);
     }
     
@@ -273,12 +290,9 @@ export class ModelExplorerComponent {
         for (const fileElement of fileElements) {
             const elementPath = fileElement.dataset.path;
             const elementSubfolder = fileElement.dataset.subfolder;
-            const elementName = fileElement.textContent.trim();
-            
-            // 경로, 하위폴더, 이름이 모두 일치하는지 확인
+            // 경로와 하위 폴더가 일치하는지 확인
             if (elementPath === previousSelectedModel.path &&
-                elementSubfolder === previousSelectedModel.subfolder &&
-                elementName === previousSelectedModel.name) {
+                (elementSubfolder || '') === (previousSelectedModel.subfolder || '')) {
                 targetFileElement = fileElement;
                 break;
             }
@@ -448,37 +462,250 @@ export class ModelExplorerComponent {
         }
     }
     
-    handleFileClick(fileElement) {
+    async handleFileClick(fileElement) {
         // 기존 선택 해제
         document.querySelectorAll('.model-explorer-component .file.selected').forEach(el => {
             el.classList.remove('selected');
         });
-        
+
         // 새 파일 선택
         fileElement.classList.add('selected');
+        const datasetPath = fileElement.dataset.path || '';
+        const fileName = datasetPath
+            ? datasetPath.split(/[\\/]/).pop()
+            : (fileElement.textContent || '').trim();
+
         this.selectedModel = {
-            name: fileElement.textContent,
-            path: fileElement.dataset.path,
-            subfolder: fileElement.dataset.subfolder
+            name: fileName,
+            path: datasetPath,
+            subfolder: fileElement.dataset.subfolder || ''
         };
-        
+
         // 선택된 모델의 폴더 경로 추출 (첫 번째 폴더만)
         const subfolderParts = this.selectedModel.subfolder.split(/[\/\\]/).filter(p => p);
         this.selectedFolderPath = subfolderParts.length > 0 ? subfolderParts[0] : null;
-        
+
         console.log('Selected model:', this.selectedModel);
         console.log('Selected folder path:', this.selectedFolderPath);
-        
+
         // VAE 목록을 선택된 폴더에 맞게 업데이트
         this.renderFilteredVaes();
-        
+
+        // 체크포인트 모델인 경우 GPU 메모리에 로드 시도
+        const isCheckpoint = fileElement.closest('#checkpoints-content') !== null;
+        if (isCheckpoint) {
+            await this.loadModelToGPU(this.selectedModel, fileElement);
+        }
+
         // 이벤트 디스패치 (다른 컴포넌트에서 사용할 수 있도록)
         document.dispatchEvent(new CustomEvent('model:selected', {
             detail: {
                 ...this.selectedModel,
-                folderPath: this.selectedFolderPath
+                folderPath: this.selectedFolderPath,
+                loaded: this.loadedModels.has(this.selectedModel.path)
             }
         }));
+    }
+
+    /**
+     * 체크포인트 모델을 GPU 메모리에 로드
+     */    async loadModelToGPU(model, fileElement) {
+        const modelPath = model.path;
+
+        // 이미 로딩 중인 경우 무시
+        if (this.loadingModels.has(modelPath)) {
+            console.log(`Model ${model.name} is already loading`);
+            return;
+        }
+
+        // 이미 로드된 경우 무시
+        if (this.loadedModels.has(modelPath)) {
+            console.log(`Model ${model.name} is already loaded`);
+            this.showLoadStatus(fileElement, 'loaded', 'Already loaded');
+            return;
+        }
+
+        // Clear previous loaded model markers before loading a different model
+        this.clearLoadedModelIndicators();
+        this.loadedModels.clear();
+
+        try {
+            this.loadingModels.add(modelPath);
+            this.showLoadStatus(fileElement, 'loading', 'Loading to GPU...');
+
+            console.log(`Loading model to GPU: ${model.name}`);
+
+            // 상대 경로 생성 (subfolder + filename)
+            const relativePath = model.subfolder ? `${model.subfolder}/${model.name}` : model.name;
+
+            // Create AbortController for 5-minute timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                console.error(`Model loading timeout after 5 minutes: ${modelPath}`);
+            }, 300000); // 5 minutes = 300000ms
+
+            const startTime = performance.now();
+
+            // POST 요청의 body에 경로 전달 (with timeout)
+            const response = await fetch(`${this.apiUrl}/models/load`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model_path: relativePath,
+                    model_type: 'checkpoint'
+                }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+            const result = await response.json();
+            const clientLoadTime = ((performance.now() - startTime) / 1000).toFixed(2);
+
+            if (result.success) {
+                this.loadedModels.add(modelPath);
+                this.loadingModels.delete(modelPath);
+
+                const serverLoadTime = result.load_time_seconds || clientLoadTime;
+                const memoryUsed = result.memory_usage?.gpu_memory_allocated_mb || result.memory_used_mb || 'N/A';
+                const device = result.device || 'unknown';
+
+                this.showLoadStatus(
+                    fileElement,
+                    'success',
+                    `✓ Loaded in ${serverLoadTime}s (${memoryUsed}MB on ${device})`
+                );
+
+                // 로드된 모델을 진하게 표시
+                fileElement.classList.add('loaded-model');
+
+                console.log(`Model loaded successfully in ${serverLoadTime}s:`, result);
+
+                // GPU 메모리 사용량 업데이트
+                this.updateMemoryDisplay();
+                // Generation Panel에 로드된 모델 알림
+                document.dispatchEvent(new CustomEvent('model:loaded', {
+                    detail: {
+                        path: modelPath,
+                        name: model.name,
+                        subfolder: model.subfolder,
+                        loadTime: serverLoadTime,
+                        memoryUsed: memoryUsed,
+                        device: device
+                    }
+                }));
+
+            } else {
+                this.loadingModels.delete(modelPath);
+                const errorMsg = result.error || 'Failed to load model';
+                this.showLoadStatus(fileElement, 'error', `✗ ${errorMsg}`);
+                console.error(`Failed to load model:`, result);
+            }
+
+        } catch (error) {
+            this.loadingModels.delete(modelPath);
+
+            let errorMessage;
+            if (error.name === 'AbortError') {
+                errorMessage = 'Loading timeout (5 min)';
+                console.error(`Model loading aborted due to timeout: ${modelPath}`);
+            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Network error';
+                console.error(`Network error loading model: ${modelPath}`, error);
+            } else {
+                errorMessage = error.message || 'Unknown error';
+                console.error(`Error loading model ${modelPath}:`, error);
+            }
+
+            this.showLoadStatus(fileElement, 'error', `✗ ${errorMessage}`);
+        }
+    }
+
+    /**
+     * 파일 요소에 로딩 상태 표시
+     */
+    showLoadStatus(fileElement, status, message) {
+        // 기존 상태 표시 제거
+        const existingStatus = fileElement.querySelector('.load-status');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+
+        // 새 상태 표시 추가
+        const statusElement = document.createElement('span');
+        statusElement.className = `load-status load-status-${status}`;
+        statusElement.textContent = message;
+        statusElement.style.cssText = `
+            margin-left: 8px;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+        `;
+
+        switch (status) {
+            case 'loading':
+                statusElement.style.background = 'rgba(108, 182, 255, 0.2)';
+                statusElement.style.color = '#6cb6ff';
+                break;
+            case 'success':
+            case 'loaded':
+                statusElement.style.background = 'rgba(52, 211, 153, 0.2)';
+                statusElement.style.color = '#34d399';
+                break;
+            case 'error':
+                statusElement.style.background = 'rgba(248, 113, 113, 0.2)';
+                statusElement.style.color = '#f87171';
+                break;
+        }
+
+        fileElement.appendChild(statusElement);
+
+        // 성공/에러 메시지는 3초 후 자동 제거
+        if (status === 'success' || status === 'error') {
+            setTimeout(() => {
+                if (statusElement.parentElement) {
+                    statusElement.remove();
+                }
+            }, 3000);
+        }
+    }
+
+    clearLoadedModelIndicators() {
+        const scope = this.containerElement || document;
+        const loadedElements = scope.querySelectorAll('.file.loaded-model');
+
+        loadedElements.forEach(fileElement => {
+            fileElement.classList.remove('loaded-model');
+            const status = fileElement.querySelector('.load-status');
+            if (status) {
+                status.remove();
+            }
+        });
+    }
+
+    /**
+     * GPU 메모리 사용량 표시 업데이트
+     */
+    async updateMemoryDisplay() {
+        try {
+            const response = await fetch(`${this.apiUrl}/system/memory`);
+            const memoryData = await response.json();
+
+            if (memoryData.gpu_available && memoryData.gpu_memory) {
+                const gpuInfo = Object.values(memoryData.gpu_memory)[0];
+                console.log('GPU Memory:', gpuInfo);
+
+                // GPU 메모리 정보를 이벤트로 전달
+                document.dispatchEvent(new CustomEvent('gpu:memory-updated', {
+                    detail: gpuInfo
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching memory usage:', error);
+        }
     }
     
     
@@ -636,7 +863,10 @@ export class ModelExplorerComponent {
             html += '<ul class="folder-content active">';
             files.forEach(file => {
                 const previewData = file.preview_image ? `data-preview="${file.preview_image}"` : '';
-                html += `<li><span class="file" data-path="${file.path}" data-subfolder="${file.subfolder}" ${previewData}>${file.name}</span></li>`;
+                // 로드된 모델인지 확인
+                const isLoaded = this.loadedModels.has(file.path);
+                const loadedClass = isLoaded ? ' loaded-model' : '';
+                html += `<li><span class="file${loadedClass}" data-path="${file.path}" data-subfolder="${file.subfolder}" ${previewData}>${file.name}</span></li>`;
             });
             html += '</ul>';
         }

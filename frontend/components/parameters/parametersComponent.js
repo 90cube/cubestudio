@@ -801,7 +801,10 @@ export class ParametersComponent {
     }
     
     getParameters() {
-        return { ...this.parameters };
+        return {
+            ...this.parameters,
+            baseModel: this.currentBaseModel
+        };
     }
     
     setParameters(newParams) {

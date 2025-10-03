@@ -1,13 +1,27 @@
 @echo off
-echo Starting CUBE Studio Unified Backend Service...
+echo ========================================
+echo   CUBE Studio - Starting Services
+echo ========================================
+echo.
+
+echo [1/2] Starting Backend Server (Port 8080)...
 echo Activating Python virtual environment...
 call .venv\Scripts\activate.bat
-start "Unified Backend" cmd /c "call .venv\Scripts\activate.bat && python -m backend.main"
+start "CUBE Backend (8080)" cmd /c "call .venv\Scripts\activate.bat && python -m backend.main"
 
-echo Starting front-end server...
-start "Frontend" cmd /c "run_frontend.bat"
+echo Waiting for backend to initialize...
+timeout /t 3 /nobreak >nul
 
 echo.
-echo CUBE Studio is starting:
-echo - Backend API: http://localhost:8080
-echo - Frontend: http://localhost:9000
+echo [2/2] Starting Frontend Server (Port 9000)...
+start "CUBE Frontend (9000)" cmd /c "run_frontend.bat"
+
+echo.
+echo ========================================
+echo   CUBE Studio is running:
+echo   - Backend API: http://127.0.0.1:8080
+echo   - Frontend UI: http://127.0.0.1:9000
+echo ========================================
+echo.
+echo Press any key to close this window...
+pause >nul

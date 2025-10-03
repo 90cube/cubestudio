@@ -70,8 +70,9 @@ export class PoseWorkflowManager {
             }
         };
 
-        const response = await fetch('http://127.0.0.1:8080/api/pose/extract', {
+        const response = await fetch('/api/pose/extract', {
             method: 'POST',
+            mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)
         });
@@ -1332,8 +1333,9 @@ export class PoseWorkflowManager {
                 skeleton_color: [255, 255, 255]  // 흰색 스켈레톤
             };
 
-            const response = await fetch('http://127.0.0.1:8080/api/pose/render', {
+            const response = await fetch('/api/pose/render', {
                 method: 'POST',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)
             });
