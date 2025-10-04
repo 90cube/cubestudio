@@ -8,6 +8,8 @@
 
 import stateManager from '../../core/stateManager.js';
 import { getPanelInstance } from '../ui/floatingPanel/floatingPanel.js';
+import pathConfig from '../../core/pathConfig.js';
+import websocketService from '../../core/websocketService.js';
 
 export class GenerationPanel {
     constructor() {
@@ -1352,6 +1354,9 @@ export class GenerationPanel {
     /**
      * 생성 버튼 클릭
      */
+    /**
+     * 이미지 생성 실행 (WebSocket)
+     */
     async generate() {
         if (this.state.generation.isGenerating) {
             this.stopGeneration();
@@ -1374,7 +1379,7 @@ export class GenerationPanel {
 
         this.saveState();
 
-        console.log('Generation started:', generationData);
+        console.log('Starting generation via WebSocket:', generationData);
 
         try {
             // Check if image is selected for I2I
@@ -1409,7 +1414,6 @@ export class GenerationPanel {
                 sampler: generationData.sampler || 'dpm++_2m',
                 use_karras: generationData.useKarras !== false,
                 seed: generationData.seed || -1,
-                // Use relative path (subfolder/name) instead of absolute path for portability
                 base_model: this.state.loadedModel
                     ? (this.state.loadedModel.subfolder
                         ? `${this.state.loadedModel.subfolder}/${this.state.loadedModel.name}`
@@ -1423,145 +1427,92 @@ export class GenerationPanel {
                 detailers: generationData.detailers || {}
             };
 
-            console.log('Sending generation request to backend:', requestData);
+            console.log('Sending generation request via WebSocket:', requestData);
 
-            // Create AbortController with 5-minute timeout (for large model loading)
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                console.error('Request timeout after 5 minutes');
-                controller.abort();
-            }, 300000); // 5 minutes
+            // Connect to WebSocket
+            await websocketService.connect('/ws/generate');
 
-            let response;
-            try {
-                // Call backend API directly with absolute URL
-                console.log('Calling fetch API...');
-                const apiUrl = 'http://127.0.0.1:8080/api/generate';
-                console.log('API URL:', apiUrl);
-                response = await fetch(apiUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                console.log('Fetch completed successfully');
-            } catch (fetchError) {
-                clearTimeout(timeoutId);
-                console.error('Fetch failed:', fetchError);
-                console.error('Fetch error name:', fetchError.name);
-                console.error('Fetch error message:', fetchError.message);
-                throw fetchError;
-            }
+            // Register message handler for this generation session
+            const handlerId = 'generation_panel';
+            let generatedImageCount = 0;
 
-            console.log('Backend response status:', response.status, response.statusText);
-            console.log('Response headers:', [...response.headers.entries()]);
+            websocketService.on(handlerId, (message) => {
+                console.log('📨 WebSocket message received:', message.type);
 
-            if (!response.ok) {
-                console.error('Response not OK:', response.status, response.statusText);
-                let errorData;
-                try {
-                    const errorText = await response.text();
-                    console.log('Error response text:', errorText);
-                    errorData = JSON.parse(errorText);
-                } catch (e) {
-                    console.error('Failed to parse error response:', e);
-                    errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
-                }
-                console.error('Backend error response:', errorData);
-                throw new Error(errorData.error || `Server error: ${response.status}`);
-            }
+                switch (message.type) {
+                    case 'status':
+                        console.log(`Status: ${message.message} (stage: ${message.stage})`);
+                        if (window.showNotification) {
+                            window.showNotification('info', message.message);
+                        }
+                        break;
 
-            console.log('Response OK, parsing JSON...');
-            let result;
-            try {
-                const responseText = await response.text();
-                console.log('Response text length:', responseText.length);
-                console.log('Response text preview:', responseText.substring(0, 200));
-                result = JSON.parse(responseText);
-                console.log('JSON parsed successfully');
-            } catch (parseError) {
-                console.error('Failed to parse response JSON:', parseError);
-                throw new Error('Failed to parse server response: ' + parseError.message);
-            }
-            console.log('Backend response data:', result);
-            console.log('Response keys:', Object.keys(result));
-            console.log('Result.success:', result.success);
-            console.log('Result.images type:', typeof result.images);
-            console.log('Result.images:', result.images);
-            console.log('Result.images length:', result.images?.length);
+                    case 'progress':
+                        console.log(`Progress: ${message.current}/${message.total} (${message.percent}%)`);
+                        // TODO: Update progress bar UI
+                        break;
 
-            if (!result.success) {
-                console.error('Generation failed:', result.error);
-                throw new Error(result.error || 'Generation failed');
-            }
+                    case 'image':
+                        console.log(`Image ${message.index} received`);
+                        generatedImageCount++;
 
-            console.log('Generation completed successfully:', result.images?.length, 'images');
+                        // Add image to canvas immediately
+                        this.addImageToCanvas(message.data, message.index);
+                        break;
 
-            // Add generated images to canvas at viewport center
-            if (result.images && result.images.length > 0) {
-                console.log('Entering image processing loop...');
-                console.log('addImageToCanvasFromElementsMenu available:', typeof window.addImageToCanvasFromElementsMenu);
-                // Calculate viewport center
-                const viewportCenterX = window.innerWidth / 2;
-                const viewportCenterY = window.innerHeight / 2;
-
-                // Add each generated image
-                let addedCount = 0;
-                for (let i = 0; i < result.images.length; i++) {
-                    console.log(`Processing image ${i + 1}/${result.images.length}`);
-                    const imageFilename = result.images[i];
-                    console.log(`Image ${i + 1} filename:`, imageFilename);
-                    const imageUrl = `http://127.0.0.1:8080/output/${imageFilename}`;
-                    console.log(`Image ${i + 1} URL:`, imageUrl);
-
-                    // Create image element
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';  // Enable CORS
-                    img.onload = () => {
-                        console.log(`Image ${i + 1} loaded successfully, dimensions:`, img.width, 'x', img.height);
-                        // Add image to canvas at viewport center
-                        // Use the global function that handles coordinate conversion
-                        if (window.addImageToCanvasFromElementsMenu) {
-                            // Offset multiple images slightly so they don't overlap
-                            const offsetX = viewportCenterX + (i * 20);
-                            const offsetY = viewportCenterY + (i * 20);
-                            console.log(`Calling addImageToCanvasFromElementsMenu for image ${i + 1} at position:`, offsetX, offsetY);
-                            window.addImageToCanvasFromElementsMenu(img, offsetX, offsetY);
-                            console.log(`Generated image ${i + 1} added to canvas at viewport center`);
-                        } else {
-                            console.warn('addImageToCanvasFromElementsMenu function not available');
+                    case 'complete':
+                        console.log('Generation complete!', message.metadata);
+                        if (window.showNotification) {
+                            window.showNotification('success', `Generated ${message.metadata.total_images} image(s) successfully!`);
                         }
 
-                        addedCount++;
-                        // Show notification after all images are added
-                        if (addedCount === result.images.length && window.showNotification) {
-                            window.showNotification('success', `Generated ${result.images.length} image(s) successfully!`);
+                        // Clean up handler
+                        websocketService.off(handlerId);
+
+                        // Reset state
+                        this.state.generation.isGenerating = false;
+                        this.updateGenerateButtons();
+
+                        // 생성 완료 후에도 버튼 상태 동기화
+                        setTimeout(() => {
+                            this.updateGenerateButtons();
+                            this.updateInfinityButtons();
+                        }, 50);
+
+                        // 무한 모드라면 다시 시작
+                        if (this.state.generation.infinityMode && this.isRandomSeed()) {
+                            this.generateRandomSeed();
+                            setTimeout(() => this.generate(), 1000);
                         }
-                    };
-                    img.onerror = (e) => {
-                        console.error(`Failed to load generated image ${i + 1}`, e);
-                        console.error(`Image URL:`, imageUrl);
-                    };
-                    console.log(`Setting img.src for image ${i + 1}...`);
-                    img.src = imageUrl;
+                        break;
+
+                    case 'error':
+                        console.error('Generation error:', message.error);
+                        if (window.showNotification) {
+                            window.showNotification('error', `Generation failed: ${message.error}`);
+                        }
+
+                        // Clean up handler
+                        websocketService.off(handlerId);
+
+                        // Reset state
+                        this.state.generation.isGenerating = false;
+                        this.updateGenerateButtons();
+
+                        setTimeout(() => {
+                            this.updateGenerateButtons();
+                            this.updateInfinityButtons();
+                        }, 50);
+                        break;
                 }
-            } else {
-                console.warn('No images in response or images array is empty');
-                console.warn('result.images:', result.images);
-                if (window.showNotification) {
-                    window.showNotification('warning', 'Generation completed but no images returned');
-                }
-            }
+            });
+
+            // Send generation request
+            await websocketService.send(requestData);
+            console.log('Generation request sent via WebSocket');
 
         } catch (error) {
             console.error('Generation error:', error);
-            console.error('Error type:', error.name);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
 
             // Show error notification
             const errorMsg = error.message || error.toString() || 'Unknown error occurred';
@@ -1570,26 +1521,51 @@ export class GenerationPanel {
             } else {
                 alert(`Generation failed: ${errorMsg}`);
             }
-        } finally {
+
             // Reset generating state
             this.state.generation.isGenerating = false;
             this.updateGenerateButtons();
 
-            // 생성 완료 후에도 버튼 상태 동기화
             setTimeout(() => {
                 this.updateGenerateButtons();
                 this.updateInfinityButtons();
             }, 50);
-
-            // 무한 모드라면 다시 시작
-            if (this.state.generation.infinityMode && this.isRandomSeed()) {
-                this.generateRandomSeed();
-                setTimeout(() => this.generate(), 1000);
-            }
         }
     }
-    
+
     /**
+     * Add image to canvas from base64 data URI
+     */
+    addImageToCanvas(imageBase64, index) {
+        console.log(`Adding image ${index} to canvas from data URI`);
+
+        // Calculate viewport center
+        const viewportCenterX = window.innerWidth / 2;
+        const viewportCenterY = window.innerHeight / 2;
+
+        // Create image element
+        const img = new Image();
+        img.onload = () => {
+            console.log(`Image ${index} loaded successfully, dimensions:`, img.width, 'x', img.height);
+
+            // Add image to canvas at viewport center
+            if (window.addImageToCanvasFromElementsMenu) {
+                const offsetX = viewportCenterX + (index * 20);
+                const offsetY = viewportCenterY + (index * 20);
+                console.log(`Calling addImageToCanvasFromElementsMenu for image ${index} at position:`, offsetX, offsetY);
+                window.addImageToCanvasFromElementsMenu(img, offsetX, offsetY);
+                console.log(`Generated image ${index} added to canvas at viewport center`);
+            } else {
+                console.warn('addImageToCanvasFromElementsMenu function not available');
+            }
+        };
+        img.onerror = (e) => {
+            console.error(`Failed to load generated image ${index} from data URI`, e);
+        };
+        img.src = imageBase64;
+    }
+
+        /**
      * 생성 중단
      */
     stopGeneration() {
