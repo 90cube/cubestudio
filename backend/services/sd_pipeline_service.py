@@ -239,6 +239,10 @@ class SDPipelineService:
             if self.loaded_loras:
                 self.unload_loras()
 
+            # Accumulate adapter names and weights
+            adapter_names = []
+            adapter_weights = []
+
             # Load each LoRA
             for lora_config in loras:
                 lora_path = lora_config.get("path")
@@ -264,14 +268,28 @@ class SDPipelineService:
                     adapter_name=full_lora_path.stem
                 )
 
-                # Set LoRA scale
-                self.txt2img_pipe.set_adapters(
-                    [full_lora_path.stem],
-                    adapter_weights=[lora_weight]
-                )
+                # Accumulate adapter info
+                adapter_names.append(full_lora_path.stem)
+                adapter_weights.append(lora_weight)
 
                 self.loaded_loras.append(lora_config)
                 logger.info(f"Loaded LoRA: {lora_path} (weight: {lora_weight})")
+
+            # Activate all LoRAs together (after loop)
+            if adapter_names:
+                self.txt2img_pipe.set_adapters(
+                    adapter_names,
+                    adapter_weights=adapter_weights
+                )
+                logger.info(f"Activated {len(adapter_names)} LoRAs for T2I: {adapter_names} with weights {adapter_weights}")
+
+                # Also activate for I2I pipeline if it exists
+                if self.img2img_pipe:
+                    self.img2img_pipe.set_adapters(
+                        adapter_names,
+                        adapter_weights=adapter_weights
+                    )
+                    logger.info(f"Activated {len(adapter_names)} LoRAs for I2I: {adapter_names} with weights {adapter_weights}")
 
             return {
                 "success": True,
