@@ -368,7 +368,8 @@ class SDPipelineService:
         num_inference_steps: int = 20,
         guidance_scale: float = 7.5,
         seed: int = -1,
-        batch_size: int = 1
+        batch_size: int = 1,
+        callback: Optional[callable] = None
     ) -> Dict[str, Any]:
         """
         Generate images from text (T2I)
@@ -382,6 +383,7 @@ class SDPipelineService:
             guidance_scale: Guidance scale for classifier-free guidance
             seed: Random seed (-1 for random)
             batch_size: Number of images to generate
+            callback: Optional callback function for progress updates (step, total_steps)
 
         Returns:
             Dict with generated images and metadata
@@ -408,6 +410,15 @@ class SDPipelineService:
             if prompt is None or prompt == "":
                 raise ValueError("Prompt cannot be None or empty")
 
+            # Prepare callback wrapper for Diffusers pipeline
+            callback_on_step_end = None
+            if callback is not None:
+                def step_callback(pipe, step_index, timestep, callback_kwargs):
+                    """Wrapper for Diffusers callback format"""
+                    callback(step_index + 1, num_inference_steps)
+                    return callback_kwargs
+                callback_on_step_end = step_callback
+
             # Generate images
             result = self.txt2img_pipe(
                 prompt=prompt,
@@ -417,7 +428,8 @@ class SDPipelineService:
                 num_inference_steps=num_inference_steps,
                 guidance_scale=guidance_scale,
                 num_images_per_prompt=batch_size,
-                generator=generator
+                generator=generator,
+                callback_on_step_end=callback_on_step_end
             )
 
             images = result.images

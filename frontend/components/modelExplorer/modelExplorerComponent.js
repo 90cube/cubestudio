@@ -1,6 +1,7 @@
 // components/modelExplorer/modelExplorerComponent.js
 
 import { Tooltip } from '../ui/tooltip/tooltip.js';
+import pathConfig from '../../core/pathConfig.js';
 
 /**
  * 모델 탐색기 컴포넌트 - 플로팅 패널에서 사용
@@ -13,7 +14,6 @@ export class ModelExplorerComponent {
         this.vaeList = [];
         this.selectedModel = null;
         this.selectedFolderPath = null; // 선택된 모델의 폴더 경로 추적
-        this.apiUrl = 'http://localhost:8080/api';
         this.tooltip = new Tooltip();
         this.containerElement = null;
         this.isInitialized = false;
@@ -548,7 +548,7 @@ export class ModelExplorerComponent {
             const startTime = performance.now();
 
             // POST 요청의 body에 경로 전달 (with timeout)
-            const response = await fetch(`${this.apiUrl}/models/load`, {
+            const response = await fetch(`${pathConfig.backendUrl}/api/models/load`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -691,7 +691,7 @@ export class ModelExplorerComponent {
      */
     async updateMemoryDisplay() {
         try {
-            const response = await fetch(`${this.apiUrl}/system/memory`);
+            const response = await fetch(`${pathConfig.backendUrl}/api/system/memory`);
             const memoryData = await response.json();
 
             if (memoryData.gpu_available && memoryData.gpu_memory) {
@@ -723,8 +723,8 @@ export class ModelExplorerComponent {
         
         try {
             const [checkpointsRes, vaesRes] = await Promise.all([
-                fetch(`${this.apiUrl}/models/checkpoints`),
-                fetch(`${this.apiUrl}/models/vaes`)
+                fetch(`${pathConfig.backendUrl}/api/models/checkpoints`),
+                fetch(`${pathConfig.backendUrl}/api/models/vaes`)
             ]);
             
             if (!checkpointsRes.ok) throw new Error(`Checkpoints 로딩 실패: ${checkpointsRes.status}`);

@@ -1423,9 +1423,36 @@ export class GenerationPanel {
                 detailers: generationData.detailers || {}
             };
 
-            console.log('Sending generation request to backend:', requestData);
+            // Try WebSocket first, fallback to fetch API if it fails
+            let useWebSocket = true;
+            let result = null;
 
-            // Create AbortController with 5-minute timeout (for large model loading)
+            if (useWebSocket) {
+                try {
+                    console.log('🚀 Trying WebSocket for generation...');
+
+                    // Import WebSocket handler
+                    const { WebSocketGenerationHandler } = await import('./generationPanel.websocket.js');
+                    const wsHandler = new WebSocketGenerationHandler(this);
+
+                    // Use WebSocket for generation
+                    result = await wsHandler.generate(requestData);
+
+                    console.log('✅ WebSocket generation completed');
+
+                    // WebSocket handler already added images to canvas and showed notifications
+                    // Just return here
+                    return;
+
+                } catch (wsError) {
+                    console.warn('⚠️ WebSocket failed, falling back to fetch API:', wsError.message);
+                    // Continue to fetch API fallback below
+                }
+            }
+
+            // Fallback to fetch API
+            console.log('📡 Using fetch API for generation...');
+
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
                 console.error('Request timeout after 5 minutes');
@@ -1434,10 +1461,7 @@ export class GenerationPanel {
 
             let response;
             try {
-                // Call backend API directly with absolute URL
-                console.log('Calling fetch API...');
                 const apiUrl = 'http://127.0.0.1:8080/api/generate';
-                console.log('API URL:', apiUrl);
                 response = await fetch(apiUrl, {
                     method: 'POST',
                     mode: 'cors',
@@ -1448,108 +1472,57 @@ export class GenerationPanel {
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
-                console.log('Fetch completed successfully');
             } catch (fetchError) {
                 clearTimeout(timeoutId);
                 console.error('Fetch failed:', fetchError);
-                console.error('Fetch error name:', fetchError.name);
-                console.error('Fetch error message:', fetchError.message);
                 throw fetchError;
             }
 
-            console.log('Backend response status:', response.status, response.statusText);
-            console.log('Response headers:', [...response.headers.entries()]);
-
             if (!response.ok) {
-                console.error('Response not OK:', response.status, response.statusText);
+                const errorText = await response.text();
                 let errorData;
                 try {
-                    const errorText = await response.text();
-                    console.log('Error response text:', errorText);
                     errorData = JSON.parse(errorText);
                 } catch (e) {
-                    console.error('Failed to parse error response:', e);
                     errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
                 }
-                console.error('Backend error response:', errorData);
                 throw new Error(errorData.error || `Server error: ${response.status}`);
             }
 
-            console.log('Response OK, parsing JSON...');
-            let result;
-            try {
-                const responseText = await response.text();
-                console.log('Response text length:', responseText.length);
-                console.log('Response text preview:', responseText.substring(0, 200));
-                result = JSON.parse(responseText);
-                console.log('JSON parsed successfully');
-            } catch (parseError) {
-                console.error('Failed to parse response JSON:', parseError);
-                throw new Error('Failed to parse server response: ' + parseError.message);
-            }
-            console.log('Backend response data:', result);
-            console.log('Response keys:', Object.keys(result));
-            console.log('Result.success:', result.success);
-            console.log('Result.images type:', typeof result.images);
-            console.log('Result.images:', result.images);
-            console.log('Result.images length:', result.images?.length);
+            result = await response.json();
 
             if (!result.success) {
-                console.error('Generation failed:', result.error);
                 throw new Error(result.error || 'Generation failed');
             }
 
             console.log('Generation completed successfully:', result.images?.length, 'images');
 
-            // Add generated images to canvas at viewport center
+            // Add generated images to canvas
             if (result.images && result.images.length > 0) {
-                console.log('Entering image processing loop...');
-                console.log('addImageToCanvasFromElementsMenu available:', typeof window.addImageToCanvasFromElementsMenu);
-                // Calculate viewport center
                 const viewportCenterX = window.innerWidth / 2;
                 const viewportCenterY = window.innerHeight / 2;
 
-                // Add each generated image
                 let addedCount = 0;
                 for (let i = 0; i < result.images.length; i++) {
-                    console.log(`Processing image ${i + 1}/${result.images.length}`);
-                    const imageBase64 = result.images[i]; // Base64 data URI from backend
-                    console.log(`Image ${i + 1} data URI length:`, imageBase64.length);
+                    const imageBase64 = result.images[i];
 
-                    // Create image element
                     const img = new Image();
-                    // No crossOrigin needed for data URIs
                     img.onload = () => {
-                        console.log(`Image ${i + 1} loaded successfully from data URI, dimensions:`, img.width, 'x', img.height);
-                        // Add image to canvas at viewport center
                         if (window.addImageToCanvasFromElementsMenu) {
-                            // Offset multiple images slightly so they don't overlap
                             const offsetX = viewportCenterX + (i * 20);
                             const offsetY = viewportCenterY + (i * 20);
-                            console.log(`Calling addImageToCanvasFromElementsMenu for image ${i + 1} at position:`, offsetX, offsetY);
                             window.addImageToCanvasFromElementsMenu(img, offsetX, offsetY);
-                            console.log(`Generated image ${i + 1} added to canvas at viewport center`);
-                        } else {
-                            console.warn('addImageToCanvasFromElementsMenu function not available');
                         }
 
                         addedCount++;
-                        // Show notification after all images are added
                         if (addedCount === result.images.length && window.showNotification) {
                             window.showNotification('success', `Generated ${result.images.length} image(s) successfully!`);
                         }
                     };
                     img.onerror = (e) => {
-                        console.error(`Failed to load generated image ${i + 1} from data URI`, e);
+                        console.error(`Failed to load generated image ${i + 1}`, e);
                     };
-                    console.log(`Setting img.src for image ${i + 1} from data URI...`);
                     img.src = imageBase64;
-                }
-            } else {
-                console.warn('No images in response or images array is empty');
-                console.warn('result.images:', result.images);
-                if (window.showNotification) {
-                    window.showNotification('warning', 'Generation completed but no images returned');
                 }
             }
 

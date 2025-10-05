@@ -15,6 +15,7 @@ class PathConfig {
         };
         
         this.customPaths = this.loadCustomPaths();
+        this.backendUrl = 'http://127.0.0.1:8080'; // 백엔드 서버 주소
         this.ensureDirectories();
     }
     

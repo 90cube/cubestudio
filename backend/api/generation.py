@@ -241,14 +241,17 @@ async def generate_images(
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             for idx, img in enumerate(result["images"]):
-                # Save to output folder
-                filename = f"generated_{timestamp}_{len(all_images)}.png"
+                # Convert image to base64
+                buffered = io.BytesIO()
+                img.save(buffered, format="PNG")
+                img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                all_images.append(f"data:image/png;base64,{img_str}")
+
+                # Optionally, still save to output folder for record-keeping
+                filename = f"generated_{timestamp}_{len(all_images) - 1}.png"
                 output_path = output_dir / filename
                 img.save(output_path)
                 logger.info(f"Image saved to: {output_path}")
-
-                # Return relative file path instead of base64
-                all_images.append(filename)
 
         # Apply detailers if active
         if request.detailers:

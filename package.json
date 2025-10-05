@@ -4,7 +4,7 @@
   "description": "CUBE Studio - Web-based image generation and manipulation tool with ControlNet preprocessing",
   "main": "index.html",
   "scripts": {
-    "start": "live-server --port=9000 --ignore=renewal,logs/**,logs/*,logs,*.log,unified_backend.log,preprocessors,models_arch,__pycache__,output/**,output/*,output,*.tmp,*.temp,debug_*,*_debug.*,*debug*,*.json.bak,pose_data.json,skeleton_result.png,*.pyc,generated_*",
+    "start": "live-server --port=9000 --ignore=output,renewal,logs,preprocessors,models_arch,__pycache__,node_modules,.git --no-css-inject",
     "dev": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__ --open=frontend/index.html",
     "build": "echo \"No build process required - vanilla JS project\"",
     "test": "echo \"Error: no test specified\" && exit 1",
