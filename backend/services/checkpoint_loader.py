@@ -8,6 +8,7 @@ import torch
 import gc
 from pathlib import Path
 from typing import Optional, Dict, Any
+from safetensors import safe_open
 from safetensors.torch import load_file
 
 logger = logging.getLogger(__name__)
@@ -27,17 +28,8 @@ class CheckpointLoader:
         logger.info(f"CheckpointLoader initialized on device: {self.device}")
 
     def load_checkpoint(self, checkpoint_path: str) -> Dict[str, Any]:
-        """
-        Load checkpoint model to GPU memory
-
-        Args:
-            checkpoint_path: Relative or absolute path to checkpoint file
-
-        Returns:
-            Dict with loading results and memory info
-        """
+        """Load checkpoint metadata and prepare it for downstream pipeline initialization."""
         try:
-            # Resolve full path
             if not Path(checkpoint_path).is_absolute():
                 full_path = Path(self.config_manager.checkpoints_path) / checkpoint_path
             else:
@@ -46,44 +38,58 @@ class CheckpointLoader:
             if not full_path.exists():
                 raise FileNotFoundError(f"Checkpoint not found: {full_path}")
 
-            # Unload previous checkpoint if exists
             if self.loaded_checkpoint is not None:
                 logger.info(f"Unloading previous checkpoint: {self.loaded_checkpoint_path}")
                 self.unload_checkpoint()
 
-            # Check available memory before loading
             file_size_mb = round(full_path.stat().st_size / 1024 / 1024, 2)
             logger.info(f"Loading checkpoint: {full_path}")
             logger.info(f"File size: {file_size_mb} MB")
 
-            # Get memory before loading
             memory_before = self._get_memory_info()
             if memory_before.get("available"):
-                logger.info(f"GPU memory before load - Allocated: {memory_before.get('allocated_mb')}MB, Reserved: {memory_before.get('reserved_mb')}MB")
+                logger.info(
+                    f"GPU memory before load - Allocated: {memory_before.get('allocated_mb')}MB, "
+                    f"Reserved: {memory_before.get('reserved_mb')}MB"
+                )
 
-            logger.info("Reading checkpoint file from disk... (this may take 30-120 seconds for large models)")
+            logger.info("Inspecting checkpoint file header (no tensor load)...")
 
-            # Load checkpoint based on file extension
-            if full_path.suffix == '.safetensors':
-                state_dict = load_file(str(full_path), device=str(self.device))
-            elif full_path.suffix in ['.ckpt', '.pt', '.pth']:
-                state_dict = torch.load(str(full_path), map_location=self.device)
+            keys_indexed = 0
+            checkpoint_summary: Dict[str, Any] = {"path": str(full_path)}
+
+            if full_path.suffix == ".safetensors":
+                checkpoint_summary["format"] = "safetensors"
+                try:
+                    with safe_open(str(full_path), framework="pt", device="cpu") as f:
+                        keys = list(f.keys())
+                        keys_indexed = len(keys)
+                        checkpoint_summary["key_count"] = keys_indexed
+                        metadata = f.metadata()
+                        if metadata:
+                            checkpoint_summary["metadata"] = metadata
+                except Exception as header_err:
+                    logger.warning(f"Failed to read safetensors metadata: {header_err}")
+            elif full_path.suffix in [".ckpt", ".pt", ".pth"]:
+                checkpoint_summary["format"] = full_path.suffix.lstrip('.')
+                logger.info("Legacy PyTorch checkpoint detected; deferring full load to pipeline.")
             else:
                 raise ValueError(f"Unsupported checkpoint format: {full_path.suffix}")
 
-            logger.info("File loaded successfully, transferring to GPU memory...")
-
-            # Store loaded checkpoint
-            self.loaded_checkpoint = state_dict
+            self.loaded_checkpoint = checkpoint_summary
             self.loaded_checkpoint_path = str(checkpoint_path)
 
-            # Get memory after loading
             memory_after = self._get_memory_info()
 
             if memory_after.get("available"):
-                logger.info(f"GPU memory after load - Allocated: {memory_after.get('allocated_mb')}MB, Reserved: {memory_after.get('reserved_mb')}MB")
+                logger.info(
+                    f"GPU memory after load - Allocated: {memory_after.get('allocated_mb')}MB, "
+                    f"Reserved: {memory_after.get('reserved_mb')}MB"
+                )
 
-            logger.info(f"✓ Checkpoint loaded successfully: {checkpoint_path} ({file_size_mb}MB)")
+            logger.info(
+                f"✓ Checkpoint ready: {checkpoint_path} ({file_size_mb}MB, tensors indexed: {keys_indexed})"
+            )
 
             return {
                 "success": True,
@@ -92,7 +98,8 @@ class CheckpointLoader:
                 "memory_before": memory_before,
                 "memory_after": memory_after,
                 "memory_used_mb": memory_after.get("allocated_mb", 0) - memory_before.get("allocated_mb", 0),
-                "keys_loaded": len(state_dict.keys()) if isinstance(state_dict, dict) else 0
+                "keys_loaded": keys_indexed,
+                "summary": checkpoint_summary,
             }
 
         except Exception as e:

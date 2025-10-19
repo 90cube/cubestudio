@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from PIL import Image
+from safetensors.torch import load_file
 from diffusers import (
     StableDiffusionPipeline,
     StableDiffusionXLPipeline,
@@ -30,6 +31,12 @@ from diffusers import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Import LoRA converter for format detection and conversion
+import sys
+from pathlib import Path as PathLib
+sys.path.append(str(PathLib(__file__).parent.parent))
+from utils.lora_converter import LoRAConverter
 
 
 class SDPipelineService:
@@ -235,9 +242,8 @@ class SDPipelineService:
 
             logger.info(f"Loading {len(loras)} LoRA models")
 
-            # Unload previous LoRAs
-            if self.loaded_loras:
-                self.unload_loras()
+            # Clear loaded LoRAs list (diffusers handles adapter replacement automatically)
+            self.loaded_loras = []
 
             # Accumulate adapter names and weights
             adapter_names = []
@@ -249,6 +255,7 @@ class SDPipelineService:
                 lora_weight = lora_config.get("weight", 1.0)
 
                 if not lora_path:
+                    logger.warning(f"LoRA config missing 'path': {lora_config}")
                     continue
 
                 # Resolve full LoRA path
@@ -258,15 +265,72 @@ class SDPipelineService:
                     full_lora_path = Path(lora_path)
 
                 if not full_lora_path.exists():
-                    logger.warning(f"LoRA not found: {full_lora_path}")
+                    logger.warning(f"❌ LoRA not found: {full_lora_path}")
                     continue
 
-                # Load LoRA weights
-                self.txt2img_pipe.load_lora_weights(
-                    str(full_lora_path.parent),
-                    weight_name=full_lora_path.name,
-                    adapter_name=full_lora_path.stem
-                )
+                # Detect LoRA format and convert if necessary
+                logger.info(f"Loading LoRA: {full_lora_path.name}")
+
+                # Load state dict to detect format
+                state_dict = load_file(str(full_lora_path))
+                lora_format = LoRAConverter.detect_lora_format(state_dict)
+                logger.info(f"Detected format: {lora_format}")
+
+                # Handle ComfyUI format (auto-convert to Kohya)
+                if lora_format == 'comfyui':
+                    logger.info("ComfyUI format detected - converting to Diffusers format via LoRAConverter...")
+
+                    import hashlib
+
+                    project_root = Path(self.config_manager.project_root)
+                    cache_dir = project_root / "cache" / "loras"
+                    cache_dir.mkdir(parents=True, exist_ok=True)
+
+                    file_hash = hashlib.md5(str(full_lora_path).encode()).hexdigest()[:8]
+                    diffusers_cache = cache_dir / f"{full_lora_path.stem}_{file_hash}_diffusers.safetensors"
+
+                    try:
+                        if diffusers_cache.exists():
+                            logger.info(f"Using cached Diffusers format: {diffusers_cache.name}")
+                            converted_state = load_file(str(diffusers_cache))
+                        else:
+                            converted_state, _ = LoRAConverter.convert_to_diffusers(
+                                full_lora_path,
+                                output_path=diffusers_cache
+                            )
+                            logger.info(f"Saved Diffusers format to cache: {diffusers_cache.name}")
+                    except Exception as conversion_error:
+                        logger.error(f"Failed to convert LoRA {full_lora_path.name}: {conversion_error}")
+                        continue
+
+                    try:
+                        self.txt2img_pipe.load_lora_weights(
+                            converted_state,
+                            adapter_name=full_lora_path.stem
+                        )
+                        logger.info(f"✅ Loaded converted LoRA: {full_lora_path.stem}")
+                    except Exception as e:
+                        logger.error(f"Failed to load converted LoRA: {e}")
+                        continue
+
+                elif lora_format in ['kohya', 'diffusers']:
+                    try:
+                        self.txt2img_pipe.load_lora_weights(
+                            str(full_lora_path.parent),
+                            weight_name=full_lora_path.name,
+                            adapter_name=full_lora_path.stem
+                        )
+                        logger.info(f"✅ Loaded {lora_format} format LoRA: {full_lora_path.stem}")
+                    except Exception as e:
+                        logger.warning(f"Directory method failed: {e}, trying full path...")
+                        self.txt2img_pipe.load_lora_weights(
+                            str(full_lora_path),
+                            adapter_name=full_lora_path.stem
+                        )
+                        logger.info(f"✅ Loaded via full path: {full_lora_path.stem}")
+                else:
+                    logger.error(f"❌ Unsupported LoRA format: {lora_format}")
+                    continue
 
                 # Accumulate adapter info
                 adapter_names.append(full_lora_path.stem)
@@ -304,7 +368,13 @@ class SDPipelineService:
             }
 
     def unload_loras(self):
-        """Unload all LoRA models"""
+        """
+        Unload all LoRA models
+
+        NOTE: Only called during pipeline unload, NOT during LoRA reload.
+        Calling unload_lora_weights() corrupts adapter state and causes
+        "Invalid LoRA checkpoint" errors on subsequent loads.
+        """
         try:
             if self.txt2img_pipe and self.loaded_loras:
                 logger.info("Unloading LoRAs")
