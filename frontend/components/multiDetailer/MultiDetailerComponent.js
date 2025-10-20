@@ -11,21 +11,21 @@ export class MultiDetailerComponent {
         this.isInitialized = false;
         this.apiUrl = 'http://localhost:9001/api';
         
-        // 각 디테일러별 설정 저장
+        // 각 디테일러별 설정 저장 (최적화된 기본값)
         this.detailers = {};
         for (let i = 1; i <= 4; i++) {
             this.detailers[i] = {
                 active: false,
                 detectionModel: '',
-                confidence: 0.3,
-                maskPadding: 32,
-                maskBlur: 4,
-                prompt: 'a beautiful detailed face, masterpiece',
-                negativePrompt: 'blurry, ugly, deformed',
-                denoisingStrength: 0.4,
-                sampler: 'Euler a',
-                steps: 25,
-                cfgScale: 7.0
+                confidence: 0.28,           // 최적 탐지율
+                maskPadding: 48,            // 충분한 경계 확장
+                maskBlur: 12,               // 부드러운 블렌딩
+                prompt: '',                 // 비어있으면 메인 프롬프트 사용
+                negativePrompt: '',         // 비어있으면 메인 네거티브 사용
+                denoisingStrength: 0.40,    // 균형잡힌 변화량
+                sampler: 'DPM++ 2M Karras', // 안정적이고 고품질
+                steps: 30,                  // 고품질 디테일
+                cfgScale: 7.5               // 프롬프트 충실도
             };
         }
         
@@ -161,11 +161,24 @@ export class MultiDetailerComponent {
 
                 <!-- 파라미터 필드셋 -->
                 <fieldset id="detailer-${index}-fieldset" ${detailer.active ? '' : 'disabled'}>
-                    
+
+                    <!-- 프리셋 버튼 -->
+                    <div class="preset-buttons" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button class="preset-btn" data-preset="face" data-detailer="${index}" style="flex: 1; padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                            👤 얼굴
+                        </button>
+                        <button class="preset-btn" data-preset="hand" data-detailer="${index}" style="flex: 1; padding: 8px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                            ✋ 손
+                        </button>
+                        <button class="preset-btn" data-preset="eye" data-detailer="${index}" style="flex: 1; padding: 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                            👁️ 눈
+                        </button>
+                    </div>
+
                     <!-- 탐지 설정 -->
                     <div class="param-group">
                         <h4 class="group-title">탐지 (Detection)</h4>
-                        
+
                         <div class="param-row">
                             <label for="detailer-${index}-detection-model">Detection Model</label>
                             <select id="detailer-${index}-detection-model">
@@ -174,11 +187,14 @@ export class MultiDetailerComponent {
                         </div>
                         
                         <div class="param-row slider-row">
-                            <label for="detailer-${index}-confidence">Confidence</label>
+                            <label for="detailer-${index}-confidence">
+                                Confidence (탐지 신뢰도)
+                                <span class="param-hint">(0.20~0.35 권장)</span>
+                            </label>
                             <div class="slider-container">
-                                <input type="range" 
-                                       id="detailer-${index}-confidence" 
-                                       min="0" max="1" step="0.01" 
+                                <input type="range"
+                                       id="detailer-${index}-confidence"
+                                       min="0.15" max="0.5" step="0.01"
                                        value="${detailer.confidence}">
                                 <span class="slider-value" id="detailer-${index}-confidence-value">${detailer.confidence.toFixed(2)}</span>
                             </div>
@@ -188,21 +204,41 @@ export class MultiDetailerComponent {
                     <!-- 마스크 처리 설정 -->
                     <div class="param-group">
                         <h4 class="group-title">마스크 처리 (Mask Preprocessing)</h4>
-                        
+
                         <div class="param-row-split">
                             <div class="param-row">
-                                <label for="detailer-${index}-mask-padding">Mask Padding</label>
-                                <input type="number" 
-                                       id="detailer-${index}-mask-padding" 
-                                       value="${detailer.maskPadding}" 
-                                       min="0" max="256" step="4">
+                                <label for="detailer-${index}-mask-padding">
+                                    Mask Padding
+                                    <span class="param-hint">(32~64px 권장)</span>
+                                </label>
+                                <input type="number"
+                                       id="detailer-${index}-mask-padding"
+                                       value="${detailer.maskPadding}"
+                                       min="16" max="128" step="8"
+                                       list="padding-presets-${index}">
+                                <datalist id="padding-presets-${index}">
+                                    <option value="24">좁음</option>
+                                    <option value="32">균형</option>
+                                    <option value="48">권장</option>
+                                    <option value="64">넓음</option>
+                                </datalist>
                             </div>
                             <div class="param-row">
-                                <label for="detailer-${index}-mask-blur">Mask Blur</label>
-                                <input type="number" 
-                                       id="detailer-${index}-mask-blur" 
-                                       value="${detailer.maskBlur}" 
-                                       min="0" max="64" step="1">
+                                <label for="detailer-${index}-mask-blur">
+                                    Mask Blur
+                                    <span class="param-hint">(10~16px 권장)</span>
+                                </label>
+                                <input type="number"
+                                       id="detailer-${index}-mask-blur"
+                                       value="${detailer.maskBlur}"
+                                       min="4" max="32" step="2"
+                                       list="blur-presets-${index}">
+                                <datalist id="blur-presets-${index}">
+                                    <option value="8">날카로움</option>
+                                    <option value="12">권장</option>
+                                    <option value="16">부드러움</option>
+                                    <option value="20">매우 부드러움</option>
+                                </datalist>
                             </div>
                         </div>
                     </div>
@@ -212,51 +248,80 @@ export class MultiDetailerComponent {
                         <h4 class="group-title">인페인팅 (Inpainting)</h4>
                         
                         <div class="param-row">
-                            <label for="detailer-${index}-prompt">Prompt</label>
-                            <textarea id="detailer-${index}-prompt" 
-                                      rows="2" 
-                                      placeholder="a beautiful detailed face, masterpiece">${detailer.prompt}</textarea>
+                            <label for="detailer-${index}-prompt">
+                                Prompt
+                                <span class="param-hint">(비워두면 메인 프롬프트 사용)</span>
+                            </label>
+                            <textarea id="detailer-${index}-prompt"
+                                      rows="2"
+                                      placeholder="비워두면 메인 프롬프트를 자동으로 사용합니다">${detailer.prompt}</textarea>
                         </div>
-                        
+
                         <div class="param-row">
-                            <label for="detailer-${index}-negative-prompt">Negative Prompt</label>
-                            <textarea id="detailer-${index}-negative-prompt" 
-                                      rows="2" 
-                                      placeholder="blurry, ugly, deformed">${detailer.negativePrompt}</textarea>
+                            <label for="detailer-${index}-negative-prompt">
+                                Negative Prompt
+                                <span class="param-hint">(비워두면 메인 네거티브 사용)</span>
+                            </label>
+                            <textarea id="detailer-${index}-negative-prompt"
+                                      rows="2"
+                                      placeholder="비워두면 메인 네거티브를 자동으로 사용합니다">${detailer.negativePrompt}</textarea>
                         </div>
                         
                         <div class="param-row slider-row">
-                            <label for="detailer-${index}-denoising-strength">Denoising Strength</label>
+                            <label for="detailer-${index}-denoising-strength">
+                                Denoising Strength
+                                <span class="param-hint">(0.30~0.60 권장)</span>
+                            </label>
                             <div class="slider-container">
-                                <input type="range" 
-                                       id="detailer-${index}-denoising-strength" 
-                                       min="0" max="1" step="0.01" 
+                                <input type="range"
+                                       id="detailer-${index}-denoising-strength"
+                                       min="0.1" max="1" step="0.05"
                                        value="${detailer.denoisingStrength}">
                                 <span class="slider-value" id="detailer-${index}-denoising-strength-value">${detailer.denoisingStrength.toFixed(2)}</span>
                             </div>
                         </div>
-                        
+
                         <div class="param-row">
                             <label for="detailer-${index}-sampler">Sampler</label>
-                            <input type="text" 
-                                   id="detailer-${index}-sampler" 
-                                   value="${detailer.sampler}">
+                            <select id="detailer-${index}-sampler">
+                                <option value="DPM++ 2M Karras" ${detailer.sampler === 'DPM++ 2M Karras' ? 'selected' : ''}>DPM++ 2M Karras (추천)</option>
+                                <option value="DPM++ SDE Karras" ${detailer.sampler === 'DPM++ SDE Karras' ? 'selected' : ''}>DPM++ SDE Karras (디테일)</option>
+                                <option value="Euler a" ${detailer.sampler === 'Euler a' ? 'selected' : ''}>Euler a (빠름)</option>
+                                <option value="DPM++ 2M" ${detailer.sampler === 'DPM++ 2M' ? 'selected' : ''}>DPM++ 2M</option>
+                                <option value="Heun" ${detailer.sampler === 'Heun' ? 'selected' : ''}>Heun (정밀)</option>
+                                <option value="UniPC" ${detailer.sampler === 'UniPC' ? 'selected' : ''}>UniPC (빠름)</option>
+                                <option value="DDIM" ${detailer.sampler === 'DDIM' ? 'selected' : ''}>DDIM</option>
+                            </select>
                         </div>
                         
                         <div class="param-row-split">
                             <div class="param-row">
-                                <label for="detailer-${index}-steps">Steps</label>
-                                <input type="number" 
-                                       id="detailer-${index}-steps" 
-                                       value="${detailer.steps}" 
-                                       min="1" max="100" step="1">
+                                <label for="detailer-${index}-steps">
+                                    Steps
+                                    <span class="param-hint">(25~40 권장)</span>
+                                </label>
+                                <input type="number"
+                                       id="detailer-${index}-steps"
+                                       value="${detailer.steps}"
+                                       min="15" max="60" step="5"
+                                       list="steps-presets-${index}">
+                                <datalist id="steps-presets-${index}">
+                                    <option value="20">빠름</option>
+                                    <option value="25">균형</option>
+                                    <option value="30">권장</option>
+                                    <option value="35">고품질</option>
+                                    <option value="40">최고품질</option>
+                                </datalist>
                             </div>
                             <div class="param-row">
-                                <label for="detailer-${index}-cfg-scale">CFG Scale</label>
-                                <input type="number" 
-                                       id="detailer-${index}-cfg-scale" 
-                                       value="${detailer.cfgScale}" 
-                                       min="1" max="30" step="0.1">
+                                <label for="detailer-${index}-cfg-scale">
+                                    CFG Scale
+                                    <span class="param-hint">(7.0~9.0 권장)</span>
+                                </label>
+                                <input type="number"
+                                       id="detailer-${index}-cfg-scale"
+                                       value="${detailer.cfgScale}"
+                                       min="4" max="15" step="0.5">
                             </div>
                         </div>
                     </div>
@@ -533,16 +598,32 @@ export class MultiDetailerComponent {
             handler: tabClickHandler
         });
         
+        // 프리셋 버튼 이벤트 (모든 탭에 대해)
+        const presetButtonHandler = (e) => {
+            if (e.target.classList.contains('preset-btn')) {
+                const preset = e.target.dataset.preset;
+                const detailerIndex = parseInt(e.target.dataset.detailer);
+                this.applyPreset(detailerIndex, preset);
+            }
+        };
+
+        this.containerElement.addEventListener('click', presetButtonHandler);
+        this.eventListeners.push({
+            element: this.containerElement,
+            event: 'click',
+            handler: presetButtonHandler
+        });
+
         // 현재 탭의 이벤트 리스너 설정
         this.setupCurrentTabEventListeners();
     }
-    
+
     setupCurrentTabEventListeners() {
         const currentIndex = this.currentTab;
-        
+
         // 기존 탭별 이벤트 리스너 정리
         this.cleanupTabEventListeners();
-        
+
         // 활성화 토글
         const activeToggle = this.containerElement.querySelector(`#detailer-${currentIndex}-active`);
         if (activeToggle) {
@@ -1050,8 +1131,85 @@ export class MultiDetailerComponent {
                 currentTab: this.currentTab
             }
         }));
-        
+
         console.log('Multi-detailer settings updated:', this.detailers);
+    }
+
+    /**
+     * 프리셋 적용
+     */
+    applyPreset(detailerIndex, presetType) {
+        const detailer = this.detailers[detailerIndex];
+        if (!detailer) return;
+
+        console.log(`Applying ${presetType} preset to detailer ${detailerIndex}`);
+
+        const presets = {
+            face: {
+                detectionModel: 'segm/face_seg_v2_640.pt',
+                confidence: 0.28,
+                maskPadding: 48,
+                maskBlur: 12,
+                prompt: '',  // 메인 프롬프트 사용
+                negativePrompt: '',  // 메인 네거티브 사용
+                denoisingStrength: 0.40,
+                sampler: 'DPM++ 2M Karras',
+                steps: 30,
+                cfgScale: 7.5
+            },
+            hand: {
+                detectionModel: 'segm/hand_yolov9c.pt',
+                confidence: 0.23,
+                maskPadding: 32,
+                maskBlur: 16,
+                prompt: '',  // 메인 프롬프트 사용
+                negativePrompt: 'extra fingers, missing fingers, bad hands, mutated hands, fused fingers',  // 손 특화 네거티브만 추가
+                denoisingStrength: 0.50,
+                sampler: 'DPM++ SDE Karras',
+                steps: 35,
+                cfgScale: 8.5
+            },
+            eye: {
+                detectionModel: 'segm/eye_seg_v11_640_v3.pt',
+                confidence: 0.30,
+                maskPadding: 24,
+                maskBlur: 8,
+                prompt: '',  // 메인 프롬프트 사용
+                negativePrompt: '',  // 메인 네거티브 사용
+                denoisingStrength: 0.35,
+                sampler: 'Euler a',
+                steps: 28,
+                cfgScale: 7.5
+            }
+        };
+
+        const preset = presets[presetType];
+        if (!preset) {
+            console.error('Unknown preset type:', presetType);
+            return;
+        }
+
+        // 프리셋 적용
+        Object.assign(detailer, preset);
+
+        // 현재 탭이면 UI 업데이트
+        if (detailerIndex === this.currentTab) {
+            this.updateTabContent();
+        }
+
+        this.notifyChange();
+
+        // 알림 표시
+        if (window.showNotification) {
+            const presetNames = {
+                face: '얼굴 최적화',
+                hand: '손 최적화',
+                eye: '눈 최적화'
+            };
+            window.showNotification('success', `${presetNames[presetType]} 프리셋이 적용되었습니다.`);
+        }
+
+        console.log(`✅ Preset applied:`, preset);
     }
     
     // 외부에서 호출 가능한 API 메서드들

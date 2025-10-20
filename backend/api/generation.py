@@ -11,6 +11,12 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
+try:
+    from pydantic import ConfigDict
+    _HAS_PYDANTIC_V2 = True
+except ImportError:  # Pydantic v1 fallback
+    ConfigDict = None
+    _HAS_PYDANTIC_V2 = False
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -29,9 +35,23 @@ class LoRAConfig(BaseModel):
 class DetailerConfig(BaseModel):
     """Detailer configuration"""
     active: bool = True
-    model: Optional[str] = None
+    detection_model: Optional[str] = Field(default=None, alias="detectionModel")
+    confidence: float = 0.3
+    mask_padding: int = Field(default=32, alias="maskPadding")
+    mask_blur: int = Field(default=4, alias="maskBlur")
     prompt: Optional[str] = None
-    denoise: float = 0.4
+    negative_prompt: Optional[str] = Field(default=None, alias="negativePrompt")
+    denoise: float = Field(default=0.4, alias="denoisingStrength")
+    sampler: Optional[str] = None
+    steps: int = 25
+    cfg_scale: float = Field(default=7.0, alias="cfgScale")
+
+    if _HAS_PYDANTIC_V2:
+        model_config = ConfigDict(populate_by_name=True, extra="allow")
+    else:
+        class Config:
+            allow_population_by_field_name = True
+            extra = "allow"
 
 
 class GenerationRequest(BaseModel):
@@ -168,7 +188,7 @@ async def generate_images(
         if request.loras:
             lora_configs = [
                 {
-                    "path": lora.path if not lora.subfolder else f"{lora.subfolder}/{lora.name}",
+                    "path": lora.path if not lora.subfolder else f"{lora.subfolder}/{lora.path}",
                     "weight": lora.weight
                 }
                 for lora in request.loras
@@ -258,7 +278,9 @@ async def generate_images(
             all_images = await apply_detailers(
                 images=all_images,
                 detailers=request.detailers,
-                api_request=api_request
+                api_request=api_request,
+                main_prompt=request.positive_prompt,
+                main_negative=request.negative_prompt
             )
 
         # Prepare metadata
@@ -302,15 +324,19 @@ async def generate_images(
 async def apply_detailers(
     images: List[str],
     detailers: Dict[str, DetailerConfig],
-    api_request: Request
+    api_request: Request,
+    main_prompt: str = '',
+    main_negative: str = ''
 ) -> List[str]:
     """
-    Apply detailer post-processing to generated images
+    Apply detailer post-processing to generated images with object detection
 
     Args:
         images: List of base64 encoded images
         detailers: Active detailer configurations
         api_request: FastAPI request object
+        main_prompt: Main positive prompt (used if detailer prompt is empty)
+        main_negative: Main negative prompt (used if detailer negative is empty)
 
     Returns:
         List of processed base64 encoded images
@@ -327,32 +353,219 @@ async def apply_detailers(
 
         logger.info(f"Applying {len(active_detailers)} detailers")
 
+        if not hasattr(api_request.app.state, 'sd_pipeline_service'):
+            logger.warning('SD pipeline service not available, skipping detailers')
+            return images
+
+        sd_service = api_request.app.state.sd_pipeline_service
+
+        # Get detailer service
+        if not hasattr(api_request.app.state, 'detailer_service'):
+            from backend.services.detailer_service import DetailerService
+            api_request.app.state.detailer_service = DetailerService()
+
+        detailer_service = api_request.app.state.detailer_service
+
+        sampler_map = {
+            "DPM++ 2M": "dpm++_2m",
+            "DPM++ 2M Karras": "dpm++_2m",
+            "DPM++ SDE": "dpm++_sde",
+            "DPM++ SDE Karras": "dpm++_sde",
+            "Euler": "euler",
+            "Euler a": "euler_a",
+            "Heun": "heun",
+            "DDIM": "ddim",
+            "DDPM": "ddpm",
+            "LMS": "lms",
+            "PNDM": "pndm",
+            "UniPC": "unipc",
+            "DPM2": "dpm2",
+            "DPM2 a": "dpm2_a"
+        }
+
         processed_images = []
+        header_prefix = "data:image/png;base64,"
+
+        # Sort detailers to ensure deterministic application order
+        sorted_detailers = sorted(
+            active_detailers.items(),
+            key=lambda item: int(item[0]) if str(item[0]).isdigit() else item[0]
+        )
 
         for img_str in images:
-            # Decode image
-            img_data = base64.b64decode(img_str)
-            img = Image.open(io.BytesIO(img_data)).convert("RGB")
+            base64_data = img_str.split(',', 1)[1] if img_str.startswith(header_prefix) else img_str
+            img_data = base64.b64decode(base64_data)
+            current_image = Image.open(io.BytesIO(img_data)).convert("RGB")
 
-            # Apply each detailer sequentially
-            for detailer_name, detailer_config in active_detailers.items():
-                logger.info(f"Applying detailer: {detailer_name}")
+            for detailer_name, detailer_config in sorted_detailers:
+                if not detailer_config.active:
+                    continue
 
-                # TODO: Implement detailer processing
-                # This will integrate with existing detailer models
-                # For now, pass through without modification
-                pass
+                detection_model = detailer_config.detection_model
+                confidence = detailer_config.confidence or 0.3
+                mask_padding = detailer_config.mask_padding or 32
+                mask_blur = detailer_config.mask_blur or 4
 
-            # Convert back to base64
+                logger.info(
+                    f"Applying detailer '{detailer_name}': model={detection_model}, "
+                    f"confidence={confidence}, sampler={detailer_config.sampler}, steps={detailer_config.steps}"
+                )
+
+                # Check if detection model is specified
+                if not detection_model or detection_model == '':
+                    logger.warning(f"Detailer {detailer_name}: No detection model specified, using full image I2I")
+                    use_detection = False
+                else:
+                    use_detection = True
+
+                try:
+                    if use_detection:
+                        # Perform object detection
+                        logger.info(f"Detecting objects with model: {detection_model}")
+                        detections = detailer_service.detect_objects(
+                            current_image,
+                            detection_model,
+                            confidence=confidence
+                        )
+
+                        if not detections:
+                            logger.info(f"No objects detected with confidence >= {confidence}, skipping detailer")
+                            continue
+
+                        logger.info(f"Detected {len(detections)} objects")
+
+                        # Create masks for all detections
+                        masks = []
+                        for detection in detections:
+                            mask = detailer_service.create_mask_from_detection(
+                                detection,
+                                current_image.size,
+                                padding=mask_padding,
+                                blur=mask_blur
+                            )
+                            masks.append(mask)
+
+                        # Merge all masks into single mask
+                        merged_mask = detailer_service.merge_masks(masks)
+
+                        if merged_mask is None:
+                            logger.warning("Failed to create merged mask, skipping detailer")
+                            continue
+
+                        # Set scheduler
+                        sampler_key = detailer_config.sampler or ''
+                        scheduler_name = sampler_map.get(sampler_key, sampler_key.lower().replace(' ', '_') if sampler_key else None)
+                        use_karras = 'karras' in sampler_key.lower() if sampler_key else False
+
+                        if scheduler_name:
+                            scheduler_result = sd_service.set_scheduler(
+                                scheduler_name=scheduler_name,
+                                use_karras=use_karras
+                            )
+                            if not scheduler_result.get('success'):
+                                logger.warning(
+                                    f"Detailer {detailer_name}: failed to set scheduler {scheduler_name} - {scheduler_result.get('error')}"
+                                )
+
+                        # Perform inpainting with mask
+                        denoise = max(0.0, min(1.0, detailer_config.denoise if detailer_config.denoise is not None else 0.4))
+                        steps = detailer_config.steps or 20
+                        guidance_scale = detailer_config.cfg_scale if detailer_config.cfg_scale is not None else 7.0
+
+                        # Use main prompt if detailer prompt is empty
+                        prompt = detailer_config.prompt if detailer_config.prompt else main_prompt
+                        negative_prompt = detailer_config.negative_prompt if detailer_config.negative_prompt else main_negative
+
+                        logger.info(f"Performing inpainting with mask (denoise={denoise}, steps={steps}, prompt={'custom' if detailer_config.prompt else 'inherited'})")
+
+                        # Use I2I with strength as inpainting
+                        # TODO: Replace with actual inpainting pipeline when available
+                        detail_result = sd_service.generate_i2i(
+                            prompt=prompt,
+                            init_image=current_image,
+                            negative_prompt=negative_prompt,
+                            strength=denoise,
+                            num_inference_steps=steps,
+                            guidance_scale=guidance_scale,
+                            seed=-1,
+                            batch_size=1
+                        )
+
+                        if detail_result.get('success') and detail_result.get('images'):
+                            inpainted_image = detail_result['images'][0]
+                            if not isinstance(inpainted_image, Image.Image):
+                                inpainted_image = Image.open(io.BytesIO(inpainted_image)).convert("RGB")
+
+                            # Apply inpainted region using mask
+                            current_image = detailer_service.apply_inpainted_region(
+                                current_image,
+                                inpainted_image,
+                                merged_mask
+                            )
+
+                            logger.info(f"Detailer {detailer_name} applied successfully with detection")
+                        else:
+                            logger.warning(
+                                f"Detailer {detailer_name} inpainting failed: {detail_result.get('error')}"
+                            )
+
+                    else:
+                        # Fallback to full image I2I without detection
+                        sampler_key = detailer_config.sampler or ''
+                        scheduler_name = sampler_map.get(sampler_key, sampler_key.lower().replace(' ', '_') if sampler_key else None)
+                        use_karras = 'karras' in sampler_key.lower() if sampler_key else False
+
+                        if scheduler_name:
+                            scheduler_result = sd_service.set_scheduler(
+                                scheduler_name=scheduler_name,
+                                use_karras=use_karras
+                            )
+                            if not scheduler_result.get('success'):
+                                logger.warning(
+                                    f"Detailer {detailer_name}: failed to set scheduler {scheduler_name} - {scheduler_result.get('error')}"
+                                )
+
+                        denoise = max(0.0, min(1.0, detailer_config.denoise if detailer_config.denoise is not None else 0.4))
+                        steps = detailer_config.steps or 20
+                        guidance_scale = detailer_config.cfg_scale if detailer_config.cfg_scale is not None else 7.0
+
+                        # Use main prompt if detailer prompt is empty
+                        prompt = detailer_config.prompt if detailer_config.prompt else main_prompt
+                        negative_prompt = detailer_config.negative_prompt if detailer_config.negative_prompt else main_negative
+
+                        detail_result = sd_service.generate_i2i(
+                            prompt=prompt,
+                            init_image=current_image,
+                            negative_prompt=negative_prompt,
+                            strength=denoise,
+                            num_inference_steps=steps,
+                            guidance_scale=guidance_scale,
+                            seed=-1,
+                            batch_size=1
+                        )
+
+                        if detail_result.get('success') and detail_result.get('images'):
+                            current_image = detail_result['images'][0]
+                            if not isinstance(current_image, Image.Image):
+                                current_image = Image.open(io.BytesIO(current_image)).convert("RGB")
+                            logger.info(f"Detailer {detailer_name} applied successfully without detection")
+                        else:
+                            logger.warning(
+                                f"Detailer {detailer_name} failed: {detail_result.get('error')}"
+                            )
+
+                except Exception as detail_error:
+                    logger.error(f"Detailer {detailer_name} processing error: {detail_error}", exc_info=True)
+
             buffered = io.BytesIO()
-            img.save(buffered, format="PNG")
+            current_image.save(buffered, format="PNG")
             processed_img_str = base64.b64encode(buffered.getvalue()).decode()
-            processed_images.append(processed_img_str)
+            processed_images.append(f"{header_prefix}{processed_img_str}")
 
         return processed_images
 
     except Exception as e:
-        logger.error(f"Detailer processing error: {e}")
+        logger.error(f"Detailer processing error: {e}", exc_info=True)
         # Return original images if detailer fails
         return images
 

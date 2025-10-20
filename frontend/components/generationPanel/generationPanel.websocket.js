@@ -97,6 +97,14 @@ export class WebSocketGenerationHandler {
                 this.handleError(message);
                 break;
 
+            case 'image_updated':
+                this.handleImageUpdated(message);
+                break;
+
+            case 'warning':
+                this.handleWarning(message);
+                break;
+
             default:
                 console.warn('Unknown message type:', message.type);
         }
@@ -167,6 +175,38 @@ export class WebSocketGenerationHandler {
         // Show notification
         if (window.showNotification) {
             window.showNotification('info', `Image ${index + 1} received`);
+        }
+    }
+
+    /**
+     * Handle image updated (after detailer processing)
+     */
+    handleImageUpdated(message) {
+        const index = message.index;
+        const imageData = message.data;
+
+        console.log(`🎨 Image ${index + 1} updated with detailer`);
+
+        // Update stored image
+        if (index < this.images.length) {
+            this.images[index] = imageData;
+        }
+
+        // Show notification
+        if (window.showNotification) {
+            window.showNotification('info', `Detailer applied to image ${index + 1}`);
+        }
+    }
+
+    /**
+     * Handle warning messages
+     */
+    handleWarning(message) {
+        const warningMsg = message.message || 'Warning occurred';
+        console.warn('⚠️ Warning:', warningMsg);
+
+        if (window.showNotification) {
+            window.showNotification('warning', warningMsg);
         }
     }
 

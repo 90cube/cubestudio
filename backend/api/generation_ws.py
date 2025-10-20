@@ -183,7 +183,7 @@ async def websocket_generate_endpoint(
 
             lora_configs = [
                 {
-                    "path": lora.path if not lora.subfolder else f"{lora.subfolder}/{lora.name}",
+                    "path": lora.path if not lora.subfolder else f"{lora.subfolder}/{lora.path}",
                     "weight": lora.weight
                 }
                 for lora in request.loras
@@ -300,6 +300,55 @@ async def websocket_generate_endpoint(
                 })
                 logger.info(f"Image {len(all_images) - 1} sent successfully")
 
+        # Apply detailers if active
+        if request.detailers:
+            await manager.send_message(client_id, {
+                "type": "status",
+                "message": f"Applying {len(request.detailers)} detailer(s)...",
+                "stage": "detailing"
+            })
+
+            # Import apply_detailers function
+            from .generation import apply_detailers
+
+            # Create a fake Request object for apply_detailers
+            class FakeRequest:
+                def __init__(self, app_state):
+                    self.app = type('obj', (object,), {'state': app_state})()
+
+            fake_request = FakeRequest(websocket.app.state)
+
+            try:
+                all_images = await apply_detailers(
+                    images=all_images,
+                    detailers=request.detailers,
+                    api_request=fake_request,
+                    main_prompt=request.positive_prompt,
+                    main_negative=request.negative_prompt
+                )
+
+                # Re-send updated images with detailers applied
+                for idx, img_data_uri in enumerate(all_images):
+                    await manager.send_message(client_id, {
+                        "type": "image_updated",
+                        "index": idx,
+                        "data": img_data_uri
+                    })
+                    logger.info(f"Detailer applied to image {idx}")
+
+                await manager.send_message(client_id, {
+                    "type": "status",
+                    "message": "Detailers applied successfully",
+                    "stage": "detailing_complete"
+                })
+
+            except Exception as detailer_error:
+                logger.error(f"Detailer processing failed: {detailer_error}", exc_info=True)
+                await manager.send_message(client_id, {
+                    "type": "warning",
+                    "message": f"Detailer processing failed: {str(detailer_error)}"
+                })
+
         # Send completion message
         metadata = {
             "mode": "i2i" if is_i2i else "t2i",
@@ -317,6 +366,7 @@ async def websocket_generate_endpoint(
             "total_images": len(all_images),
             "base_model": request.base_model,
             "loras": [{"path": lora.path, "weight": lora.weight} for lora in request.loras],
+            "detailers_applied": len(request.detailers) if request.detailers else 0
         }
 
         logger.info(f"Sending completion message with {len(all_images)} images")
