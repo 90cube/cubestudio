@@ -1,0 +1,10 @@
+{
+  "port": 9000,
+  "host": "127.0.0.1",
+  "root": ".",
+  "open": false,
+  "ignore": "output,models,cache,logs,__pycache__,*.log,*.tmp,*.pyc,test_*,*_test.*,debug_*,*_debug.*",
+  "file": "index.html",
+  "wait": 100,
+  "logLevel": 2
+}

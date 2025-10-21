@@ -90,13 +90,27 @@ function setupKeyboardEvents(container) {
 
     document.addEventListener('keydown', (e) => {
         // console.log('🎹 Key pressed:', e.code, 'selectedImage:', !!selectedImage);
-        
+
+        // 텍스트 입력 중인지 확인
+        const activeElement = document.activeElement;
+        const isTextInput = activeElement && (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.contentEditable === 'true'
+        );
+
+        // 텍스트 입력 중이면 Canvas 단축키 무시
+        if (isTextInput) {
+            // console.log('⌨️ Text input active, ignoring canvas shortcuts');
+            return;
+        }
+
         if (e.code === 'Space' && !spacePressed) {
             e.preventDefault();
             spacePressed = true;
             container.classList.add('panning');
         }
-        
+
         // Delete 키로 선택된 이미지 삭제
         if (e.code === 'Delete' || e.code === 'Backspace') {
             // console.log('🗑️ Delete/Backspace key detected, selectedImage:', selectedImage);
@@ -107,11 +121,24 @@ function setupKeyboardEvents(container) {
                 // console.log('⚠️ No image selected for deletion');
             }
         }
-        
+
         // T키와 Escape 키 처리는 app.js의 키보드 매니저에서 담당
     });
 
     document.addEventListener('keyup', (e) => {
+        // 텍스트 입력 중인지 확인
+        const activeElement = document.activeElement;
+        const isTextInput = activeElement && (
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.contentEditable === 'true'
+        );
+
+        // 텍스트 입력 중이면 Canvas 단축키 무시
+        if (isTextInput) {
+            return;
+        }
+
         if (e.code === 'Space') {
             e.preventDefault();
             spacePressed = false;

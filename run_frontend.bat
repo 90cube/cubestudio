@@ -1,3 +1,3 @@
 @echo off
 echo Starting CUBE Studio Frontend Server (Port 9000)...
-node_modules\.bin\live-server --port=9000 --ignorePattern=".*(output|renewal|logs|preprocessors|models_arch|__pycache__|node_modules|\\.git).*" --no-css-inject
+node_modules\.bin\live-server --port=9000 --ignorePattern=".*(output/.*|cache/.*|renewal/.*|logs/.*|preprocessors/.*|models_arch/.*|__pycache__|node_modules|\\.git).*" --no-css-inject

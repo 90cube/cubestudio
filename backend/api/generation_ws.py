@@ -192,6 +192,8 @@ async def websocket_generate_endpoint(
 
         # Determine generation mode
         is_i2i = request.init_image is not None
+        if is_i2i:
+            logger.info(f"I2I mode: denoise={request.denoise}")
         all_images = []
 
         # Calculate total steps
@@ -288,17 +290,14 @@ async def websocket_generate_endpoint(
                 filename = f"generated_{timestamp}_{len(all_images) - 1}.png"
                 output_path = output_dir / filename
                 img.save(output_path)
-                logger.info(f"Image saved to: {output_path}")
 
                 # Send image to client
-                logger.info(f"Sending image {len(all_images) - 1} to client {client_id}")
                 await manager.send_message(client_id, {
                     "type": "image",
                     "index": len(all_images) - 1,
                     "data": img_data_uri,
                     "filename": filename
                 })
-                logger.info(f"Image {len(all_images) - 1} sent successfully")
 
         # Apply detailers if active
         if request.detailers:
@@ -369,7 +368,6 @@ async def websocket_generate_endpoint(
             "detailers_applied": len(request.detailers) if request.detailers else 0
         }
 
-        logger.info(f"Sending completion message with {len(all_images)} images")
         await manager.send_message(client_id, {
             "type": "complete",
             "success": True,

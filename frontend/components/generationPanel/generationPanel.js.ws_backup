@@ -8,6 +8,8 @@
 
 import stateManager from '../../core/stateManager.js';
 import { getPanelInstance } from '../ui/floatingPanel/floatingPanel.js';
+import pathConfig from '../../core/pathConfig.js';
+import websocketService from '../../core/websocketService.js';
 
 export class GenerationPanel {
     constructor() {
@@ -1381,43 +1383,21 @@ export class GenerationPanel {
             let initImageBase64 = null;
             if (window.canvasInstance && window.canvasInstance.getSelectedImage) {
                 const selectedImage = window.canvasInstance.getSelectedImage();
-
-                if (selectedImage) {
-                    // selectedImage is a Konva.Image node
-                    // Get the actual HTMLImageElement from Konva node
-                    let sourceImage = null;
-                    if (typeof selectedImage.image === 'function') {
-                        sourceImage = selectedImage.image();
-                    } else if (selectedImage.attrs && selectedImage.attrs.image) {
-                        sourceImage = selectedImage.attrs.image;
-                    }
-
-                    // Get dimensions from Konva node
-                    let width = null;
-                    let height = null;
-                    if (typeof selectedImage.width === 'function') {
-                        width = selectedImage.width();
-                    }
-                    if (typeof selectedImage.height === 'function') {
-                        height = selectedImage.height();
-                    }
-
-                    if (sourceImage && width && height) {
-                        try {
-                            const tempCanvas = document.createElement('canvas');
-                            tempCanvas.width = width;
-                            tempCanvas.height = height;
-                            const ctx = tempCanvas.getContext('2d');
-                            ctx.drawImage(sourceImage, 0, 0);
-                            const dataURL = tempCanvas.toDataURL('image/png');
-                            initImageBase64 = dataURL.split(',')[1]; // Remove data:image/png;base64, prefix
-                            console.log(`I2I mode enabled (denoise: ${generationData.denoise})`);
-                        } catch (err) {
-                            console.error('Failed to convert canvas image:', err);
-                        }
-                    }
+                if (selectedImage && selectedImage.image) {
+                    // Convert Konva image to base64
+                    const konvaImage = selectedImage.image;
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = konvaImage.width();
+                    tempCanvas.height = konvaImage.height();
+                    const ctx = tempCanvas.getContext('2d');
+                    const img = konvaImage.image();
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = tempCanvas.toDataURL('image/png');
+                    initImageBase64 = dataURL.split(',')[1]; // Remove data:image/png;base64, prefix
+                    console.log('I2I mode: Using selected image from canvas');
                 }
             }
+
             // Prepare generation request
             const requestData = {
                 positive_prompt: generationData.prompts.positive || '',
@@ -1445,36 +1425,9 @@ export class GenerationPanel {
                 detailers: generationData.detailers || {}
             };
 
-            // Try WebSocket first, fallback to fetch API if it fails
-            let useWebSocket = true;
-            let result = null;
+            console.log('Sending generation request to backend:', requestData);
 
-            if (useWebSocket) {
-                try {
-                    console.log('🚀 Trying WebSocket for generation...');
-
-                    // Import WebSocket handler
-                    const { WebSocketGenerationHandler } = await import('./generationPanel.websocket.js');
-                    const wsHandler = new WebSocketGenerationHandler(this);
-
-                    // Use WebSocket for generation
-                    result = await wsHandler.generate(requestData);
-
-                    console.log('✅ WebSocket generation completed');
-
-                    // WebSocket handler already added images to canvas and showed notifications
-                    // Just return here
-                    return;
-
-                } catch (wsError) {
-                    console.warn('⚠️ WebSocket failed, falling back to fetch API:', wsError.message);
-                    // Continue to fetch API fallback below
-                }
-            }
-
-            // Fallback to fetch API
-            console.log('📡 Using fetch API for generation...');
-
+            // Create AbortController with 5-minute timeout (for large model loading)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
                 console.error('Request timeout after 5 minutes');
@@ -1483,7 +1436,10 @@ export class GenerationPanel {
 
             let response;
             try {
-                const apiUrl = 'http://127.0.0.1:8080/api/generate';
+                // Call backend API directly with absolute URL
+                console.log('Calling fetch API...');
+                const apiUrl = `${pathConfig.backendUrl}/api/generate`;
+                console.log('API URL:', apiUrl);
                 response = await fetch(apiUrl, {
                     method: 'POST',
                     mode: 'cors',
@@ -1494,57 +1450,108 @@ export class GenerationPanel {
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
+                console.log('Fetch completed successfully');
             } catch (fetchError) {
                 clearTimeout(timeoutId);
                 console.error('Fetch failed:', fetchError);
+                console.error('Fetch error name:', fetchError.name);
+                console.error('Fetch error message:', fetchError.message);
                 throw fetchError;
             }
 
+            console.log('Backend response status:', response.status, response.statusText);
+            console.log('Response headers:', [...response.headers.entries()]);
+
             if (!response.ok) {
-                const errorText = await response.text();
+                console.error('Response not OK:', response.status, response.statusText);
                 let errorData;
                 try {
+                    const errorText = await response.text();
+                    console.log('Error response text:', errorText);
                     errorData = JSON.parse(errorText);
                 } catch (e) {
+                    console.error('Failed to parse error response:', e);
                     errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
                 }
+                console.error('Backend error response:', errorData);
                 throw new Error(errorData.error || `Server error: ${response.status}`);
             }
 
-            result = await response.json();
+            console.log('Response OK, parsing JSON...');
+            let result;
+            try {
+                const responseText = await response.text();
+                console.log('Response text length:', responseText.length);
+                console.log('Response text preview:', responseText.substring(0, 200));
+                result = JSON.parse(responseText);
+                console.log('JSON parsed successfully');
+            } catch (parseError) {
+                console.error('Failed to parse response JSON:', parseError);
+                throw new Error('Failed to parse server response: ' + parseError.message);
+            }
+            console.log('Backend response data:', result);
+            console.log('Response keys:', Object.keys(result));
+            console.log('Result.success:', result.success);
+            console.log('Result.images type:', typeof result.images);
+            console.log('Result.images:', result.images);
+            console.log('Result.images length:', result.images?.length);
 
             if (!result.success) {
+                console.error('Generation failed:', result.error);
                 throw new Error(result.error || 'Generation failed');
             }
 
             console.log('Generation completed successfully:', result.images?.length, 'images');
 
-            // Add generated images to canvas
+            // Add generated images to canvas at viewport center
             if (result.images && result.images.length > 0) {
+                console.log('Entering image processing loop...');
+                console.log('addImageToCanvasFromElementsMenu available:', typeof window.addImageToCanvasFromElementsMenu);
+                // Calculate viewport center
                 const viewportCenterX = window.innerWidth / 2;
                 const viewportCenterY = window.innerHeight / 2;
 
+                // Add each generated image
                 let addedCount = 0;
                 for (let i = 0; i < result.images.length; i++) {
-                    const imageBase64 = result.images[i];
+                    console.log(`Processing image ${i + 1}/${result.images.length}`);
+                    const imageBase64 = result.images[i]; // Now a Base64 data URI
+                    console.log(`Image ${i + 1} data URI length:`, imageBase64.length);
 
+                    // Create image element
                     const img = new Image();
+                    // crossOrigin is not needed for data URIs
+                    // img.crossOrigin = 'anonymous';
                     img.onload = () => {
+                        console.log(`Image ${i + 1} loaded successfully from data URI, dimensions:`, img.width, 'x', img.height);
+                        // Add image to canvas at viewport center
                         if (window.addImageToCanvasFromElementsMenu) {
                             const offsetX = viewportCenterX + (i * 20);
                             const offsetY = viewportCenterY + (i * 20);
+                            console.log(`Calling addImageToCanvasFromElementsMenu for image ${i + 1} at position:`, offsetX, offsetY);
                             window.addImageToCanvasFromElementsMenu(img, offsetX, offsetY);
+                            console.log(`Generated image ${i + 1} added to canvas at viewport center`);
+                        } else {
+                            console.warn('addImageToCanvasFromElementsMenu function not available');
                         }
 
                         addedCount++;
+                        // Show notification after all images are added
                         if (addedCount === result.images.length && window.showNotification) {
                             window.showNotification('success', `Generated ${result.images.length} image(s) successfully!`);
                         }
                     };
                     img.onerror = (e) => {
-                        console.error(`Failed to load generated image ${i + 1}`, e);
+                        console.error(`Failed to load generated image ${i + 1} from data URI`, e);
                     };
+                    console.log(`Setting img.src for image ${i + 1} from data URI...`);
                     img.src = imageBase64;
+                }
+            } else {
+                console.warn('No images in response or images array is empty');
+                console.warn('result.images:', result.images);
+                if (window.showNotification) {
+                    window.showNotification('warning', 'Generation completed but no images returned');
                 }
             }
 
@@ -2055,4 +2062,3 @@ export class GenerationPanel {
         // console.log('🗑️ GenerationPanel destroyed');
     }
 }
-

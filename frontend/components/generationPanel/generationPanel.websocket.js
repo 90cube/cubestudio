@@ -21,8 +21,6 @@ export class WebSocketGenerationHandler {
      * Returns a Promise that resolves when generation is complete
      */
     async generate(requestData) {
-        console.log('🚀 Starting WebSocket-based generation...');
-
         // Create completion promise
         this.completionPromise = new Promise((resolve, reject) => {
             this.resolveCompletion = resolve;
@@ -35,7 +33,6 @@ export class WebSocketGenerationHandler {
             this.handlerId = `generation_${Date.now()}`;
 
             // Force close existing connection and create new one
-            console.log('📡 Connecting to WebSocket...');
             websocketService.close(false); // Close but allow reconnection
             await websocketService.connect('/ws/generate');
 
@@ -43,11 +40,7 @@ export class WebSocketGenerationHandler {
             websocketService.on(this.handlerId, (message) => this.handleMessage(message));
 
             // Send generation request
-            console.log('📤 Sending generation request...');
-            console.log('Request data:', requestData);
             await websocketService.send(requestData);
-
-            console.log('✅ Request sent, waiting for response...');
 
             // Wait for completion
             return await this.completionPromise;
@@ -74,8 +67,6 @@ export class WebSocketGenerationHandler {
      * Handle WebSocket messages
      */
     handleMessage(message) {
-        console.log('📨 WebSocket message:', message.type, message);
-
         switch (message.type) {
             case 'status':
                 this.handleStatus(message);
@@ -117,8 +108,6 @@ export class WebSocketGenerationHandler {
         const statusMsg = message.message || 'Processing...';
         const stage = message.stage || 'unknown';
 
-        console.log(`📊 Status: ${statusMsg} (${stage})`);
-
         // Update UI with status
         if (this.panel.updateProgressUI) {
             this.panel.updateProgressUI(statusMsg, stage);
@@ -140,8 +129,6 @@ export class WebSocketGenerationHandler {
         const total = message.total || 100;
         const percent = message.percent || Math.floor((current / total) * 100);
 
-        console.log(`⏳ Progress: ${current}/${total} (${percent}%)`);
-
         // Update UI with progress
         if (this.panel.updateProgressUI) {
             this.panel.updateProgressUI(
@@ -159,8 +146,6 @@ export class WebSocketGenerationHandler {
         const index = message.index;
         const imageData = message.data;
 
-        console.log(`🖼️ Image ${index + 1} received`);
-
         // Store image
         this.images.push(imageData);
 
@@ -171,11 +156,6 @@ export class WebSocketGenerationHandler {
                 'image_received'
             );
         }
-
-        // Show notification
-        if (window.showNotification) {
-            window.showNotification('info', `Image ${index + 1} received`);
-        }
     }
 
     /**
@@ -184,8 +164,6 @@ export class WebSocketGenerationHandler {
     handleImageUpdated(message) {
         const index = message.index;
         const imageData = message.data;
-
-        console.log(`🎨 Image ${index + 1} updated with detailer`);
 
         // Update stored image
         if (index < this.images.length) {
@@ -214,13 +192,9 @@ export class WebSocketGenerationHandler {
      * Handle generation complete
      */
     async handleComplete(message) {
-        console.log('✅ Generation complete:', message);
-
         try {
             const images = message.images || this.images;
             const metadata = message.metadata || {};
-
-            console.log(`🖼️ Processing ${images.length} generated images...`);
 
             // Update UI
             if (this.panel.updateProgressUI) {
@@ -245,7 +219,7 @@ export class WebSocketGenerationHandler {
             }
 
         } catch (error) {
-            console.error('❌ Error processing completion:', error);
+            console.error('Error processing completion:', error);
             if (window.showNotification) {
                 window.showNotification('error', `Error processing images: ${error.message}`);
             }
@@ -257,8 +231,6 @@ export class WebSocketGenerationHandler {
         } finally {
             // Clean up
             this.cleanup();
-
-            // Note: State reset is handled in generate() finally block
         }
     }
 
@@ -268,7 +240,7 @@ export class WebSocketGenerationHandler {
     handleError(message) {
         const error = message.error || 'Unknown error';
 
-        console.error('❌ Generation error:', error);
+        console.error('Generation error:', error);
 
         // Update UI
         if (this.panel.updateProgressUI) {
@@ -287,8 +259,6 @@ export class WebSocketGenerationHandler {
 
         // Clean up
         this.cleanup();
-
-        // Note: State reset is handled in generate() catch/finally block
     }
 
     /**
@@ -296,11 +266,8 @@ export class WebSocketGenerationHandler {
      */
     async addImagesToCanvas(images) {
         if (!images || images.length === 0) {
-            console.warn('No images to add to canvas');
             return;
         }
-
-        console.log('📍 Adding images to canvas...');
 
         // Calculate viewport center
         const viewportCenterX = window.innerWidth / 2;
@@ -310,8 +277,6 @@ export class WebSocketGenerationHandler {
         for (let i = 0; i < images.length; i++) {
             await this.addSingleImageToCanvas(images[i], i, viewportCenterX, viewportCenterY);
         }
-
-        console.log(`✅ Added ${images.length} image(s) to canvas`);
     }
 
     /**
@@ -322,29 +287,22 @@ export class WebSocketGenerationHandler {
             const img = new Image();
 
             img.onload = () => {
-                console.log(`✅ Image ${index + 1} loaded: ${img.width}x${img.height}`);
-
                 try {
                     // Add to canvas with slight offset for multiple images
                     if (window.addImageToCanvasFromElementsMenu) {
                         const offsetX = centerX + (index * 20);
                         const offsetY = centerY + (index * 20);
-
                         window.addImageToCanvasFromElementsMenu(img, offsetX, offsetY);
-                        console.log(`📍 Image ${index + 1} added to canvas at (${offsetX}, ${offsetY})`);
-                    } else {
-                        console.warn('addImageToCanvasFromElementsMenu not available');
                     }
-
                     resolve();
                 } catch (error) {
-                    console.error(`Failed to add image ${index + 1} to canvas:`, error);
+                    console.error(`Failed to add image to canvas:`, error);
                     reject(error);
                 }
             };
 
             img.onerror = (error) => {
-                console.error(`Failed to load image ${index + 1}:`, error);
+                console.error(`Failed to load image:`, error);
                 reject(error);
             };
 

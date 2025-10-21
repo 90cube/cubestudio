@@ -21,6 +21,9 @@ renewal/
 # Ignore output directory
 output/
 
+# Ignore cache directory (converted LoRAs, etc.)
+cache/
+
 # Ignore node modules
 node_modules/
 

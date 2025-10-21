@@ -4,7 +4,7 @@
   "description": "CUBE Studio - Web-based image generation and manipulation tool with ControlNet preprocessing",
   "main": "index.html",
   "scripts": {
-    "start": "live-server --port=9000 --ignore=output,renewal,logs,preprocessors,models_arch,__pycache__,node_modules,.git --no-css-inject",
+    "start": "live-server",
     "dev": "live-server --port=9000 --ignore=renewal,*.log,preprocessors,models_arch,__pycache__ --open=frontend/index.html",
     "build": "echo \"No build process required - vanilla JS project\"",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -24,9 +24,10 @@
   "author": "Cube Studio",
   "license": "ISC",
   "devDependencies": {
+    "browser-sync": "^3.0.4",
+    "http-proxy-middleware": "^3.0.5",
     "live-server": "^1.2.2"
   },
-  "dependencies": {},
   "engines": {
     "node": ">=14.0.0"
   },
