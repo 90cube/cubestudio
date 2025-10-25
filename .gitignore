@@ -70,6 +70,13 @@ test_image_b64.txt
 # Ignore cleanup folder
 to_delete_in_renewal/
 
+# Ignore cleaned directories and deprecated files
+renewal/
+temp/
+*.ws_backup
+*_deprecated
+*_deprecated.*
+
 # Ignore preprocessor models and archives
 preprocessors/
 models_arch/

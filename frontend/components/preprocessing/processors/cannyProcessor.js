@@ -1,4 +1,4 @@
-// components/controlnet/processors/cannyProcessor.js
+// components/preprocessing/processors/cannyProcessor.js
 
 import pathConfig from '../../../core/pathConfig.js';
 

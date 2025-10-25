@@ -455,30 +455,42 @@ function toggleImageType() {
         console.warn('No image selected for type change');
         return;
     }
-    
+
     const typeInfo = getImageTypeInfo(image);
     const currentType = typeInfo ? typeInfo.imageType : 'normal';
     const newType = currentType === 'normal' ? 'preproc' : 'normal';
-    
+
     // 이미지 노드 속성 업데이트
     image.setAttr('imageType', newType);
-    
-    // 타입 변경 시 추가 속성도 업데이트
+
     if (newType === 'preproc') {
+        // preproc으로 변경 (프로세서 타입은 나중에 ControlNet에서 선택)
         image.setAttr('processingSource', 'manual');
         image.setAttr('createdAt', new Date().toISOString());
+        console.log(`🏷️ Image type changed: ${currentType} → ${newType}`);
     } else {
         // normal로 바뀔 때는 전처리 관련 속성 제거
         image.setAttr('processingSource', 'user');
         image.setAttr('originalImageId', null);
         image.setAttr('processingParams', {});
+        console.log(`🏷️ Image type changed: ${currentType} → ${newType}`);
     }
-    
-    console.log(`🏷️ Image type changed: ${currentType} → ${newType}`);
-    
+
+    // ControlNet 패널에 타입 변경 이벤트 발생
+    const typeChangedEvent = new CustomEvent('canvasImageTypeChanged', {
+        detail: {
+            imageNode: image,
+            oldType: currentType,
+            newType: newType,
+            imageType: newType
+        }
+    });
+    document.dispatchEvent(typeChangedEvent);
+    console.log(`📢 canvasImageTypeChanged event dispatched (${currentType} → ${newType})`);
+
     // 메뉴 닫기 (변경 사항이 바로 보이도록)
     hideContextMenu();
-    
+
     // 변경 완료 알림 (선택사항)
     // alert(`Image type changed to: ${newType === 'preproc' ? 'Preprocessed' : 'Normal'}`);
 }

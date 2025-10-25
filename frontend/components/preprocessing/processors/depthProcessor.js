@@ -1,4 +1,4 @@
-// components/controlnet/processors/depthProcessor.js
+// components/preprocessing/processors/depthProcessor.js
 
 import pathConfig from '../../../core/pathConfig.js';
 

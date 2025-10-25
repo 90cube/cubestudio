@@ -71,25 +71,51 @@ export class GenerationPanel {
         if (this.isInitialized || !this.containerElement) {
             return;
         }
-        
+
         this.isInitialized = true;
-        
+
         // 상태 복원
         this.restoreState();
-        
+
         // 프리셋 로드
         this.loadPresets();
-        
+
+        // UI Scale 리스너 설정
+        this.setupScaleListener();
+
         // DOM이 마운트된 후에 이벤트 리스너 설정
         setTimeout(() => {
             this.setupEventListeners();
             this.updateUI();
-            
+
             // 추가 지연을 두어 DOM이 완전히 렌더링되도록 함
             setTimeout(() => {
                 this.setupDenoiseStateListener(); // 새 리스너 호출로 변경
             }, 10);
         }, 0);
+    }
+
+    /**
+     * UI Scale 리스너 설정
+     */
+    setupScaleListener() {
+        if (!this.containerElement) return;
+
+        // transform-origin 설정 (하단 중앙 기준)
+        this.containerElement.style.transformOrigin = 'bottom center';
+
+        // UI Scale 이벤트 리스너
+        window.addEventListener('ui-scale-changed', (e) => {
+            const scale = e.detail.scale;
+            // translateX(-50%)는 중앙 정렬을 위한 것이므로 유지
+            this.containerElement.style.transform = `translateX(-50%) scale(${scale})`;
+        });
+
+        // 초기 스케일 적용
+        const savedScale = localStorage.getItem('cubestudio_ui_scale');
+        if (savedScale) {
+            this.containerElement.style.transform = `translateX(-50%) scale(${savedScale})`;
+        }
     }
 
     /**
@@ -1418,6 +1444,64 @@ export class GenerationPanel {
                     }
                 }
             }
+
+            // 🔧 FIX: ControlNet 데이터 수집 및 이미지 변환
+            const controlnetConfigs = window.controlNetPanel?.getAllEnabledConfigs() || [];
+            console.log(`🎮 ControlNet configs collected: ${controlnetConfigs.length}`);
+
+            const controlnets = [];
+            for (const cn of controlnetConfigs) {
+                if (!cn.sourceImage || !cn.sourceImage.node) {
+                    console.warn(`⚠️ ControlNet ${cn.type}: No source image, skipping`);
+                    continue;
+                }
+
+                try {
+                    // Konva 이미지 노드에서 HTMLImageElement 추출
+                    const imageNode = cn.sourceImage.node;
+                    const sourceImage = typeof imageNode.image === 'function'
+                        ? imageNode.image()
+                        : imageNode.attrs.image;
+
+                    if (!sourceImage) {
+                        console.warn(`⚠️ ControlNet ${cn.type}: Image not loaded, skipping`);
+                        continue;
+                    }
+
+                    // 캔버스에 이미지 그리기 (generation 크기에 맞춰 resize)
+                    const targetWidth = generationData.width || 512;
+                    const targetHeight = generationData.height || 512;
+
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = targetWidth;
+                    tempCanvas.height = targetHeight;
+                    const ctx = tempCanvas.getContext('2d');
+
+                    // 이미지를 타겟 크기에 맞춰 그리기
+                    ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
+
+                    // Base64로 변환
+                    const dataURL = tempCanvas.toDataURL('image/png');
+                    const cnImageBase64 = dataURL.split(',')[1];
+
+                    controlnets.push({
+                        enabled: cn.enabled,
+                        index: cn.index,
+                        type: cn.type,
+                        preprocessorType: cn.preprocessorType,
+                        model: cn.model,
+                        weight: cn.weight,
+                        image: cnImageBase64  // 🔧 FIX: resize된 base64 이미지 추가
+                    });
+
+                    console.log(`✅ ControlNet ${cn.type} image converted (${targetWidth}x${targetHeight})`);
+                } catch (err) {
+                    console.error(`❌ Failed to convert ControlNet ${cn.type} image:`, err);
+                }
+            }
+
+            console.log(`🎮 ControlNet ready: ${controlnets.length} images converted`);
+
             // Prepare generation request
             const requestData = {
                 positive_prompt: generationData.prompts.positive || '',
@@ -1442,7 +1526,8 @@ export class GenerationPanel {
                 loras: generationData.loras || [],
                 init_image: initImageBase64,
                 denoise: generationData.denoise || 0.75,
-                detailers: generationData.detailers || {}
+                detailers: generationData.detailers || {},
+                controlnets: controlnets  // 🔧 FIX: ControlNet 데이터 추가
             };
 
             // Try WebSocket first, fallback to fetch API if it fails

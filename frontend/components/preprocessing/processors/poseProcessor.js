@@ -1,4 +1,4 @@
-// components/controlnet/processors/poseProcessor.js
+// components/preprocessing/processors/poseProcessor.js
 
 import pathConfig from '../../../core/pathConfig.js';
 

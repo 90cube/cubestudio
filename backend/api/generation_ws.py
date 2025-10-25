@@ -118,9 +118,34 @@ async def websocket_generate_endpoint(
             "stage": "init"
         })
 
-        # Check if pipeline is initialized
+        # Check if pipeline needs initialization or checkpoint change
         status = sd_service.get_status()
+        current_checkpoint = status.get("checkpoint")
+        needs_reload = False
+
+        # Normalize paths for comparison (handle forward/backward slashes and case)
+        def normalize_path(path):
+            if not path:
+                return None
+            return str(path).replace('\\', '/').strip()
+
+        current_normalized = normalize_path(current_checkpoint)
+        requested_normalized = normalize_path(request.base_model)
+
+        logger.info(f"📋 Checkpoint comparison: current='{current_normalized}', requested='{requested_normalized}'")
+
         if not status.get("initialized"):
+            # Pipeline not initialized at all
+            needs_reload = True
+            logger.info("🔄 Pipeline not initialized, loading checkpoint")
+        elif requested_normalized and requested_normalized != current_normalized:
+            # Different checkpoint requested
+            needs_reload = True
+            logger.info(f"🔄 Checkpoint change detected: {current_normalized} → {requested_normalized}")
+        else:
+            logger.info(f"✅ Using already loaded checkpoint: {current_normalized}")
+
+        if needs_reload:
             if request.base_model:
                 await manager.send_message(client_id, {
                     "type": "status",
@@ -215,6 +240,34 @@ async def websocket_generate_endpoint(
                 "total_repeats": total_repeats
             })
 
+            # 🔧 FIX: Log ControlNet status and decode images
+            controlnet_images = []
+            if request.controlnets and len(request.controlnets) > 0:
+                enabled_controlnets = [cn for cn in request.controlnets if cn.enabled]
+                logger.info(f"🎮 ControlNet enabled: {len(enabled_controlnets)} configurations")
+
+                for cn in enabled_controlnets:
+                    model_name = cn.model.get('name') if cn.model else 'None'
+
+                    # Base64 이미지 디코딩
+                    try:
+                        cn_image_data = base64.b64decode(cn.image)
+                        cn_image = Image.open(io.BytesIO(cn_image_data)).convert("RGB")
+                        image_size = cn_image.size
+
+                        controlnet_images.append({
+                            'type': cn.type,
+                            'image': cn_image,
+                            'weight': cn.weight,
+                            'model': cn.model
+                        })
+
+                        logger.info(f"  - {cn.type} (weight={cn.weight}, model={model_name}, size={image_size})")
+                    except Exception as e:
+                        logger.error(f"  ❌ Failed to decode {cn.type} image: {e}")
+            else:
+                logger.info("🎮 ControlNet: disabled")
+
             if is_i2i:
                 # I2I generation
                 try:
@@ -230,7 +283,8 @@ async def websocket_generate_endpoint(
                         num_inference_steps=request.steps,
                         guidance_scale=request.cfg_scale,
                         seed=current_seed,
-                        batch_size=request.batch_count
+                        batch_size=request.batch_count,
+                        controlnets=controlnet_images  # 🔧 FIX: 디코딩된 이미지 전달
                     )
                 except Exception as e:
                     await manager.send_message(client_id, {
@@ -263,7 +317,8 @@ async def websocket_generate_endpoint(
                     guidance_scale=request.cfg_scale,
                     seed=current_seed,
                     batch_size=request.batch_count,
-                    callback=progress_callback
+                    callback=progress_callback,
+                    controlnets=controlnet_images  # 🔧 FIX: 디코딩된 이미지 전달
                 )
 
             if not result["success"]:

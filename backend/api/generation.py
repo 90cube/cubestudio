@@ -54,6 +54,24 @@ class DetailerConfig(BaseModel):
             extra = "allow"
 
 
+class ControlNetConfig(BaseModel):
+    """ControlNet configuration from frontend"""
+    enabled: bool = True
+    index: int
+    type: str  # depth, canny, openpose
+    preprocessor_type: str = Field(alias="preprocessorType")
+    model: Optional[Dict[str, Any]] = None
+    weight: float = 1.0
+    image: str  # 🔧 FIX: Base64 encoded ControlNet image (already resized)
+
+    if _HAS_PYDANTIC_V2:
+        model_config = ConfigDict(populate_by_name=True, extra="allow")
+    else:
+        class Config:
+            allow_population_by_field_name = True
+            extra = "allow"
+
+
 class GenerationRequest(BaseModel):
     """Request model for image generation"""
     # Prompts
@@ -87,6 +105,9 @@ class GenerationRequest(BaseModel):
 
     # Detailers
     detailers: Dict[str, DetailerConfig] = Field(default_factory=dict, description="Active detailers")
+
+    # ControlNet
+    controlnets: List[ControlNetConfig] = Field(default_factory=list, description="ControlNet configurations")
 
 
 class GenerationResponse(BaseModel):

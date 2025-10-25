@@ -584,7 +584,7 @@ function createPoseUI(imageNode) {
                 cursor: pointer;
                 font-weight: 500;
                 transition: all 0.3s;
-            " disabled>💾 Save Result</button>
+            " disabled>✅ Apply to Canvas</button>
         </div>
     `;
     
@@ -704,7 +704,14 @@ async function processPoseImage(poseContainer, imageNode, processor) {
         };
         
         console.log(`[POSE] Processing with ${processor}`, parameters);
-        
+
+        // 마지막 처리 파라미터 저장 (Pose)
+        poseContainer._lastProcessingParams = {
+            type: 'pose_detection',
+            processor: processor,
+            ...parameters
+        };
+
         // 이미지를 base64로 변환
         const canvas = imageNode.toCanvas();
         const imageBase64 = canvas.toDataURL().split(',')[1];
@@ -713,7 +720,7 @@ async function processPoseImage(poseContainer, imageNode, processor) {
         let result;
         if (outputFormat === 'json') {
             // JSON 추출 API 호출
-            const response = await fetch('/api/pose/extract', {
+            const response = await fetch('http://127.0.0.1:8080/api/pose/extract', {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
@@ -726,7 +733,7 @@ async function processPoseImage(poseContainer, imageNode, processor) {
             result = await response.json();
         } else {
             // 일반 이미지 처리 API 호출
-            const response = await fetch('/api/process', {
+            const response = await fetch('http://127.0.0.1:8080/api/process', {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
@@ -825,6 +832,19 @@ function displayPoseResult(poseContainer, result, outputFormat) {
                 </div>
             </div>
         `;
+
+        // 처리된 이미지를 캔버스로 변환하여 저장
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            poseContainer._processedCanvas = canvas;
+            console.log('💾 Processed canvas stored for pose result');
+        };
+        img.src = result.processed_image;
     }
 }
 
@@ -883,10 +903,52 @@ async function renderSkeletonFromJSON(poseContainer, poseData) {
 }
 
 // Pose 결과 저장 함수
-function savePoseResult(poseContainer, imageNode) {
+async function savePoseResult(poseContainer, imageNode) {
     console.log('[POSE] Saving pose result');
-    // TODO: 결과를 캔버스에 추가하거나 다운로드 기능 구현
-    alert('Save functionality will be implemented to:\n• Add result to canvas as new layer\n• Download processed image\n• Export JSON data\n• Save to project');
+
+    // 처리된 결과에서 이미지 찾기
+    const previewSection = poseContainer.querySelector('.pose-preview-section');
+    let processedImageSrc = null;
+
+    if (poseContainer._processedCanvas) {
+        console.log('📋 Using stored processed canvas');
+        processedImageSrc = poseContainer._processedCanvas.toDataURL();
+    } else if (previewSection) {
+        // 미리보기 영역에서 이미지 또는 캔버스 찾기
+        const imgElement = previewSection.querySelector('img');
+        const canvasElement = previewSection.querySelector('canvas');
+
+        if (imgElement && imgElement.src) {
+            console.log('🖼️ Found image in preview section');
+            processedImageSrc = imgElement.src;
+        } else if (canvasElement) {
+            console.log('🎨 Found canvas in preview section');
+            processedImageSrc = canvasElement.toDataURL();
+        }
+    }
+
+    if (!processedImageSrc) {
+        console.error('❌ No preview result to apply');
+        alert('전처리 결과가 없습니다. 먼저 이미지를 처리해주세요.');
+        return;
+    }
+
+    try {
+        console.log('🚀 Applying pose processing to canvas');
+        // 캔버스에 적용
+        await applyPreprocessedImageToCanvas(poseContainer, processedImageSrc);
+        console.log('✅ Pose preprocessing applied to canvas');
+
+        // 모달 닫기
+        const imageId = poseContainer._imageId;
+        if (imageId) {
+            closePreprocessingPanel(imageId);
+        }
+
+    } catch (error) {
+        console.error('❌ Failed to apply pose preprocessing:', error);
+        alert('Pose 전처리 적용에 실패했습니다.');
+    }
 }
 
 /**
@@ -1533,13 +1595,25 @@ async function applyPreprocessedImageToCanvas(container, processedImageSrc) {
                     layer.add(processedImageNode);
                     layer.batchDraw();
                     console.log(`🎨 New preprocessed image added at (${processedImageNode.x()}, ${processedImageNode.y()})`);
-                    
+
                     // 새로 추가된 이미지를 선택 상태로 만들기
                     // 캔버스의 선택 시스템과 연동
                     setSelectedImage(processedImageNode);
-                    
+
                     // 불투명도 슬라이더는 imageEditor.js에서 이미지 타입 감지로 자동 표시됩니다
-                    
+
+                    // ControlNet 패널에 이미지 타입 변경 알림
+                    const typeChangedEvent = new CustomEvent('canvasImageTypeChanged', {
+                        detail: {
+                            imageNode: processedImageNode,
+                            imageType: imageType,
+                            processingParams: container._lastProcessingParams || {},
+                            processingSource: 'preprocessing'
+                        }
+                    });
+                    document.dispatchEvent(typeChangedEvent);
+                    console.log(`📢 canvasImageTypeChanged event dispatched for ${imageType} image`);
+
                 } else {
                     console.warn('⚠️  Layer not found for image node');
                 }

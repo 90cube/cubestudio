@@ -99,6 +99,9 @@
     --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
     --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.4);
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* UI Scale 변수 (ScaleSlider 컴포넌트에서 동적으로 변경) */
+    --ui-scale: 1.0;
 }
 
 * {

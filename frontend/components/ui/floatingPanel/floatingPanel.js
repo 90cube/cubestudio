@@ -451,8 +451,10 @@ export class FloatingPanel {
     constructor(options = {}) {
         this.id = options.id || `floating-panel-${++panelIdCounter}`;
         this.title = options.title || 'Panel';
-        this.width = options.width || 300;
-        this.height = options.height || 400;
+        this.baseWidth = options.width || 300;  // 기본 너비 저장
+        this.baseHeight = options.height || 400; // 기본 높이 저장
+        this.width = this.baseWidth;
+        this.height = this.baseHeight;
         // 초기 위치와 크기를 그리드에 스냅
         this.x = snapPanelToGrid(options.x || 100);
         this.y = snapPanelToGrid(options.y || 30);
@@ -464,7 +466,7 @@ export class FloatingPanel {
         this.dotStyle = options.dotStyle || 'circle'; // 점으로 변환 시 스타일
         this.dotSize = options.dotSize || 24; // 점으로 변환 시 크기
         this.components = new Map(); // 패널 내 컴포넌트들
-        
+
         // 상태 추적 변수들
         this.minimized = false;
         this.createdAt = Date.now();
@@ -474,14 +476,17 @@ export class FloatingPanel {
         this.dragCount = 0;
         this.resizeCount = 0;
         this.colorChangeCount = 0;
-        
+
         this.element = null;
         this.isDragging = false;
         this.isResizing = false;
-        
+
         this.init();
         panelInstances.set(this.id, this);
-        
+
+        // UI Scale 이벤트 리스너 등록
+        this.setupScaleListener();
+
         // 상태 관리에 초기 상태 저장
         this.saveCurrentState();
     }
@@ -521,8 +526,6 @@ export class FloatingPanel {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             transition: all 0.3s ease;
-            min-width: 250px;
-            min-height: 200px;
             display: flex;
             flex-direction: column;
         `;
@@ -1069,13 +1072,13 @@ export class FloatingPanel {
             // renewal 아키텍처 호환: DOM 마운트 후 init 메서드 호출
             // 이미 초기화된 컴포넌트나 최소화된 상태에서는 init 호출하지 않음 (중요!)
             if (typeof component.init === 'function' && !this.minimized && !component.isInitialized) {
-                console.log('Initializing component for the first time:', componentId);
+                // console.log('Initializing component for the first time:', componentId);
                 // DOM 마운트가 완료되도록 다음 프레임에서 실행
                 requestAnimationFrame(() => {
                     component.init();
                 });
             } else if (component.isInitialized) {
-                console.log('Component already initialized, skipping init:', componentId);
+                // console.log('Component already initialized, skipping init:', componentId);
             }
         } else if (component instanceof HTMLElement) {
             component.dataset.componentId = componentId; // ID 저장
@@ -1149,7 +1152,48 @@ export class FloatingPanel {
             this.dispatchEvent('minimizedToDot', { panelId: this.id, panelData });
         }, 400);
     }
-    
+
+    // UI Scale 이벤트 리스너 설정
+    setupScaleListener() {
+        window.addEventListener('ui-scale-changed', (e) => {
+            this.handleScaleChange(e.detail.scale);
+        });
+    }
+
+    // UI Scale 변경 처리
+    handleScaleChange(newScale) {
+        // 최소화 상태면 스킵
+        if (this.minimized) return;
+
+        // 새 크기 계산
+        const newWidth = this.baseWidth * newScale;
+        const newHeight = this.baseHeight * newScale;
+
+        // 부드러운 트랜지션 적용
+        this.element.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+        // 크기 업데이트
+        this.width = newWidth;
+        this.height = newHeight;
+
+        this.element.style.width = newWidth + 'px';
+        this.element.style.height = newHeight + 'px';
+
+        // 위치는 유지 (좌상단 기준)
+        // 만약 중앙 기준으로 유지하고 싶다면 아래 주석 해제
+        // const centerX = this.x + (this.width / 2);
+        // const centerY = this.y + (this.height / 2);
+        // this.x = centerX - (newWidth / 2);
+        // this.y = centerY - (newHeight / 2);
+        // this.element.style.left = this.x + 'px';
+        // this.element.style.top = this.y + 'px';
+
+        // 트랜지션 제거 (다음 변경을 위해)
+        setTimeout(() => {
+            this.element.style.transition = '';
+        }, 300);
+    }
+
     // 패널 완전 삭제 (복원 불가능)
     destroy() {
         // 컴포넌트들 정리

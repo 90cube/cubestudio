@@ -11,6 +11,8 @@ import { LoRASelectorComponent } from '../components/loraSelector/loraSelector.j
 import { GenerationPanel } from '../components/generationPanel/generationPanel.js';
 import { init as initElementsMenu } from '../components/elementsMenu/elementsMenu.js';
 import { showLayerPanel } from '../components/layerPanel/layerPanel.js';
+import { ControlNetPanel } from '../components/controlnet/controlNetPanel.js';
+import { ScaleSlider } from '../components/ui/scaleSlider.js';
 
 // DOM이 완전히 로드된 후 애플리케이션 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,6 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         createLayerPanel();
     }, 150);
+
+    // 13. ControlNet 패널 생성 (지연 후 생성)
+    setTimeout(() => {
+        createControlNetPanel();
+    }, 200);
+
+    // 14. UI Scale Slider 초기화 (모든 패널 생성 후)
+    setTimeout(() => {
+        const scaleSlider = new ScaleSlider();
+        window.scaleSlider = scaleSlider; // 전역 참조 (디버깅용)
+        console.log('✅ ScaleSlider initialized');
+    }, 250);
 
 });
 
@@ -305,13 +319,20 @@ function calculateSymmetricPositions() {
     const layerPanelHeight = 380;
     const layerPanelX = viewportWidth - layerPanelWidth - edgeMargin; // 다른 패널들과 동일한 30px 여백
     const layerPanelY = viewportHeight - layerPanelHeight - (edgeMargin - 20); // 기본 30px - 20px = 10px 여백
-    
+
+    // ControlNet 패널 위치 (왼쪽 아래) - Layer 패널과 동일한 크기
+    const controlNetPanelWidth = 320;
+    const controlNetPanelHeight = 380;
+    const controlNetPanelX = edgeMargin;
+    const controlNetPanelY = viewportHeight - controlNetPanelHeight - (edgeMargin - 20);
+
     return {
         modelExplorer: { x: leftX, y: leftTop },
         parameters: { x: leftX, y: leftBottom },
         loraSelector: { x: rightX, y: rightTop },
         multiDetailer: { x: rightX, y: rightBottom },
-        layerPanel: { x: layerPanelX, y: layerPanelY }
+        layerPanel: { x: layerPanelX, y: layerPanelY },
+        controlNetPanel: { x: controlNetPanelX, y: controlNetPanelY }
     };
 }
 
@@ -340,6 +361,9 @@ function adjustPanelsOnResize() {
                 break;
             case 'layer-panel':
                 newPosition = positions.layerPanel;
+                break;
+            case 'controlnet-panel':
+                newPosition = positions.controlNetPanel;
                 break;
         }
         
@@ -542,7 +566,7 @@ function createGenerationPanel() {
 // 레이어 패널 생성 (오른쪽 아래 위치, 자동 스냅)
 function createLayerPanel() {
     const positions = calculateSymmetricPositions();
-    
+
     const layerPanel = showLayerPanel({
         id: 'layer-panel', // 자동 스냅을 위한 ID 추가
         x: positions.layerPanel.x, // 계산된 x 위치
@@ -551,9 +575,35 @@ function createLayerPanel() {
         height: 380, // 세로 20픽셀 감소 (400 → 380)
         markingColor: '#8b5cf6' // 보라색 테마
     });
-    
+
     console.log('🎨 Layer Panel created');
     return layerPanel;
+}
+
+// ControlNet 패널 생성 (왼쪽 아래 위치)
+function createControlNetPanel() {
+    const controlNetPanel = new ControlNetPanel();
+    const positions = calculateSymmetricPositions();
+
+    // 🔧 FIX: 전역 변수로 등록하여 GenerationPanel에서 접근 가능하도록
+    window.controlNetPanel = controlNetPanel;
+
+    const panel = new FloatingPanel({
+        id: 'controlnet-panel',
+        title: '🎮 ControlNet',
+        x: positions.controlNetPanel.x,
+        y: positions.controlNetPanel.y,
+        width: 320,
+        height: 380,
+        markingColor: '#10b981', // 녹색 테마
+        resizable: true,
+        draggable: true
+    });
+
+    // 컴포넌트를 패널에 추가
+    panel.addComponent('controlNet', controlNetPanel);
+
+    console.log('✅ ControlNet panel created and registered globally');
 }
 
 /**
