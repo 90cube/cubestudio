@@ -16,6 +16,10 @@ from diffusers import (
     StableDiffusionXLPipeline,
     StableDiffusionImg2ImgPipeline,
     StableDiffusionXLImg2ImgPipeline,
+    StableDiffusionControlNetPipeline,
+    StableDiffusionXLControlNetPipeline,
+    StableDiffusionControlNetImg2ImgPipeline,
+    StableDiffusionXLControlNetImg2ImgPipeline,
     DPMSolverMultistepScheduler,
     DPMSolverSinglestepScheduler,
     EulerAncestralDiscreteScheduler,
@@ -55,6 +59,10 @@ class SDPipelineService:
         self.current_checkpoint = None
         self.current_vae = None
         self.loaded_loras = []
+
+        # ControlNet instances
+        self.loaded_controlnets = {}  # {model_name: controlnet_model}
+        self.controlnet_pipe = None
 
         logger.info(f"SDPipelineService initialized on device: {self.device}")
 
@@ -98,12 +106,17 @@ class SDPipelineService:
 
             # Initialize T2I pipeline from checkpoint
             # SDXL and SD 1.5 have different initialization parameters
+            import time
+            load_start = time.time()
+            logger.info("⏱️ Starting pipeline loading from checkpoint...")
+
             if is_sdxl:
                 # SDXL: No safety_checker parameters
                 self.txt2img_pipe = pipeline_class.from_single_file(
                     str(full_checkpoint_path),
                     torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-                    use_safetensors=full_checkpoint_path.suffix == '.safetensors'
+                    use_safetensors=full_checkpoint_path.suffix == '.safetensors',
+                    local_files_only=False  # Allow HuggingFace downloads on first load
                 )
             else:
                 # SD 1.5: Disable safety_checker
@@ -111,11 +124,19 @@ class SDPipelineService:
                     str(full_checkpoint_path),
                     torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
                     load_safety_checker=False,
-                    use_safetensors=full_checkpoint_path.suffix == '.safetensors'
+                    use_safetensors=full_checkpoint_path.suffix == '.safetensors',
+                    local_files_only=False  # Allow HuggingFace downloads on first load
                 )
 
+            load_time = time.time() - load_start
+            logger.info(f"⏱️ Pipeline loaded in {load_time:.2f}s")
+
             # Move to device
+            device_start = time.time()
+            logger.info("⏱️ Moving pipeline to GPU...")
             self.txt2img_pipe = self.txt2img_pipe.to(self.device)
+            device_time = time.time() - device_start
+            logger.info(f"⏱️ Moved to device in {device_time:.2f}s")
 
             # Enable memory optimizations
             if torch.cuda.is_available():
@@ -383,6 +404,154 @@ class SDPipelineService:
         except Exception as e:
             logger.error(f"Error unloading LoRAs: {e}")
 
+    def unload_controlnet_models(self):
+        """
+        Unload all ControlNet models and free GPU memory
+        """
+        try:
+            if self.loaded_controlnets:
+                logger.info(f"Unloading {len(self.loaded_controlnets)} ControlNet model(s)")
+
+                # Clear ControlNet instances
+                for model_name in list(self.loaded_controlnets.keys()):
+                    del self.loaded_controlnets[model_name]
+
+                self.loaded_controlnets = {}
+                self.controlnet_pipe = None
+
+                # Force garbage collection
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+                logger.info("ControlNet models unloaded")
+        except Exception as e:
+            logger.error(f"Error unloading ControlNet models: {e}")
+
+    def load_controlnet_models(self, controlnet_configs: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Load ControlNet models with automatic unload-first logic
+
+        Args:
+            controlnet_configs: List of ControlNet configurations with 'type' and 'model' fields
+
+        Returns:
+            Dict with success status and loaded model info
+        """
+        try:
+            # Step 1: Unload existing ControlNet models first
+            if self.loaded_controlnets:
+                logger.info("Unloading existing ControlNet models before loading new ones")
+                self.unload_controlnet_models()
+
+            # Step 2: Load new ControlNet models
+            from diffusers import ControlNetModel
+
+            # Get ControlNet models base path from config
+            controlnet_base_path = Path(self.config_manager.checkpoints_path).parent / "controlnet"
+            logger.info(f"ControlNet base path: {controlnet_base_path}")
+
+            loaded_models = {}
+            for config in controlnet_configs:
+                cn_type = config.get('type', 'depth')
+                cn_model_info = config.get('model')
+
+                if not cn_model_info:
+                    logger.warning(f"No model specified for ControlNet type {cn_type}, skipping")
+                    continue
+
+                model_name = cn_model_info.get('name', f'controlnet_{cn_type}')
+                model_path = cn_model_info.get('path')
+
+                if not model_path:
+                    logger.warning(f"No model path for {model_name}, skipping")
+                    continue
+
+                # Build full path to safetensors file
+                full_model_path = controlnet_base_path / model_path
+
+                if not full_model_path.exists():
+                    logger.error(f"ControlNet model file not found: {full_model_path}")
+                    continue
+
+                logger.info(f"Loading ControlNet model from: {full_model_path}")
+
+                # Determine base config based on model type and ControlNet type
+                is_sdxl = 'SDXL' in str(full_model_path) or 'xl' in model_name.lower()
+
+                # Map ControlNet types to appropriate configs
+                controlnet_config_map = {
+                    'canny': {
+                        'sdxl': "diffusers/controlnet-canny-sdxl-1.0",
+                        'sd15': "lllyasviel/control_v11p_sd15_canny"
+                    },
+                    'depth': {
+                        'sdxl': "diffusers/controlnet-depth-sdxl-1.0",
+                        'sd15': "lllyasviel/control_v11f1p_sd15_depth"
+                    },
+                    'openpose': {
+                        'sdxl': "thibaud/controlnet-openpose-sdxl-1.0",
+                        'sd15': "lllyasviel/control_v11p_sd15_openpose"
+                    },
+                    'lineart': {
+                        'sdxl': "diffusers/controlnet-lineart-sdxl-1.0",
+                        'sd15': "lllyasviel/control_v11p_sd15_lineart"
+                    }
+                }
+
+                # Get appropriate config for the ControlNet type
+                model_type = 'sdxl' if is_sdxl else 'sd15'
+                base_config = controlnet_config_map.get(cn_type, {}).get(
+                    model_type,
+                    "diffusers/controlnet-canny-sdxl-1.0" if is_sdxl else "lllyasviel/control_v11p_sd15_canny"
+                )
+
+                logger.info(f"Using base config for {cn_type} ({model_type}): {base_config}")
+
+                # Load ControlNet model from single safetensors file with config
+                import time
+                cn_load_start = time.time()
+                logger.info(f"⏱️ Loading ControlNet from safetensors ({full_model_path.stat().st_size / 1024**3:.2f} GB)...")
+
+                controlnet = ControlNetModel.from_single_file(
+                    str(full_model_path),
+                    torch_dtype=torch.float16 if self.device.type == 'cuda' else torch.float32,
+                    config=base_config
+                )
+
+                cn_load_time = time.time() - cn_load_start
+                logger.info(f"⏱️ ControlNet loaded from file in {cn_load_time:.2f}s")
+
+                cn_device_start = time.time()
+                logger.info("⏱️ Moving ControlNet to GPU...")
+                controlnet = controlnet.to(self.device)
+
+                cn_device_time = time.time() - cn_device_start
+                logger.info(f"⏱️ ControlNet moved to GPU in {cn_device_time:.2f}s")
+
+                loaded_models[model_name] = {
+                    'model': controlnet,
+                    'type': cn_type,
+                    'path': str(full_model_path)
+                }
+
+                logger.info(f"✅ ControlNet model loaded: {model_name}")
+
+            self.loaded_controlnets = loaded_models
+
+            return {
+                "success": True,
+                "loaded_models": list(loaded_models.keys()),
+                "count": len(loaded_models)
+            }
+
+        except Exception as e:
+            logger.error(f"Error loading ControlNet models: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
     def set_scheduler(self, scheduler_name: str, use_karras: bool = False) -> Dict[str, Any]:
         """
         Set scheduler for generation
@@ -457,7 +626,8 @@ class SDPipelineService:
         guidance_scale: float = 7.5,
         seed: int = -1,
         batch_size: int = 1,
-        callback: Optional[callable] = None
+        callback: Optional[callable] = None,
+        controlnets: Optional[List[Dict[str, Any]]] = None  # 🔧 FIX: ControlNet parameter
     ) -> Dict[str, Any]:
         """
         Generate images from text (T2I)
@@ -470,6 +640,7 @@ class SDPipelineService:
             num_inference_steps: Number of denoising steps
             guidance_scale: Guidance scale for classifier-free guidance
             seed: Random seed (-1 for random)
+            controlnets: ControlNet configurations (optional)
             batch_size: Number of images to generate
             callback: Optional callback function for progress updates (step, total_steps)
 
@@ -480,7 +651,26 @@ class SDPipelineService:
             if self.txt2img_pipe is None:
                 raise RuntimeError("Pipeline not initialized")
 
-            logger.info(f"Generating T2I: {width}x{height}, steps={num_inference_steps}, cfg={guidance_scale}")
+            # 🔧 FIX: Load ControlNet models if needed
+            controlnet_status = "disabled"
+            if controlnets and len(controlnets) > 0:
+                controlnet_status = f"{len(controlnets)} ControlNets enabled"
+
+                # Load ControlNet models (will auto-unload existing models)
+                load_result = self.load_controlnet_models(controlnets)
+                if not load_result.get("success"):
+                    logger.warning(f"Failed to load ControlNet models: {load_result.get('error')}")
+                    controlnet_status = "disabled (load failed)"
+                else:
+                    logger.info(f"✅ Loaded {load_result.get('count', 0)} ControlNet model(s)")
+                    for cn in controlnets:
+                        cn_type = cn.get('type', 'unknown')
+                        cn_weight = cn.get('weight', 1.0)
+                        cn_image = cn.get('image')
+                        image_info = f"{cn_image.size}" if cn_image and hasattr(cn_image, 'size') else 'No image'
+                        logger.info(f"  🎮 ControlNet: {cn_type} (weight={cn_weight}, image={image_info})")
+
+            logger.info(f"Generating T2I ({controlnet_status}): {width}x{height}, steps={num_inference_steps}, cfg={guidance_scale}")
             logger.debug(f"T2I Parameters: prompt={prompt[:50] if prompt else 'None'}..., "
                         f"negative_prompt={negative_prompt[:50] if negative_prompt else 'None'}..., "
                         f"batch_size={batch_size}, seed={seed}")
@@ -507,18 +697,90 @@ class SDPipelineService:
                     return callback_kwargs
                 callback_on_step_end = step_callback
 
-            # Generate images
-            result = self.txt2img_pipe(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                width=width,
-                height=height,
-                num_inference_steps=num_inference_steps,
-                guidance_scale=guidance_scale,
-                num_images_per_prompt=batch_size,
-                generator=generator,
-                callback_on_step_end=callback_on_step_end
-            )
+            # Prepare ControlNet parameters if available
+            controlnet_images_list = []
+            controlnet_conditioning_scale = []
+
+            if controlnets and len(controlnets) > 0 and self.loaded_controlnets:
+                for cn in controlnets:
+                    cn_image = cn.get('image')
+                    if cn_image:
+                        controlnet_images_list.append(cn_image)
+                        controlnet_conditioning_scale.append(cn.get('weight', 1.0))
+
+            # Generate images with or without ControlNet
+            if controlnet_images_list and self.loaded_controlnets:
+                # Use ControlNet pipeline
+                logger.info(f"🎮 Generating with {len(controlnet_images_list)} ControlNet(s)")
+
+                # Create temporary ControlNet pipeline from existing pipeline
+                from diffusers import StableDiffusionXLControlNetPipeline, StableDiffusionControlNetPipeline
+
+                # Get ControlNet models
+                controlnet_models = [info['model'] for info in self.loaded_controlnets.values()]
+
+                # Choose pipeline class based on model type
+                is_sdxl = isinstance(self.txt2img_pipe, StableDiffusionXLPipeline)
+                cn_pipeline_class = StableDiffusionXLControlNetPipeline if is_sdxl else StableDiffusionControlNetPipeline
+
+                # Create ControlNet pipeline using components from existing pipeline
+                if is_sdxl:
+                    cn_pipe = cn_pipeline_class(
+                        vae=self.txt2img_pipe.vae,
+                        text_encoder=self.txt2img_pipe.text_encoder,
+                        text_encoder_2=self.txt2img_pipe.text_encoder_2,
+                        tokenizer=self.txt2img_pipe.tokenizer,
+                        tokenizer_2=self.txt2img_pipe.tokenizer_2,
+                        unet=self.txt2img_pipe.unet,
+                        controlnet=controlnet_models if len(controlnet_models) > 1 else controlnet_models[0],
+                        scheduler=self.txt2img_pipe.scheduler,
+                        force_zeros_for_empty_prompt=False,
+                        add_watermarker=False
+                    )
+                else:
+                    cn_pipe = cn_pipeline_class(
+                        vae=self.txt2img_pipe.vae,
+                        text_encoder=self.txt2img_pipe.text_encoder,
+                        tokenizer=self.txt2img_pipe.tokenizer,
+                        unet=self.txt2img_pipe.unet,
+                        controlnet=controlnet_models if len(controlnet_models) > 1 else controlnet_models[0],
+                        scheduler=self.txt2img_pipe.scheduler,
+                        safety_checker=None,
+                        feature_extractor=None
+                    )
+
+                result = cn_pipe(
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    image=controlnet_images_list if len(controlnet_images_list) > 1 else controlnet_images_list[0],
+                    width=width,
+                    height=height,
+                    num_inference_steps=num_inference_steps,
+                    guidance_scale=guidance_scale,
+                    controlnet_conditioning_scale=controlnet_conditioning_scale if len(controlnet_conditioning_scale) > 1 else controlnet_conditioning_scale[0],
+                    num_images_per_prompt=batch_size,
+                    generator=generator,
+                    callback_on_step_end=callback_on_step_end
+                )
+
+                # Clean up temporary pipeline
+                del cn_pipe
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+            else:
+                # Generate without ControlNet
+                result = self.txt2img_pipe(
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    width=width,
+                    height=height,
+                    num_inference_steps=num_inference_steps,
+                    guidance_scale=guidance_scale,
+                    num_images_per_prompt=batch_size,
+                    generator=generator,
+                    callback_on_step_end=callback_on_step_end
+                )
 
             images = result.images
 
@@ -553,13 +815,15 @@ class SDPipelineService:
         num_inference_steps: int = 20,
         guidance_scale: float = 7.5,
         seed: int = -1,
-        batch_size: int = 1
+        batch_size: int = 1,
+        controlnets: Optional[List[Dict[str, Any]]] = None  # 🔧 FIX: ControlNet parameter
     ) -> Dict[str, Any]:
         """
         Generate images from image + text (I2I)
 
         Args:
             prompt: Positive prompt
+            controlnets: ControlNet configurations (optional)
             init_image: Initial image
             negative_prompt: Negative prompt
             strength: Denoising strength (0.0-1.0)
@@ -575,24 +839,114 @@ class SDPipelineService:
             if self.img2img_pipe is None:
                 raise RuntimeError("Pipeline not initialized")
 
-            logger.info(f"Generating I2I: strength={strength}, steps={num_inference_steps}, cfg={guidance_scale}")
+            # 🔧 FIX: Load ControlNet models if needed
+            controlnet_status = "disabled"
+            if controlnets and len(controlnets) > 0:
+                controlnet_status = f"{len(controlnets)} ControlNets enabled"
+
+                # Load ControlNet models (will auto-unload existing models)
+                load_result = self.load_controlnet_models(controlnets)
+                if not load_result.get("success"):
+                    logger.warning(f"Failed to load ControlNet models: {load_result.get('error')}")
+                    controlnet_status = "disabled (load failed)"
+                else:
+                    logger.info(f"✅ Loaded {load_result.get('count', 0)} ControlNet model(s)")
+                    for cn in controlnets:
+                        cn_type = cn.get('type', 'unknown')
+                        cn_weight = cn.get('weight', 1.0)
+                        cn_image = cn.get('image')
+                        image_info = f"{cn_image.size}" if cn_image and hasattr(cn_image, 'size') else 'No image'
+                        logger.info(f"  🎮 ControlNet: {cn_type} (weight={cn_weight}, image={image_info})")
+
+            logger.info(f"Generating I2I ({controlnet_status}): strength={strength}, steps={num_inference_steps}, cfg={guidance_scale}")
 
             # Set seed
             generator = None
             if seed >= 0:
                 generator = torch.Generator(device=self.device).manual_seed(seed)
 
-            # Generate images
-            result = self.img2img_pipe(
-                prompt=prompt,
-                image=init_image,
-                negative_prompt=negative_prompt,
-                strength=strength,
-                num_inference_steps=num_inference_steps,
-                guidance_scale=guidance_scale,
-                num_images_per_prompt=batch_size,
-                generator=generator
-            )
+            # Prepare ControlNet parameters if available
+            controlnet_images_list = []
+            controlnet_conditioning_scale = []
+
+            if controlnets and len(controlnets) > 0 and self.loaded_controlnets:
+                for cn in controlnets:
+                    cn_image = cn.get('image')
+                    if cn_image:
+                        controlnet_images_list.append(cn_image)
+                        controlnet_conditioning_scale.append(cn.get('weight', 1.0))
+
+            # Generate images with or without ControlNet
+            if controlnet_images_list and self.loaded_controlnets:
+                # Use ControlNet I2I pipeline
+                logger.info(f"🎮 Generating I2I with {len(controlnet_images_list)} ControlNet(s)")
+
+                # Create temporary ControlNet pipeline from existing pipeline
+                from diffusers import StableDiffusionXLControlNetImg2ImgPipeline, StableDiffusionControlNetImg2ImgPipeline
+
+                # Get ControlNet models
+                controlnet_models = [info['model'] for info in self.loaded_controlnets.values()]
+
+                # Choose pipeline class based on model type
+                is_sdxl = isinstance(self.img2img_pipe, StableDiffusionXLImg2ImgPipeline)
+                cn_pipeline_class = StableDiffusionXLControlNetImg2ImgPipeline if is_sdxl else StableDiffusionControlNetImg2ImgPipeline
+
+                # Create ControlNet pipeline using components from existing pipeline
+                if is_sdxl:
+                    cn_pipe = cn_pipeline_class(
+                        vae=self.img2img_pipe.vae,
+                        text_encoder=self.img2img_pipe.text_encoder,
+                        text_encoder_2=self.img2img_pipe.text_encoder_2,
+                        tokenizer=self.img2img_pipe.tokenizer,
+                        tokenizer_2=self.img2img_pipe.tokenizer_2,
+                        unet=self.img2img_pipe.unet,
+                        controlnet=controlnet_models if len(controlnet_models) > 1 else controlnet_models[0],
+                        scheduler=self.img2img_pipe.scheduler,
+                        force_zeros_for_empty_prompt=False,
+                        add_watermarker=False
+                    )
+                else:
+                    cn_pipe = cn_pipeline_class(
+                        vae=self.img2img_pipe.vae,
+                        text_encoder=self.img2img_pipe.text_encoder,
+                        tokenizer=self.img2img_pipe.tokenizer,
+                        unet=self.img2img_pipe.unet,
+                        controlnet=controlnet_models if len(controlnet_models) > 1 else controlnet_models[0],
+                        scheduler=self.img2img_pipe.scheduler,
+                        safety_checker=None,
+                        feature_extractor=None
+                    )
+
+                result = cn_pipe(
+                    prompt=prompt,
+                    image=init_image,
+                    control_image=controlnet_images_list if len(controlnet_images_list) > 1 else controlnet_images_list[0],
+                    negative_prompt=negative_prompt,
+                    strength=strength,
+                    num_inference_steps=num_inference_steps,
+                    guidance_scale=guidance_scale,
+                    controlnet_conditioning_scale=controlnet_conditioning_scale if len(controlnet_conditioning_scale) > 1 else controlnet_conditioning_scale[0],
+                    num_images_per_prompt=batch_size,
+                    generator=generator
+                )
+
+                # Clean up temporary pipeline
+                del cn_pipe
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+            else:
+                # Generate without ControlNet
+                result = self.img2img_pipe(
+                    prompt=prompt,
+                    image=init_image,
+                    negative_prompt=negative_prompt,
+                    strength=strength,
+                    num_inference_steps=num_inference_steps,
+                    guidance_scale=guidance_scale,
+                    num_images_per_prompt=batch_size,
+                    generator=generator
+                )
 
             images = result.images
 
@@ -626,9 +980,13 @@ class SDPipelineService:
             # Unload LoRAs first
             self.unload_loras()
 
+            # Unload ControlNets
+            self.unload_controlnet_models()
+
             # Clear pipelines
             self.txt2img_pipe = None
             self.img2img_pipe = None
+            self.controlnet_pipe = None
             self.current_checkpoint = None
             self.current_vae = None
 
