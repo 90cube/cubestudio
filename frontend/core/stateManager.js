@@ -33,10 +33,21 @@ class StateManager {
             panelOperations: [],
             memoryUsage: []
         };
-        
+
+        // 캔버스 뷰포트 상태 (새로 추가 - 기존 기능에 영향 없음)
+        this.canvasViewport = {
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0
+        };
+
+        // localStorage에서 뷰포트 복원 시도
+        this.restoreViewportFromStorage();
+
         // console.log('StateManager initialized');
     }
-    
+
     // ============================================================================
     // PUB/SUB 패턴 구현
     // ============================================================================
@@ -425,7 +436,98 @@ class StateManager {
         console.log('Performance Report:', this.getPerformanceReport());
         console.log('Current State:', new Map(this.state));
         console.log('Subscribers:', new Map(this.subscribers));
+        console.log('Canvas Viewport:', this.canvasViewport);
         console.groupEnd();
+    }
+
+    // ============================================================================
+    // 캔버스 뷰포트 상태 관리 (새로 추가)
+    // ============================================================================
+
+    /**
+     * 캔버스 뷰포트 상태 업데이트
+     * @param {Object} viewport - { x, y, scale, rotation }
+     */
+    updateCanvasViewport(viewport) {
+        this.canvasViewport = {
+            ...this.canvasViewport,
+            ...viewport,
+            lastUpdated: Date.now()
+        };
+
+        // 상태 업데이트 (구독자에게 알림)
+        this.updateState('canvasViewport', this.canvasViewport);
+
+        // localStorage에 저장 (디바운싱 적용)
+        this.saveViewportToStorage();
+    }
+
+    /**
+     * 캔버스 뷰포트 상태 조회
+     * @returns {Object} 뷰포트 상태
+     */
+    getCanvasViewport() {
+        return { ...this.canvasViewport };
+    }
+
+    /**
+     * 뷰포트를 localStorage에 저장 (디바운싱)
+     */
+    saveViewportToStorage() {
+        // 기존 타이머 취소
+        if (this._viewportSaveTimer) {
+            clearTimeout(this._viewportSaveTimer);
+        }
+
+        // 500ms 후에 저장 (빠른 연속 호출 방지)
+        this._viewportSaveTimer = setTimeout(() => {
+            try {
+                const viewportData = {
+                    ...this.canvasViewport,
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem('cubestudio_canvas_viewport', JSON.stringify(viewportData));
+                console.log('✅ Canvas viewport saved to localStorage');
+            } catch (error) {
+                console.error('Failed to save viewport to localStorage:', error);
+            }
+        }, 500);
+    }
+
+    /**
+     * localStorage에서 뷰포트 복원
+     */
+    restoreViewportFromStorage() {
+        try {
+            const saved = localStorage.getItem('cubestudio_canvas_viewport');
+            if (saved) {
+                const viewportData = JSON.parse(saved);
+                this.canvasViewport = {
+                    x: viewportData.x || 0,
+                    y: viewportData.y || 0,
+                    scale: viewportData.scale || 1,
+                    rotation: viewportData.rotation || 0
+                };
+                console.log('✅ Canvas viewport restored from localStorage:', viewportData.savedAt);
+            }
+        } catch (error) {
+            console.error('Failed to restore viewport from localStorage:', error);
+        }
+    }
+
+    /**
+     * 뷰포트 초기화 (기본값으로 리셋)
+     */
+    resetCanvasViewport() {
+        this.canvasViewport = {
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0
+        };
+        this.updateState('canvasViewport', this.canvasViewport);
+        localStorage.removeItem('cubestudio_canvas_viewport');
+        console.log('Canvas viewport reset to default');
     }
 }
 

@@ -652,6 +652,8 @@ export class FloatingPanel {
                 cursor: nw-resize;
                 background: linear-gradient(-45deg, transparent 0%, transparent 30%, ${this.markingColor} 30%, ${this.markingColor} 40%, transparent 40%, transparent 60%, ${this.markingColor} 60%, ${this.markingColor} 70%, transparent 70%);
                 border-radius: 0 0 12px 0;
+                z-index: 10;
+                pointer-events: auto;
             `;
         }
         
@@ -683,22 +685,25 @@ export class FloatingPanel {
      */
     setupPanelEventListeners() {
         // 마킹 탭 클릭 - 컬러 피커 열기
+        this.markingTab.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); // 드래그 방지
+        });
         this.markingTab.addEventListener('click', (e) => {
             e.stopPropagation();
             this.colorPicker.click();
         });
-        
+
         // 컬러 피커 변경
         this.colorPicker.addEventListener('change', (e) => {
             this.setMarkingColor(e.target.value);
         });
-        
+
         // 마킹 탭 호버 효과
         this.markingTab.addEventListener('mouseenter', () => {
             this.markingTab.style.transform = 'scale(1.1)';
             this.markingTab.style.boxShadow = '0 0 12px rgba(255, 255, 255, 0.6)';
         });
-        
+
         this.markingTab.addEventListener('mouseleave', () => {
             this.markingTab.style.transform = 'scale(1)';
             this.markingTab.style.boxShadow = 'none';
@@ -715,17 +720,23 @@ export class FloatingPanel {
         }
         
         // 점으로 최소화 기능
+        this.minimizeBtn.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); // 드래그 방지
+        });
         this.minimizeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.minimizeToPanelDot();
         });
-        
+
         // 완전 삭제 기능
+        this.closeBtn.addEventListener('mousedown', (e) => {
+            e.stopPropagation(); // 드래그 방지
+        });
         this.closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.destroy();
         });
-        
+
         // 버튼 호버 효과
         [this.minimizeBtn, this.closeBtn].filter(Boolean).forEach(btn => {
             btn.addEventListener('mouseenter', () => {

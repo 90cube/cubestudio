@@ -44,11 +44,44 @@ export function getNodeRect(node) {
     }
     const clientRect = node.getClientRect();
     const topLeft = screenToStage({ x: clientRect.x, y: clientRect.y });
-    
+
     return {
         x: topLeft.x,
         y: topLeft.y,
         width: clientRect.width / stage.scaleX(),
         height: clientRect.height / stage.scaleY()
     };
+}
+
+/**
+ * Converts a screen point to canvas coordinates.
+ * This helper consolidates the repeated pattern of:
+ * 1. Getting canvas container rect
+ * 2. Converting to stage-space
+ * 3. Applying inverse transform
+ *
+ * @param {{x: number, y: number}} screenPoint - Screen coordinates (e.g., from mouse event)
+ * @param {string} containerId - Canvas container ID (default: 'canvas-container')
+ * @returns {{x: number, y: number}} Canvas coordinates
+ */
+export function screenToCanvas(screenPoint, containerId = 'canvas-container') {
+    if (!stage) {
+        console.error('Coordinate system not initialized.');
+        return screenPoint;
+    }
+
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Canvas container #${containerId} not found.`);
+        return screenPoint;
+    }
+
+    const rect = container.getBoundingClientRect();
+    const stageX = screenPoint.x - rect.left;
+    const stageY = screenPoint.y - rect.top;
+
+    const transform = stage.getAbsoluteTransform().copy();
+    transform.invert();
+
+    return transform.point({ x: stageX, y: stageY });
 }

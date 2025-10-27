@@ -99,7 +99,7 @@ export class ScaleSlider {
 
             /* 펼쳐진 상태 패널 */
             .scale-panel {
-                display: flex;
+                display: none;
                 align-items: center;
                 gap: 12px;
                 padding: 12px 20px;
@@ -115,12 +115,14 @@ export class ScaleSlider {
             }
 
             .scale-slider-container.expanded .scale-panel {
+                display: flex;
                 opacity: 1;
                 transform: translateX(0);
                 pointer-events: all;
             }
 
             .scale-slider-container.collapsed .scale-panel {
+                display: none;
                 opacity: 0;
                 transform: translateX(20px);
                 pointer-events: none;

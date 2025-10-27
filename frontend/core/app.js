@@ -7,7 +7,7 @@ import { FloatingPanel, getAllPanels } from '../components/ui/floatingPanel/floa
 import { ModelExplorerComponent } from '../components/modelExplorer/modelExplorerComponent.js';
 import { ParametersComponent } from '../components/parameters/parametersComponent.js';
 import { MultiDetailerComponent } from '../components/multiDetailer/multiDetailerComponent.js';
-import { LoRASelectorComponent } from '../components/loraSelector/loraSelector.js';
+import { createLoRASelectorPanel } from '../components/loraSelector/loraPanelDemo.js';
 import { GenerationPanel } from '../components/generationPanel/generationPanel.js';
 import { init as initElementsMenu } from '../components/elementsMenu/elementsMenu.js';
 import { showLayerPanel } from '../components/layerPanel/layerPanel.js';
@@ -451,25 +451,17 @@ function createMultiDetailerPanel() {
 
 // LoRA 선택기 패널 생성
 function createLoRAPanel() {
-    const loraSelector = new LoRASelectorComponent();
     const positions = calculateSymmetricPositions();
-    
-    const loraPanel = new FloatingPanel({
-        id: 'lora-selector-panel',
-        title: '🎨 LoRA Selector',
+
+    const { panel, loraComponent } = createLoRASelectorPanel({
         x: positions.loraSelector.x,
         y: positions.loraSelector.y,
         width: 320,
         height: 420,
-        markingColor: '#9b59b6', // 보라색 테마
-        resizable: true,
-        draggable: true
+        markingColor: '#9b59b6' // 보라색 테마
     });
-    
-    // 컴포넌트를 패널에 추가
-    loraPanel.addComponent('loraSelector', loraSelector);
-    
-    // console.log('LoRA Selector panel created');
+
+    // console.log('LoRA Selector panel created with drag/minimize functionality');
 }
 
 // 통합 생성 패널 생성 (하단 고정)

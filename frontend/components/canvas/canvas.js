@@ -2,8 +2,9 @@
 
 import { exitTransformMode, isTransformModeActive } from '../imageEditor/tools/transformer.js';
 import stateManager from '../../core/stateManager.js';
-import { getNodeRect, init as initCoordinates } from '../../core/coordinates.js';
+import { getNodeRect, init as initCoordinates, screenToCanvas } from '../../core/coordinates.js';
 import { showElementsMenu, isElementsMenuOpen } from '../elementsMenu/elementsMenu.js';
+import { FONT_LIST } from '../../constants/fonts.js';
 
 let stage;
 let layer;
@@ -382,13 +383,20 @@ function setupDoubleClickEvent() {
     });
     
     // 전역 클릭 리스너 추가 (메뉴 외부 클릭시 메뉴 숨김) - 지연 등록
+    // 메모리 누수 방지: 기존 리스너가 있다면 제거
+    if (window._contextMenuClickHandler) {
+        document.removeEventListener('click', window._contextMenuClickHandler);
+    }
+
+    window._contextMenuClickHandler = (e) => {
+        if (isContextMenuVisible && backgroundContextMenu && !backgroundContextMenu.contains(e.target)) {
+            // console.log('📋 Clicking outside menu - hiding context menu');
+            hideBackgroundContextMenu();
+        }
+    };
+
     setTimeout(() => {
-        document.addEventListener('click', (e) => {
-            if (isContextMenuVisible && backgroundContextMenu && !backgroundContextMenu.contains(e.target)) {
-                // console.log('📋 Clicking outside menu - hiding context menu');
-                hideBackgroundContextMenu();
-            }
-        });
+        document.addEventListener('click', window._contextMenuClickHandler);
         // console.log('📋 Global click listener registered');
     }, 100); // 100ms 지연으로 더블클릭 이벤트와 분리
 }
@@ -822,18 +830,8 @@ function openFileDialog() {
                 img.src = reader.result;
                 img.onload = () => {
                     // 더블클릭한 위치에 이미지 추가 (화면 좌표를 캔버스 좌표로 변환)
-                    const canvasContainer = document.getElementById('canvas-container');
-                    const rect = canvasContainer.getBoundingClientRect();
-                    
-                    // 화면 좌표를 스테이지 좌표로 변환
-                    const stageX = lastDoubleClickPosition.x - rect.left;
-                    const stageY = lastDoubleClickPosition.y - rect.top;
-                    
-                    // 스테이지 변환 (줌, 팬닝) 고려하여 실제 캔버스 좌표로 변환
-                    const transform = stage.getAbsoluteTransform().copy();
-                    transform.invert();
-                    const canvasPos = transform.point({ x: stageX, y: stageY });
-                    
+                    const canvasPos = screenToCanvas(lastDoubleClickPosition);
+
                     addImageToCanvas(img, canvasPos.x, canvasPos.y);
                     console.log(`🖼️ Image added at clicked position: (${canvasPos.x.toFixed(1)}, ${canvasPos.y.toFixed(1)})`);
                 };
@@ -958,45 +956,8 @@ function createTextInputModal() {
         min-width: 120px;
     `;
 
-    // 폰트 옵션들 추가
-    const fonts = [
-        // 기본 시스템 폰트
-        { value: 'Arial', name: 'Arial' },
-        { value: 'Helvetica', name: 'Helvetica' },
-        { value: 'Times New Roman', name: 'Times New Roman' },
-        { value: 'Georgia', name: 'Georgia' },
-        { value: 'Verdana', name: 'Verdana' },
-        { value: 'Courier New', name: 'Courier New' },
-        { value: 'Impact', name: 'Impact' },
-        { value: 'Comic Sans MS', name: 'Comic Sans MS' },
-        { value: 'Trebuchet MS', name: 'Trebuchet MS' },
-        
-        // 한글 시스템 폰트
-        { value: 'Noto Sans KR', name: 'Noto Sans 한글' },
-        { value: 'Malgun Gothic', name: '맑은 고딕' },
-        { value: 'Nanum Gothic', name: '나눔고딕' },
-        
-        // 커스텀 TTF 폰트 (assets/fonts/에 TTF 파일 필요)
-        { value: 'Galmuri11', name: '갈무리11 (픽셀)' },
-        { value: 'NanumGothic Custom', name: '나눔고딕 (TTF)' },
-        { value: 'Pretendard', name: 'Pretendard' },
-        { value: 'Gmarket Sans', name: 'G마켓 산스' },
-        { value: 'Cafe24 Ssurround', name: 'Cafe24 써라운드' },
-        { value: 'Cafe24 Oneprettynight', name: 'Cafe24 원쁘띠나잇' },
-        { value: 'Binggrae', name: '빙그레체' },
-        { value: 'Jua', name: '주아' },
-        
-        // Google Fonts (웹 폰트)
-        { value: 'Roboto', name: 'Roboto' },
-        { value: 'Inter', name: 'Inter' },
-        { value: 'Poppins', name: 'Poppins' },
-        { value: 'Playfair Display', name: 'Playfair Display' },
-        { value: 'Dancing Script', name: 'Dancing Script' },
-        { value: 'Pacifico', name: 'Pacifico' },
-        { value: 'Lobster', name: 'Lobster' }
-    ];
-
-    fonts.forEach(font => {
+    // 폰트 옵션들 추가 (constants/fonts.js에서 import)
+    FONT_LIST.forEach(font => {
         const option = document.createElement('option');
         option.value = font.value;
         option.textContent = font.name;
@@ -1174,17 +1135,12 @@ function createTextInputModal() {
  * 캔버스에 텍스트 추가
  */
 function addTextToCanvas(text, fontFamily, fontSize, color) {
-    // 저장된 더블클릭 위치 사용 (스테이지 좌표계로 변환)
-    const stagePos = stage.getAbsolutePosition();
-    const stageScale = stage.scaleX();
-    
-    // 화면 좌표를 스테이지 좌표로 변환
-    const stageX = (lastDoubleClickPosition.x - stagePos.x) / stageScale;
-    const stageY = (lastDoubleClickPosition.y - stagePos.y) / stageScale;
+    // 저장된 더블클릭 위치 사용 (화면 좌표를 캔버스 좌표로 변환)
+    const canvasPos = screenToCanvas(lastDoubleClickPosition);
 
     const textNode = new Konva.Text({
-        x: stageX,
-        y: stageY,
+        x: canvasPos.x,
+        y: canvasPos.y,
         text: text,
         fontSize: fontSize,
         fontFamily: fontFamily,
@@ -1698,18 +1654,8 @@ function generateBlankCanvas(backgroundColor) {
     const img = new window.Image();
     img.onload = () => {
         // 저장된 더블클릭 위치에 이미지 추가 (화면 좌표를 캔버스 좌표로 변환)
-        const canvasContainer = document.getElementById('canvas-container');
-        const rect = canvasContainer.getBoundingClientRect();
-        
-        // 화면 좌표를 스테이지 좌표로 변환
-        const stageX = lastDoubleClickPosition.x - rect.left;
-        const stageY = lastDoubleClickPosition.y - rect.top;
-        
-        // 스테이지 변환 (줌, 팬닝) 고려하여 실제 캔버스 좌표로 변환
-        const transform = stage.getAbsoluteTransform().copy();
-        transform.invert();
-        const canvasPos = transform.point({ x: stageX, y: stageY });
-        
+        const canvasPos = screenToCanvas(lastDoubleClickPosition);
+
         addImageToCanvas(img, canvasPos.x, canvasPos.y);
         
         const colorName = backgroundColor === '#FFFFFF' ? '흰색' : '검정색';

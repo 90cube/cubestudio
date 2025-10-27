@@ -146,6 +146,12 @@ function createCropHandles(rect) {
  * 크롭 이벤트 설정
  */
 function setupCropEvents() {
+    // 기존 이벤트 리스너가 있다면 제거 (메모리 누수 방지)
+    if (handleKeyDown) {
+        document.removeEventListener('keydown', handleKeyDown);
+        handleKeyDown = null;
+    }
+
     // ESC 키로 크롭 모드 취소
     handleKeyDown = (e) => {
         if (e.key === 'Escape') {
@@ -154,9 +160,9 @@ function setupCropEvents() {
             applyCrop();
         }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
-    
+
     // 크롭 영역 드래그 이벤트
     cropRect.on('dragmove', updateCropHandles);
 }
@@ -338,9 +344,12 @@ export function cancelCropMode() {
  */
 function removeCropOverlay() {
     if (cropOverlay) {
-        // 이벤트 리스너 정리
-        document.removeEventListener('keydown', handleKeyDown);
-        
+        // 이벤트 리스너 정리 (메모리 누수 방지)
+        if (handleKeyDown) {
+            document.removeEventListener('keydown', handleKeyDown);
+            handleKeyDown = null; // 명시적으로 null 설정
+        }
+
         cropOverlay.destroy();
         cropOverlay = null;
         cropRect = null;
@@ -350,8 +359,8 @@ function removeCropOverlay() {
     }
 }
 
-// 키보드 이벤트 핸들러 (외부에서 참조할 수 있도록)
-let handleKeyDown;
+// 키보드 이벤트 핸들러 (모듈 스코프, 메모리 누수 방지를 위해 명시적 관리)
+let handleKeyDown = null;
 
 /**
  * 크롭 상태 확인
