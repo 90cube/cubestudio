@@ -16,15 +16,30 @@ logger = logging.getLogger(__name__)
 class DetailerService:
     """Service for object detection and selective inpainting"""
 
-    def __init__(self, models_base_path: str = "D:/Comfyui/Original_comfyui/ComfyUI_windows_portable/ComfyUI/models"):
+    def __init__(self, models_base_path: Optional[str] = None):
         """
         Initialize detailer service
 
         Args:
             models_base_path: Base path to models directory
         """
-        self.models_base_path = Path(models_base_path)
+        self.models_base_path = self._resolve_base_path(models_base_path)
+
+        if not self.models_base_path.exists():
+            try:
+                self.models_base_path.mkdir(parents=True, exist_ok=True)
+                logger.info(f"Created models directory: {self.models_base_path}")
+            except Exception as e:
+                logger.warning(f"Failed to create models directory {self.models_base_path}: {e}")
+
         self.ultralytics_path = self.models_base_path / "ultralytics"
+        if not self.ultralytics_path.exists():
+            try:
+                self.ultralytics_path.mkdir(parents=True, exist_ok=True)
+                logger.info(f"Created Ultralytics directory: {self.ultralytics_path}")
+            except Exception as e:
+                logger.warning(f"Failed to create Ultralytics directory {self.ultralytics_path}: {e}")
+
         self.loaded_models = {}
 
         logger.info(f"DetailerService initialized with models at: {self.ultralytics_path}")
@@ -45,11 +60,25 @@ class DetailerService:
         try:
             from ultralytics import YOLO
 
-            model_path = self.ultralytics_path / model_name
-            if not model_path.exists():
-                raise FileNotFoundError(f"Model not found: {model_path}")
+            requested_path = Path(model_name)
+            candidate_paths = []
 
-            logger.info(f"Loading detection model: {model_name}")
+            if requested_path.is_absolute():
+                candidate_paths.append(requested_path)
+            else:
+                candidate_paths.append(self.ultralytics_path / requested_path)
+                candidate_paths.append(self.models_base_path / requested_path)
+
+            model_path = None
+            for candidate in candidate_paths:
+                if candidate.exists():
+                    model_path = candidate
+                    break
+
+            if model_path is None:
+                raise FileNotFoundError(f"Model not found: {self.ultralytics_path / requested_path}")
+
+            logger.info(f"Loading detection model '{model_name}' from: {model_path}")
             model = YOLO(str(model_path))
             self.loaded_models[model_name] = model
 
@@ -61,6 +90,29 @@ class DetailerService:
         except Exception as e:
             logger.error(f"Failed to load model {model_name}: {e}")
             raise
+
+    def _resolve_base_path(self, override_path: Optional[str]) -> Path:
+        """
+        Resolve the base models directory.
+
+        Preference order:
+        1. Provided override path
+        2. ConfigManager.models_base_path (if available)
+        3. Project-root/models fallback
+        """
+        if override_path:
+            return Path(override_path)
+
+        try:
+            from backend.models.config_manager import get_config_manager
+            config_manager = get_config_manager()
+            if config_manager:
+                return config_manager.models_base_path
+        except Exception as e:
+            logger.debug(f"DetailerService config resolution failed, using fallback: {e}")
+
+        project_root = Path(__file__).resolve().parents[2]
+        return project_root / "models"
 
     def detect_objects(
         self,

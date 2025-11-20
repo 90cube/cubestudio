@@ -6,6 +6,7 @@ Provides endpoints for Stable Diffusion T2I and I2I image generation.
 import logging
 import io
 import base64
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
@@ -156,10 +157,36 @@ async def generate_images(
         logger.info(f"Generation request origin: {origin}")
 
 
-        # Check if pipeline is initialized
+        # Check if pipeline is initialized / needs checkpoint swap
         status = sd_service.get_status()
-        if not status.get("initialized"):
-            # Initialize with base model if provided
+        config_manager = getattr(api_request.app.state, 'config', None)
+        checkpoints_root = Path(config_manager.checkpoints_path) if config_manager else None
+
+        def normalize_path(path_value):
+            if not path_value:
+                return None
+            candidate = Path(path_value)
+            if checkpoints_root and not candidate.is_absolute():
+                candidate = checkpoints_root / candidate
+            try:
+                candidate = candidate.resolve()
+            except Exception:
+                pass
+            normalized = candidate.as_posix()
+            if os.name == "nt":
+                normalized = normalized.lower()
+            return normalized
+
+        current_checkpoint = status.get("checkpoint")
+        current_normalized = normalize_path(current_checkpoint)
+        requested_normalized = normalize_path(request.base_model)
+
+        needs_reload = not status.get("initialized")
+        if not needs_reload and requested_normalized and requested_normalized != current_normalized:
+            logger.info(f"Checkpoint change requested: {current_normalized} -> {requested_normalized}")
+            needs_reload = True
+
+        if needs_reload:
             if request.base_model:
                 init_result = sd_service.initialize_pipeline(
                     checkpoint_path=request.base_model,
@@ -383,7 +410,13 @@ async def apply_detailers(
         # Get detailer service
         if not hasattr(api_request.app.state, 'detailer_service'):
             from backend.services.detailer_service import DetailerService
-            api_request.app.state.detailer_service = DetailerService()
+
+            config_manager = getattr(api_request.app.state, 'config', None)
+            models_base_path = str(config_manager.models_base_path) if config_manager else None
+
+            api_request.app.state.detailer_service = DetailerService(
+                models_base_path=models_base_path
+            )
 
         detailer_service = api_request.app.state.detailer_service
 
@@ -455,24 +488,6 @@ async def apply_detailers(
 
                         logger.info(f"Detected {len(detections)} objects")
 
-                        # Create masks for all detections
-                        masks = []
-                        for detection in detections:
-                            mask = detailer_service.create_mask_from_detection(
-                                detection,
-                                current_image.size,
-                                padding=mask_padding,
-                                blur=mask_blur
-                            )
-                            masks.append(mask)
-
-                        # Merge all masks into single mask
-                        merged_mask = detailer_service.merge_masks(masks)
-
-                        if merged_mask is None:
-                            logger.warning("Failed to create merged mask, skipping detailer")
-                            continue
-
                         # Set scheduler
                         sampler_key = detailer_config.sampler or ''
                         scheduler_name = sampler_map.get(sampler_key, sampler_key.lower().replace(' ', '_') if sampler_key else None)
@@ -488,7 +503,7 @@ async def apply_detailers(
                                     f"Detailer {detailer_name}: failed to set scheduler {scheduler_name} - {scheduler_result.get('error')}"
                                 )
 
-                        # Perform inpainting with mask
+                        # Prepare detailer parameters
                         denoise = max(0.0, min(1.0, detailer_config.denoise if detailer_config.denoise is not None else 0.4))
                         steps = detailer_config.steps or 20
                         guidance_scale = detailer_config.cfg_scale if detailer_config.cfg_scale is not None else 7.0
@@ -497,37 +512,41 @@ async def apply_detailers(
                         prompt = detailer_config.prompt if detailer_config.prompt else main_prompt
                         negative_prompt = detailer_config.negative_prompt if detailer_config.negative_prompt else main_negative
 
-                        logger.info(f"Performing inpainting with mask (denoise={denoise}, steps={steps}, prompt={'custom' if detailer_config.prompt else 'inherited'})")
+                        logger.info(
+                            f"Applying ComfyUI-style detailer: "
+                            f"detections={len(detections)}, denoise={denoise}, "
+                            f"steps={steps}, prompt={'custom' if detailer_config.prompt else 'inherited'}"
+                        )
 
-                        # Use I2I with strength as inpainting
-                        # TODO: Replace with actual inpainting pipeline when available
-                        detail_result = sd_service.generate_i2i(
+                        # ✅ Use ComfyUI-style Latent-based Detailer + Refinement Pass
+                        detail_result = sd_service.generate_detailer(
+                            image=current_image,
+                            detections=detections,
                             prompt=prompt,
-                            init_image=current_image,
                             negative_prompt=negative_prompt,
+                            guide_size=512,  # 고정 guide size (추후 config로 변경 가능)
+                            crop_factor=3.0,  # BBox 확장 비율 (3.0 for hands/small objects)
+                            feather_pixels=32,  # Feathering 범위 (16 → 32 증가)
                             strength=denoise,
                             num_inference_steps=steps,
                             guidance_scale=guidance_scale,
-                            seed=-1,
-                            batch_size=1
+                            seed=-1,  # Random seed (추후 사용자 입력 가능)
+                            refine_whole=True,  # Refinement pass 활성화
+                            refine_strength=0.25,  # 낮은 denoise로 경계 자연스럽게
+                            min_crop_size=32  # 최소 crop 크기 (32 for hands)
                         )
 
                         if detail_result.get('success') and detail_result.get('images'):
-                            inpainted_image = detail_result['images'][0]
-                            if not isinstance(inpainted_image, Image.Image):
-                                inpainted_image = Image.open(io.BytesIO(inpainted_image)).convert("RGB")
+                            current_image = detail_result['images'][0]
+                            processed_count = detail_result.get('processed_count', 0)
 
-                            # Apply inpainted region using mask
-                            current_image = detailer_service.apply_inpainted_region(
-                                current_image,
-                                inpainted_image,
-                                merged_mask
+                            logger.info(
+                                f"Detailer {detailer_name} applied successfully: "
+                                f"{processed_count} detections processed"
                             )
-
-                            logger.info(f"Detailer {detailer_name} applied successfully with detection")
                         else:
                             logger.warning(
-                                f"Detailer {detailer_name} inpainting failed: {detail_result.get('error')}"
+                                f"Detailer {detailer_name} failed: {detail_result.get('error')}"
                             )
 
                     else:

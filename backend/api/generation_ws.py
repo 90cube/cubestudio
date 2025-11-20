@@ -7,6 +7,7 @@ import logging
 import io
 import base64
 import asyncio
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
@@ -123,11 +124,24 @@ async def websocket_generate_endpoint(
         current_checkpoint = status.get("checkpoint")
         needs_reload = False
 
-        # Normalize paths for comparison (handle forward/backward slashes and case)
-        def normalize_path(path):
-            if not path:
+        config_manager = getattr(websocket.app.state, 'config', None)
+        checkpoints_root = Path(config_manager.checkpoints_path) if config_manager else None
+
+        # Normalize paths for comparison (handle relative paths, case, separators)
+        def normalize_path(path_value):
+            if not path_value:
                 return None
-            return str(path).replace('\\', '/').strip()
+            candidate = Path(path_value)
+            if checkpoints_root and not candidate.is_absolute():
+                candidate = checkpoints_root / candidate
+            try:
+                candidate = candidate.resolve()
+            except Exception:
+                pass
+            normalized = candidate.as_posix()
+            if os.name == "nt":
+                normalized = normalized.lower()
+            return normalized
 
         current_normalized = normalize_path(current_checkpoint)
         requested_normalized = normalize_path(request.base_model)
@@ -181,6 +195,9 @@ async def websocket_generate_endpoint(
         sampler_map = {
             "DPM++ 2M": "dpm++_2m",
             "DPM++ 2M Karras": "dpm++_2m",
+            "DPM++ 2M SDE": "dpm++_2m_sde",
+            "DPM++ 2M SDE Karras": "dpm++_2m_sde",
+            "DPM++ 3M SDE Karras": "dpm++_3m_sde",
             "DPM++ SDE": "dpm++_sde",
             "DPM++ SDE Karras": "dpm++_sde",
             "Euler": "euler",
@@ -195,7 +212,7 @@ async def websocket_generate_endpoint(
             "DPM2 a": "dpm2_a"
         }
 
-        scheduler_name = sampler_map.get(request.sampler, request.sampler.lower())
+        scheduler_name = sampler_map.get(request.sampler, request.sampler.lower().replace(" ", "_"))
         sd_service.set_scheduler(scheduler_name=scheduler_name, use_karras=request.use_karras)
 
         # Load LoRAs if provided
