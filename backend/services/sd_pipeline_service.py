@@ -1182,16 +1182,13 @@ class SDPipelineService:
                     pooled_prompt_embeds
                 ])
 
-                # Prepare time_ids: [original_size, crop_coords, target_size]
-                add_time_ids = torch.tensor([
-                    list(original_size) + [0, 0] + list(target_size)
-                ], dtype=torch.float32, device=self.device)
-                # Duplicate for CFG (negative + positive)
-                add_time_ids = torch.cat([add_time_ids, add_time_ids])
-
                 added_cond_kwargs = {
                     "text_embeds": pooled_prompt_embeds_combined,
-                    "time_ids": add_time_ids
+                    "time_ids": self._build_time_ids(
+                        original_size=original_size,
+                        crop_region=(0, 0, 0, 0),
+                        target_size=target_size
+                    )
                 }
 
             else:
@@ -1231,6 +1228,50 @@ class SDPipelineService:
         except Exception as e:
             logger.error(f"Text embedding preparation failed: {e}")
             raise
+
+    def _build_time_ids(
+        self,
+        original_size: tuple,
+        crop_region: tuple,
+        target_size: tuple
+    ) -> torch.Tensor:
+        """Build SDXL time_ids tensor."""
+        orig_w, orig_h = original_size
+        tgt_w, tgt_h = target_size
+        x1, y1, _, _ = crop_region
+
+        data = [
+            float(orig_h), float(orig_w),
+            float(y1), float(x1),
+            float(tgt_h), float(tgt_w)
+        ]
+        time_ids = torch.tensor(
+            [data],
+            dtype=torch.float32,
+            device=self.device
+        )
+        return torch.cat([time_ids, time_ids])
+
+    def _calculate_processing_size(
+        self,
+        original_size: tuple,
+        guide_size: int
+    ) -> tuple:
+        """Determine processing resolution while preserving aspect ratio."""
+        width, height = original_size
+        if width <= 0 or height <= 0:
+            return (guide_size, guide_size)
+
+        target_dim = max(guide_size, 8)
+        max_dim = max(width, height)
+        scale = target_dim / max_dim if max_dim > 0 else 1.0
+
+        def _round_to_multiple(value: float, multiple: int = 8) -> int:
+            return max(multiple, int(round(value / multiple) * multiple))
+
+        new_width = _round_to_multiple(width * scale)
+        new_height = _round_to_multiple(height * scale)
+        return (new_width, new_height)
 
     def _partial_denoise(
         self,
@@ -1448,6 +1489,7 @@ class SDPipelineService:
 
             # 2. Helper 초기화
             latent_helper = LatentHelper(self.img2img_pipe.vae, self.device)
+            base_image_size = tuple(image.size)
 
             # 3. Seed 설정
             generator = torch.Generator(device=self.device)
@@ -1459,11 +1501,11 @@ class SDPipelineService:
                 actual_seed = generator.initial_seed()
 
             # 4. Text embeddings 준비
-            prompt_embeddings, added_cond_kwargs = self._prepare_text_embeddings(
+            prompt_embeddings, base_added_cond_kwargs = self._prepare_text_embeddings(
                 prompt,
                 negative_prompt,
-                original_size=(guide_size, guide_size),
-                target_size=(guide_size, guide_size)
+                original_size=base_image_size,
+                target_size=base_image_size
             )
 
             # 5. 현재 이미지 (각 detection 처리마다 누적)
@@ -1471,38 +1513,54 @@ class SDPipelineService:
 
             # 6. 각 detection 순차 처리
             for idx, seg in enumerate(segs_data):
-                logger.info(
-                    f"Processing detection {idx+1}/{len(segs_data)}: "
-                    f"confidence={seg['confidence']:.3f}, "
-                    f"bbox={seg['original_bbox']}"
-                )
-
-                # 6.1 Crop된 영역 가져오기
+                # 6.1 Crop과 마스크 추출
                 cropped_img = seg['cropped_image']
                 cropped_mask = seg['cropped_mask']
                 crop_region = seg['crop_region']
-
-                # 6.2 Guide size로 확대
                 original_size = cropped_img.size
+                processing_size = self._calculate_processing_size(
+                    original_size,
+                    guide_size
+                )
+
+                logger.info(
+                    f"Processing detection {idx+1}/{len(segs_data)}: "
+                    f"confidence={seg['confidence']:.3f}, "
+                    f"bbox={seg['original_bbox']}, "
+                    f"crop_size={original_size}, process_size={processing_size}"
+                )
+
+                # 6.2 Guide size로 정규화
                 resized_img = cropped_img.resize(
-                    (guide_size, guide_size),
+                    processing_size,
                     Image.LANCZOS
                 )
                 resized_mask = cropped_mask.resize(
-                    (guide_size, guide_size),
+                    processing_size,
                     Image.LANCZOS
                 )
 
                 logger.debug(
-                    f"  Resized: {original_size} → {resized_img.size}"
+                    f"  Resized: {original_size} -> {resized_img.size}"
                 )
 
-                # 6.3 Latent 처리
+                # 6.3 Latent 변환
                 latents_init = latent_helper.encode_image(resized_img)
                 latent_mask = latent_helper.create_latent_mask(
                     resized_mask,
                     latents_init.shape
                 )
+
+                detection_added_cond_kwargs = None
+                if base_added_cond_kwargs:
+                    detection_added_cond_kwargs = {
+                        "text_embeds": base_added_cond_kwargs["text_embeds"],
+                        "time_ids": self._build_time_ids(
+                            original_size=base_image_size,
+                            crop_region=crop_region,
+                            target_size=original_size
+                        )
+                    }
 
                 # 6.4 Partial denoising
                 processed_latent = self._partial_denoise(
@@ -1513,20 +1571,20 @@ class SDPipelineService:
                     num_inference_steps,
                     guidance_scale,
                     generator,
-                    added_cond_kwargs=added_cond_kwargs
+                    added_cond_kwargs=detection_added_cond_kwargs
                 )
 
                 # 6.5 Decode
                 processed_img = latent_helper.decode_latent(processed_latent)
 
-                # 6.6 원래 크기로 축소
+                # 6.6 원래 크기로 복원
                 processed_img = processed_img.resize(
                     original_size,
                     Image.LANCZOS
                 )
 
                 logger.debug(
-                    f"  Resized back: {guide_size}x{guide_size} → {original_size}"
+                    f"  Resized back: {processing_size} -> {original_size}"
                 )
 
                 # 6.7 Feather blending
@@ -1537,12 +1595,12 @@ class SDPipelineService:
                     feather_pixels=feather_pixels
                 )
 
-                # 6.8 원본 이미지에 붙여넣기
+                # 6.8 결과 이미지를 원본에 붙여넣기
                 current_image = SEGSHelper.paste_segment(
                     current_image,
                     blended,
                     crop_region,
-                    mask=None  # 이미 블렌딩됨
+                    mask=None  # 이미 Feather blending 적용됨
                 )
 
                 logger.info(
