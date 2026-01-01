@@ -80,7 +80,7 @@ class SDPipelineService:
         """
         try:
             logger.info(f"Initializing SD pipeline with checkpoint: {checkpoint_path}")
-
+            
             # Resolve full checkpoint path
             full_checkpoint_path = self._resolve_checkpoint_path(checkpoint_path)
 
@@ -103,16 +103,39 @@ class SDPipelineService:
             logger.info(f"Detected model type: {'SDXL' if is_sdxl else 'SD 1.5'}")
 
             # Initialize T2I pipeline from checkpoint
-            # SDXL and SD 1.5 have different initialization parameters
             import time
             load_start = time.time()
             logger.info("⏱️ Starting pipeline loading from checkpoint...")
 
-            # ⚡ RTX 4090 Optimized loading
+            # ⚡ Hardware-Aware Auto-Configuration
+            vram_gb = 0
+            gpu_arch = 0
+            if torch.cuda.is_available():
+                props = torch.cuda.get_device_properties(0)
+                vram_gb = props.total_memory / (1024**3)
+                gpu_arch = props.major
+                logger.info(f"🖥️ Hardware detected: {props.name} ({vram_gb:.1f}GB VRAM, Arch {gpu_arch}.{props.minor})")
+
+            # 1. TF32 Optimization (Ampere+ / Arch 8.0+)
+            if gpu_arch >= 8:
+                torch.backends.cuda.matmul.allow_tf32 = True
+                torch.backends.cudnn.allow_tf32 = True
+                logger.info("🚀 TF32 Enabled (Ampere+ GPU detected)")
+
+            # 2. Loading Strategy
+            # ⚡ ACCELERATE MODE (Fastest Loading)
+            # Use 'low_cpu_mem_usage=True' with 'device_map="auto"' for instant loading.
+            # We SKIP hook removal because it takes too long (100s+) and is unnecessary on 4090.
+            import gc
+            gc.collect()
+            torch.cuda.empty_cache()
+            
             common_kwargs = {
                 "torch_dtype": torch.float16 if torch.cuda.is_available() else torch.float32,
                 "use_safetensors": full_checkpoint_path.suffix == '.safetensors',
-                "variant": "fp16",  # Use FP16 variant configs
+                "variant": "fp16",
+                "low_cpu_mem_usage": True,   # ⚡ Enable accelerate (Fast loading)
+                "device_map": "auto",        # ⚡ Auto-place on GPU (Fits easily on 4090)
             }
 
             # Try local-only first (fast path)
@@ -121,14 +144,14 @@ class SDPipelineService:
                 if is_sdxl:
                     self.txt2img_pipe = pipeline_class.from_single_file(
                         str(full_checkpoint_path),
-                        local_files_only=True,  # ⚡ No HuggingFace downloads
+                        local_files_only=True,
                         **common_kwargs
                     )
                 else:
                     self.txt2img_pipe = pipeline_class.from_single_file(
                         str(full_checkpoint_path),
                         load_safety_checker=False,
-                        local_files_only=True,  # ⚡ No HuggingFace downloads
+                        local_files_only=True,
                         **common_kwargs
                     )
                 logger.info("✅ Loaded from cache (no network)")
@@ -138,7 +161,7 @@ class SDPipelineService:
                 if is_sdxl:
                     self.txt2img_pipe = pipeline_class.from_single_file(
                         str(full_checkpoint_path),
-                        local_files_only=False,  # Download configs
+                        local_files_only=False,
                         **common_kwargs
                     )
                 else:
@@ -153,28 +176,56 @@ class SDPipelineService:
             load_time = time.time() - load_start
             logger.info(f"⏱️ Pipeline loaded in {load_time:.2f}s")
 
-            # ⚡ GPU transfer
+            # ⚡ GPU transfer & Optimization
             device_time = 0
             if torch.cuda.is_available():
                 device_start = time.time()
-                logger.info("⚡ Transferring to GPU...")
+                logger.info("⚡ Optimizing GPU memory (SDPA)...")
 
-                # Transfer entire pipeline to GPU at once
-                self.txt2img_pipe.to(self.device)
+                # Note: We do NOT remove hooks here anymore.
+                # On RTX 4090, device_map="auto" puts everything on GPU.
+                # The hook overhead is negligible compared to the 100s+ removal time.
+                
+                # ⚡ Enforce PyTorch SDPA (Cross Attention)
+                from diffusers.models.attention_processor import AttnProcessor2_0
+                self.txt2img_pipe.unet.set_attn_processor(AttnProcessor2_0())
+                if hasattr(self.txt2img_pipe, "vae"):
+                    self.txt2img_pipe.vae.set_attn_processor(AttnProcessor2_0())
+                logger.info("✅ Enforced PyTorch SDPA (Cross Attention)")
+
                 torch.cuda.synchronize()
-
                 device_time = time.time() - device_start
-                logger.info(f"⚡ GPU transfer: {device_time:.2f}s")
-
+                logger.info(f"⚡ Optimization complete: {device_time:.2f}s")
+                
                 # Apply optimizations
                 opt_start = time.time()
 
-                # PyTorch 2.0+ SDPA (10-45% faster than xFormers on RTX 4090)
-                logger.info("✅ Using PyTorch 2.0+ SDPA (optimized for RTX 4090)")
+                # PyTorch 2.0+ SDPA
+                logger.info("✅ Using PyTorch 2.0+ SDPA")
 
-                # VAE optimizations
-                self.txt2img_pipe.enable_vae_slicing()
-                self.txt2img_pipe.enable_vae_tiling()
+                # 3. Dynamic VAE Optimization
+                if vram_gb > 16:
+                    self.txt2img_pipe.disable_vae_slicing()
+                    self.txt2img_pipe.disable_vae_tiling()
+                    logger.info(f"🚀 High VRAM ({vram_gb:.1f}GB) detected: VAE Slicing/Tiling DISABLED for maximum speed")
+                else:
+                    self.txt2img_pipe.enable_vae_slicing()
+                    self.txt2img_pipe.enable_vae_tiling()
+                    logger.info(f"🛡️ Standard VRAM ({vram_gb:.1f}GB) detected: VAE Slicing/Tiling ENABLED for stability")
+
+                # 4. Channels Last Optimization (ComfyUI-like speedup)
+                if gpu_arch >= 7:  # Volta+
+                    self.txt2img_pipe.unet.to(memory_format=torch.channels_last)
+                    self.txt2img_pipe.vae.to(memory_format=torch.channels_last)
+                    if hasattr(self.txt2img_pipe, "controlnet") and self.txt2img_pipe.controlnet:
+                         self.txt2img_pipe.controlnet.to(memory_format=torch.channels_last)
+                    logger.info("🚀 Channels Last memory format applied (Speed optimization)")
+
+                # Verify Device Placement
+                unet_device = self.txt2img_pipe.unet.device
+                logger.info(f"🔍 UNet Device: {unet_device}")
+                if unet_device.type == 'cpu':
+                    logger.warning("⚠️ UNet is on CPU! Performance will be degraded.")
 
                 # torch.compile() for additional speedup (optional)
                 # Disabled by default due to first-run compilation overhead
@@ -1411,7 +1462,7 @@ class SDPipelineService:
         num_inference_steps: int = 20,
         guidance_scale: float = 7.5,
         seed: int = -1,
-        refine_whole: bool = True,
+        refine_whole: bool = False,  # ⚡ Default to False to preserve details
         refine_strength: float = 0.25,
         min_crop_size: int = 32
     ) -> Dict[str, Any]:

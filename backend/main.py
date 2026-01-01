@@ -39,6 +39,7 @@ from .api.pose import router as pose_router
 from .api.generation import router as generation_router
 from .api.generation_ws import router as generation_ws_router
 from .api.controlnet import router as controlnet_router
+from .api.upscale import router as upscale_router
 
 # Initialize configuration
 config_manager = get_config_manager()
@@ -206,6 +207,7 @@ def create_app() -> FastAPI:
     app.include_router(generation_router, prefix="/api", tags=["generation"])
     app.include_router(generation_ws_router, prefix="/api", tags=["generation-websocket"])
     app.include_router(controlnet_router, tags=["controlnet"])
+    app.include_router(upscale_router, tags=["upscale"])
 
     # Mount output folder as static files (for generated images)
     output_path = Path("output")

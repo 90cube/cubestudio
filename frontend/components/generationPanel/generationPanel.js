@@ -270,11 +270,13 @@ export class GenerationPanel {
                             ></textarea>
                             <!-- Positive 프리셋 버튼들 -->
                             <div class="preset-section" data-type="positive">
+                                <button class="preset-scroll-btn left" data-target="positive-preset-buttons">◀</button>
                                 <div class="preset-buttons-wrapper">
                                     <div class="preset-buttons" id="positive-preset-buttons">
                                         <!-- 프리셋 버튼들이 동적으로 추가됨 -->
                                     </div>
                                 </div>
+                                <button class="preset-scroll-btn right" data-target="positive-preset-buttons">▶</button>
                             </div>
                         </div>
                         
@@ -291,11 +293,13 @@ export class GenerationPanel {
                             ></textarea>
                             <!-- Negative 프리셋 버튼들 -->
                             <div class="preset-section" data-type="negative">
+                                <button class="preset-scroll-btn left" data-target="negative-preset-buttons">◀</button>
                                 <div class="preset-buttons-wrapper">
                                     <div class="preset-buttons" id="negative-preset-buttons">
                                         <!-- 프리셋 버튼들이 동적으로 추가됨 -->
                                     </div>
                                 </div>
+                                <button class="preset-scroll-btn right" data-target="negative-preset-buttons">▶</button>
                             </div>
                         </div>
                     </div>
@@ -546,8 +550,15 @@ export class GenerationPanel {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 12px;
+                width: 100%;
+                overflow: hidden;
             }
-            
+
+            .prompt-group {
+                min-width: 0;
+                overflow: hidden;
+            }
+
             .prompt-group .prompt-header {
                 display: flex;
                 justify-content: space-between;
@@ -566,6 +577,13 @@ export class GenerationPanel {
                 margin-top: 8px;
                 padding: 8px 0;
                 border-top: 1px solid rgba(134, 142, 150, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                position: relative;
+                width: 100%;
+                max-width: 100%;
+                overflow: hidden;
             }
             
             .preset-navigation {
@@ -610,12 +628,43 @@ export class GenerationPanel {
                 text-align: center;
             }
             
+            /* 프리셋 스크롤 버튼 */
+            .preset-scroll-btn {
+                background: linear-gradient(145deg, #2a3038 0%, #32383f 100%);
+                border: 1px solid rgba(108, 182, 255, 0.3);
+                color: #6cb6ff;
+                width: 24px;
+                height: 24px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+                user-select: none;
+                padding: 0;
+            }
+
+            .preset-scroll-btn:hover {
+                background: linear-gradient(145deg, #32383f 0%, #3a4048 100%);
+                border-color: rgba(108, 182, 255, 0.5);
+                transform: scale(1.05);
+            }
+
+            .preset-scroll-btn:active {
+                transform: scale(0.95);
+            }
+
             /* 프리셋 버튼 컨테이너 */
             .preset-buttons-wrapper {
-                position: relative;
+                flex: 1;
+                min-width: 0;
                 overflow: hidden;
+                position: relative;
             }
-            
+
             .preset-buttons {
                 display: flex;
                 gap: 4px;
@@ -623,23 +672,13 @@ export class GenerationPanel {
                 scrollbar-width: none; /* Firefox */
                 -ms-overflow-style: none; /* IE/Edge */
                 padding: 2px 0;
+                scroll-behavior: smooth;
+                width: 100%;
+                min-width: 0;
             }
-            
+
             .preset-buttons::-webkit-scrollbar {
                 display: none; /* Chrome/Safari */
-            }
-            
-            /* 우측 페이드 효과 */
-            .preset-buttons-wrapper::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 30px;
-                height: 100%;
-                background: linear-gradient(to left, #1e1e1e 0%, transparent 100%);
-                pointer-events: none;
-                z-index: 1;
             }
             
             .preset-btn {
@@ -1028,7 +1067,25 @@ export class GenerationPanel {
                 const presetIndex = parseInt(e.target.dataset.presetIndex);
                 this.selectPreset(type, presetIndex);
             }
+
+            // 스크롤 버튼 클릭 처리
+            if (e.target.classList.contains('preset-scroll-btn')) {
+                const targetId = e.target.dataset.target;
+                const direction = e.target.classList.contains('left') ? -1 : 1;
+                this.scrollPresets(targetId, direction);
+            }
         });
+    }
+
+    /**
+     * 프리셋 컨테이너 스크롤
+     */
+    scrollPresets(targetId, direction) {
+        const container = document.getElementById(targetId);
+        if (!container) return;
+
+        const scrollAmount = 200; // 한 번에 스크롤할 픽셀 수
+        container.scrollLeft += scrollAmount * direction;
     }
     
     /**
@@ -1997,7 +2054,7 @@ export class GenerationPanel {
     async getPresetFileList(folder) {
         // 알려진 파일 목록 (실제 디렉터리 스캔 결과에 기반)
         const knownFiles = {
-            'posprpt': ['anime_style.json', 'epic_style.json', 'high_quality.json', 'ultra_quality.json', 'default.txt', 'portrait.txt'],
+            'posprpt': ['anime_style.json', 'epic_style.json', 'high_quality.json', 'ultra_quality.json', 'default.txt', 'portrait.txt', 'test_character_1.txt', 'test_character_2.txt', 'test_character_3.txt', 'test_character_4.txt'],
             'negprpt': ['basic.json', 'painting.json', 'default.txt', 'strong.txt']
         };
         return knownFiles[folder] || [];

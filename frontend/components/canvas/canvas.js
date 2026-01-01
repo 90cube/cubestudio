@@ -5,6 +5,7 @@ import stateManager from '../../core/stateManager.js';
 import { getNodeRect, init as initCoordinates, screenToCanvas } from '../../core/coordinates.js';
 import { showElementsMenu, isElementsMenuOpen } from '../elementsMenu/elementsMenu.js';
 import { FONT_LIST } from '../../constants/fonts.js';
+import { openUpscalePanel } from '../upscale/upscalePanel.js';
 
 let stage;
 let layer;
@@ -1268,14 +1269,31 @@ function showPreprocessedImageContextMenu(imageNode, pointerPosition) {
     
     // 메뉴 아이템들 생성
     const menuItems = [
-        { icon: '📷', type: 'normal', label: 'Normal Image' },
-        { icon: '⚙️', type: 'preproc', label: 'Preprocessed Image' }
+        { icon: '📷', type: 'normal', label: 'Normal Image', itemType: 'toggle' },
+        { icon: '⚙️', type: 'preproc', label: 'Preprocessed Image', itemType: 'toggle' },
+        { icon: '---', itemType: 'separator' },
+        { icon: '⬆️', label: 'Upscale Image', itemType: 'action', action: () => openUpscalePanel(imageNode) }
     ];
-    
+
     menuItems.forEach(item => {
+        // 구분선 처리
+        if (item.itemType === 'separator') {
+            const separator = document.createElement('div');
+            separator.style.cssText = `
+                height: 1px;
+                background: rgba(255, 255, 255, 0.1);
+                margin: 4px 0;
+            `;
+            contextMenu.appendChild(separator);
+            return;
+        }
+
         const menuItem = document.createElement('div');
         menuItem.className = 'context-menu-item';
         menuItem.innerHTML = `${item.icon} ${item.label}`;
+
+        const isActive = item.itemType === 'toggle' && imageNode.getAttr('imageType') === item.type;
+
         menuItem.style.cssText = `
             padding: 8px 12px;
             cursor: pointer;
@@ -1285,28 +1303,32 @@ function showPreprocessedImageContextMenu(imageNode, pointerPosition) {
             align-items: center;
             gap: 8px;
             transition: background 0.2s ease;
-            ${imageNode.getAttr('imageType') === item.type ? 'background: rgba(139, 92, 246, 0.2);' : ''}
+            ${isActive ? 'background: rgba(139, 92, 246, 0.2);' : ''}
         `;
-        
+
         // 호버 효과
         menuItem.addEventListener('mouseenter', () => {
-            if (imageNode.getAttr('imageType') !== item.type) {
+            if (!isActive) {
                 menuItem.style.background = 'rgba(255, 255, 255, 0.1)';
             }
         });
-        
+
         menuItem.addEventListener('mouseleave', () => {
-            if (imageNode.getAttr('imageType') !== item.type) {
+            if (!isActive) {
                 menuItem.style.background = 'none';
             }
         });
-        
+
         // 클릭 이벤트
         menuItem.addEventListener('click', () => {
-            changeImageType(imageNode, item.type);
+            if (item.itemType === 'toggle') {
+                changeImageType(imageNode, item.type);
+            } else if (item.itemType === 'action' && item.action) {
+                item.action();
+            }
             removeExistingContextMenu();
         });
-        
+
         contextMenu.appendChild(menuItem);
     });
     

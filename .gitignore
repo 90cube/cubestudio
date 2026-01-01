@@ -1,89 +1,89 @@
-# Ignore virtual environment
+# Virtual Environment
 .venv/
+venv/
+env/
 
-# Ignore python cache
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
 
-# Ignore environment configuration
+# Environment Variables
 .env
-temp/
+.env.local
 
-# Ignore claude files
-.claude/
-CLAUDE.md
-
-# Ignore models
-models/
-
-# Ignore renewal directory
-renewal/
-
-# Ignore output directory
-output/
-
-# Ignore cache directory (converted LoRAs, etc.)
-cache/
-
-# Ignore node modules
+# Node.js
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Ignore logs
-*.log
+# Logs
 logs/
+*.log
 backend.log
 frontend.log
 unified_backend.log
 modular_backend.log
 
-# Ignore debug and temporary files
+# Temporary & Cache Files
 *.tmp
 *.temp
+*.bak
+*.backup
+*.backup2
+cache/
+temp/
+.cache/
+.pytest_cache/
+
+# Model Weights & Large Files (CRITICAL: Do not commit these)
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
+*.h5
+*.tflite
+*.pb
+*.pkl
+
+# Specific Model Directories (Keep folder but ignore contents)
+# backend/models/ usually contains code, but if you put weights in a subfolder:
+backend/models/weights/
+backend/models/checkpoints/
+
+# Preprocessors & Archives
+preprocessors/
+models_arch/
+
+# Development & Test Artifacts
+TEST_REPORT.md
+test_image_b64.txt
+test*.html
 *_test.*
 test_*
 debug_*
 *_debug.*
-*.bak
-*.backup
-*.backup2
-
-# Ignore font files
-assets/fonts/*.ttf
-assets/fonts/*.otf
-assets/fonts/*.woff
-assets/fonts/*.woff2
-*.ttf
-*.otf
-*.woff
-*.woff2
-
-# Ignore test files
-test*.html
-scrollbar-test.html
-test-*.html
-
-# Ignore development artifacts
-TEST_REPORT.md
-package-lock.json
-nul
-test_image_b64.txt
-
-# Ignore cleanup folder
-to_delete_in_renewal/
-
-# Ignore cleaned directories and deprecated files
-renewal/
-temp/
 *.ws_backup
-*_deprecated
-*_deprecated.*
+*_deprecated*
 
-# Ignore preprocessor models and archives
-preprocessors/
-models_arch/
+# Editor/IDE
+.vscode/
+.idea/
+.claude/
+CLAUDE.md
+*.swp
+*.swo
+nul
+package-lock.json
 
-# Ignore enhanced processor files
-ENHANCED_PREPROCESSORS_README.md
-enhanced_backend_patch.py
-integrate_enhanced_preprocessors.py
-test_enhanced_preprocessors.py
-test_simple.py
+# Project specific
+to_delete_in_renewal/
+renewal/
+output/
+assets/fonts/
+
+# Root models symlink/folder
+models

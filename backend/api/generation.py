@@ -198,10 +198,24 @@ async def generate_images(
                         detail=f"Failed to initialize pipeline: {init_result.get('error')}"
                     )
             else:
-                raise HTTPException(
-                    status_code=400,
-                    detail="No base model loaded. Please load a checkpoint first."
-                )
+                # Try to use the currently loaded checkpoint if available
+                if current_checkpoint:
+                    logger.info(f"No base model specified in request, using current: {current_checkpoint}")
+                    # If pipeline is not initialized but we have a checkpoint name, try to reload it
+                    init_result = sd_service.initialize_pipeline(
+                        checkpoint_path=current_checkpoint,
+                        vae_path=request.vae
+                    )
+                    if not init_result["success"]:
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Failed to restore pipeline: {init_result.get('error')}"
+                        )
+                else:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="No base model loaded. Please load a checkpoint first."
+                    )
 
         # Map UI sampler names to internal scheduler names
         sampler_map = {
@@ -518,7 +532,8 @@ async def apply_detailers(
                             f"steps={steps}, prompt={'custom' if detailer_config.prompt else 'inherited'}"
                         )
 
-                        # ✅ Use ComfyUI-style Latent-based Detailer + Refinement Pass
+                        # ✅ Use ComfyUI-style Latent-based Detailer
+                        # Refinement Pass DISABLED to prevent "mushing" of details
                         detail_result = sd_service.generate_detailer(
                             image=current_image,
                             detections=detections,
@@ -531,8 +546,8 @@ async def apply_detailers(
                             num_inference_steps=steps,
                             guidance_scale=guidance_scale,
                             seed=-1,  # Random seed (추후 사용자 입력 가능)
-                            refine_whole=True,  # Refinement pass 활성화
-                            refine_strength=0.25,  # 낮은 denoise로 경계 자연스럽게
+                            refine_whole=False,  # ⚡ Disable Refinement Pass (Fixes blurry faces)
+                            refine_strength=0.0,
                             min_crop_size=32  # 최소 crop 크기 (32 for hands)
                         )
 
