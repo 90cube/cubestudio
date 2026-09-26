@@ -4,13 +4,16 @@ Handles T2I and I2I generation with LoRA support and various schedulers.
 """
 
 import logging
+import threading
 import torch
 import gc
 import os
 import numpy as np
+from functools import wraps
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from PIL import Image
+from safetensors import safe_open
 from safetensors.torch import load_file
 from diffusers import (
     StableDiffusionPipeline,
@@ -44,6 +47,19 @@ sys.path.append(str(PathLib(__file__).parent.parent))
 from utils.lora_converter import LoRAConverter
 
 
+def _synchronized(method):
+    """Serialize access to the shared pipeline.
+
+    The Model Explorer load button initializes the pipeline in a worker thread,
+    so a load must never tear down the pipeline while a generation is using it.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return wrapper
+
+
 class SDPipelineService:
     """Stable Diffusion pipeline service for T2I and I2I generation"""
 
@@ -65,8 +81,12 @@ class SDPipelineService:
         self.loaded_controlnets = {}  # {model_name: controlnet_model}
         self.controlnet_pipe = None
 
+        # Guards the pipeline against concurrent load/unload/generate (see _synchronized)
+        self._lock = threading.RLock()
+
         logger.info(f"SDPipelineService initialized on device: {self.device}")
 
+    @_synchronized
     def initialize_pipeline(self, checkpoint_path: str, vae_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Initialize Stable Diffusion pipeline from checkpoint
@@ -87,6 +107,23 @@ class SDPipelineService:
             if not full_checkpoint_path.exists():
                 raise FileNotFoundError(f"Checkpoint not found: {full_checkpoint_path}")
 
+            # Reuse the pipeline when this checkpoint is already loaded
+            # (e.g. the load button already built it and Generate asks again)
+            normalized_checkpoint = self._normalize_filesystem_path(full_checkpoint_path)
+            if (
+                self.txt2img_pipe is not None
+                and self.current_checkpoint == normalized_checkpoint
+                and (not vae_path or vae_path == self.current_vae)
+            ):
+                logger.info(f"✅ Checkpoint already loaded, reusing pipeline: {checkpoint_path}")
+                return {
+                    "success": True,
+                    "checkpoint": checkpoint_path,
+                    "vae": self.current_vae,
+                    "device": str(self.device),
+                    "already_loaded": True
+                }
+
             # Unload previous pipelines
             if self.txt2img_pipe is not None or self.img2img_pipe is not None:
                 self.unload_pipeline()
@@ -96,8 +133,8 @@ class SDPipelineService:
             if not checkpoint_result["success"]:
                 raise RuntimeError(f"Failed to load checkpoint: {checkpoint_result.get('error')}")
 
-            # Detect model type (SD 1.5 vs SDXL) from path or name
-            is_sdxl = any(keyword in checkpoint_path.upper() for keyword in ['SDXL', 'XL'])
+            # Detect model type (SD 1.5 vs SDXL) from the checkpoint's tensor keys
+            is_sdxl = self._detect_sdxl(full_checkpoint_path, name_hint=checkpoint_path)
             pipeline_class = StableDiffusionXLPipeline if is_sdxl else StableDiffusionPipeline
 
             logger.info(f"Detected model type: {'SDXL' if is_sdxl else 'SD 1.5'}")
@@ -123,9 +160,8 @@ class SDPipelineService:
                 logger.info("🚀 TF32 Enabled (Ampere+ GPU detected)")
 
             # 2. Loading Strategy
-            # ⚡ ACCELERATE MODE (Fastest Loading)
-            # Use 'low_cpu_mem_usage=True' with 'device_map="auto"' for instant loading.
-            # We SKIP hook removal because it takes too long (100s+) and is unnecessary on 4090.
+            # from_single_file ignores device_map and builds every component on the CPU,
+            # so the pipeline is moved to the GPU explicitly after loading.
             import gc
             gc.collect()
             torch.cuda.empty_cache()
@@ -135,7 +171,6 @@ class SDPipelineService:
                 "use_safetensors": full_checkpoint_path.suffix == '.safetensors',
                 "variant": "fp16",
                 "low_cpu_mem_usage": True,   # ⚡ Enable accelerate (Fast loading)
-                "device_map": "auto",        # ⚡ Auto-place on GPU (Fits easily on 4090)
             }
 
             # Try local-only first (fast path)
@@ -176,16 +211,16 @@ class SDPipelineService:
             load_time = time.time() - load_start
             logger.info(f"⏱️ Pipeline loaded in {load_time:.2f}s")
 
-            # ⚡ GPU transfer & Optimization
-            device_time = 0
+            # ⚡ GPU transfer (once per checkpoint load)
+            device_start = time.time()
+            self.txt2img_pipe.to(self.device)
+            device_time = time.time() - device_start
+            logger.info(f"⚡ Pipeline moved to {self.device} in {device_time:.2f}s")
+
+            # ⚡ Optimization
             if torch.cuda.is_available():
-                device_start = time.time()
                 logger.info("⚡ Optimizing GPU memory (SDPA)...")
 
-                # Note: We do NOT remove hooks here anymore.
-                # On RTX 4090, device_map="auto" puts everything on GPU.
-                # The hook overhead is negligible compared to the 100s+ removal time.
-                
                 # ⚡ Enforce PyTorch SDPA (Cross Attention)
                 from diffusers.models.attention_processor import AttnProcessor2_0
                 self.txt2img_pipe.unet.set_attn_processor(AttnProcessor2_0())
@@ -193,10 +228,6 @@ class SDPipelineService:
                     self.txt2img_pipe.vae.set_attn_processor(AttnProcessor2_0())
                 logger.info("✅ Enforced PyTorch SDPA (Cross Attention)")
 
-                torch.cuda.synchronize()
-                device_time = time.time() - device_start
-                logger.info(f"⚡ Optimization complete: {device_time:.2f}s")
-                
                 # Apply optimizations
                 opt_start = time.time()
 
@@ -245,7 +276,7 @@ class SDPipelineService:
             else:
                 # CPU mode
                 logger.warning("⚠️ Running on CPU (no GPU detected)")
-                total_time = load_time
+                total_time = load_time + device_time
                 logger.info(f"🎯 Total initialization: {total_time:.2f}s")
 
             # Initialize I2I pipeline (shares components with T2I)
@@ -277,7 +308,7 @@ class SDPipelineService:
                     requires_safety_checker=False
                 )
 
-            self.current_checkpoint = self._normalize_filesystem_path(full_checkpoint_path)
+            self.current_checkpoint = normalized_checkpoint
 
             # Load custom VAE if provided
             if vae_path:
@@ -352,6 +383,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def load_loras(self, loras: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Load LoRA models
@@ -657,6 +689,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def set_scheduler(self, scheduler_name: str, use_karras: bool = False) -> Dict[str, Any]:
         """
         Set scheduler for generation
@@ -724,6 +757,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def generate_t2i(
         self,
         prompt: str,
@@ -914,6 +948,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def generate_i2i(
         self,
         prompt: str,
@@ -1080,6 +1115,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def unload_pipeline(self):
         """Unload pipeline and free GPU memory"""
         try:
@@ -1121,6 +1157,23 @@ class SDPipelineService:
         if os.name == "nt":
             normalized = normalized.lower()
         return normalized
+
+    def _detect_sdxl(self, checkpoint_path: Path, name_hint: str = "") -> bool:
+        """Detect SDXL from the checkpoint's keys (header only, no tensor load).
+
+        File names are unreliable: SDXL-based models such as Pony or Illustrious
+        often have no "XL" in their name.
+        """
+        if checkpoint_path.suffix == '.safetensors':
+            try:
+                with safe_open(str(checkpoint_path), framework="pt", device="cpu") as f:
+                    # SDXL's second text encoder (OpenCLIP bigG) only exists in SDXL checkpoints
+                    return any(key.startswith("conditioner.embedders.1.") for key in f.keys())
+            except Exception as e:
+                logger.warning(f"Could not read checkpoint keys, falling back to file name: {e}")
+
+        name = (name_hint or checkpoint_path.name).upper()
+        return 'SDXL' in name or 'XL' in name
 
     def get_status(self) -> Dict[str, Any]:
         """Get current pipeline status"""

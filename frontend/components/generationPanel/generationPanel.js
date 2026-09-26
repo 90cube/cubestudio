@@ -1040,6 +1040,10 @@ export class GenerationPanel {
         // 모델 로드 이벤트 리스너
         document.addEventListener('model:selected', (e) => {
             console.log('Model loaded event received:', e.detail);
+            // VAE 선택이 base_model(체크포인트)을 덮어쓰지 않도록 체크포인트만 반영
+            if (e.detail.modelType && e.detail.modelType !== 'checkpoint') {
+                return;
+            }
             this.state.loadedModel = e.detail;
             this.updateModelDisplay();
             this.saveState();
