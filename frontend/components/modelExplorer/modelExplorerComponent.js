@@ -324,6 +324,7 @@ export class ModelExplorerComponent {
                 detail: {
                     ...this.selectedModel,
                     folderPath: this.selectedFolderPath,
+                    modelType: this.getModelType(targetFileElement),
                     restored: true
                 }
             }));
@@ -492,8 +493,8 @@ export class ModelExplorerComponent {
         this.renderFilteredVaes();
 
         // 체크포인트 모델인 경우 GPU 메모리에 로드 시도
-        const isCheckpoint = fileElement.closest('#checkpoints-content') !== null;
-        if (isCheckpoint) {
+        const modelType = this.getModelType(fileElement);
+        if (modelType === 'checkpoint') {
             await this.loadModelToGPU(this.selectedModel, fileElement);
         }
 
@@ -502,9 +503,17 @@ export class ModelExplorerComponent {
             detail: {
                 ...this.selectedModel,
                 folderPath: this.selectedFolderPath,
+                modelType,
                 loaded: this.loadedModels.has(this.selectedModel.path)
             }
         }));
+    }
+
+    /**
+     * 파일 요소가 속한 섹션으로 모델 종류 판별 ('checkpoint' | 'vae')
+     */
+    getModelType(fileElement) {
+        return fileElement.closest('#checkpoints-content') !== null ? 'checkpoint' : 'vae';
     }
 
     /**

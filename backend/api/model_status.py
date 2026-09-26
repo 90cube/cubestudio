@@ -149,24 +149,35 @@ async def load_model_by_path(request: ModelLoadRequest, api_request: Request) ->
                 request.model_path
             )
         else:
+            # Build the real SD pipeline on the GPU, so Generate can reuse it
+            # instead of loading the checkpoint from scratch
+            sd_service = getattr(api_request.app.state, 'sd_pipeline_service', None)
+            if sd_service is None:
+                raise RuntimeError("SD pipeline service not initialized")
+
             result = await loop.run_in_executor(
                 model_loading_executor,
-                checkpoint_loader.load_checkpoint,
+                sd_service.initialize_pipeline,
                 request.model_path
             )
 
         load_time = time.time() - start_time
 
         if result["success"]:
+            gpu_allocated_mb = (
+                round(torch.cuda.memory_allocated() / 1024 / 1024, 2)
+                if torch.cuda.is_available() else 0
+            )
             return {
                 "success": True,
                 "model_path": request.model_path,
                 "model_type": request.model_type,
                 "load_time_seconds": round(load_time, 3),
                 "loaded": True,
+                "already_loaded": result.get("already_loaded", False),
                 "device": result.get("device"),
                 "memory_usage": {
-                    "gpu_memory_allocated_mb": result.get("memory_after", {}).get("allocated_mb", 0)
+                    "gpu_memory_allocated_mb": result.get("memory_after", {}).get("allocated_mb", gpu_allocated_mb)
                 },
                 "memory_used_mb": result.get("memory_used_mb", 0)
             }

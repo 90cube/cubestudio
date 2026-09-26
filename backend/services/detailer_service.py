@@ -138,17 +138,24 @@ class DetailerService:
             img_array = np.array(image)
 
             # Run detection
+            # retina_masks: segmentation masks at the original image resolution
+            # (otherwise they come back at the letterboxed inference size)
             results = model.predict(
                 img_array,
                 conf=confidence,
+                retina_masks=True,
                 verbose=False
             )
 
             detections = []
 
             for result in results:
+                has_masks = hasattr(result, 'masks') and result.masks is not None
+
                 # Handle bounding box detections
-                if hasattr(result, 'boxes') and result.boxes is not None:
+                # (segmentation models also return boxes for the same objects: skip them
+                # so each object is detailed once, with its segmentation mask)
+                if not has_masks and hasattr(result, 'boxes') and result.boxes is not None:
                     boxes = result.boxes
                     for i, box in enumerate(boxes):
                         detection = {
@@ -161,7 +168,7 @@ class DetailerService:
                         detections.append(detection)
 
                 # Handle segmentation masks
-                if hasattr(result, 'masks') and result.masks is not None:
+                if has_masks:
                     masks = result.masks
                     boxes = result.boxes
 

@@ -4,13 +4,16 @@ Handles T2I and I2I generation with LoRA support and various schedulers.
 """
 
 import logging
+import threading
 import torch
 import gc
 import os
 import numpy as np
+from functools import wraps
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from PIL import Image
+from safetensors import safe_open
 from safetensors.torch import load_file
 from diffusers import (
     StableDiffusionPipeline,
@@ -44,6 +47,19 @@ sys.path.append(str(PathLib(__file__).parent.parent))
 from utils.lora_converter import LoRAConverter
 
 
+def _synchronized(method):
+    """Serialize access to the shared pipeline.
+
+    The Model Explorer load button initializes the pipeline in a worker thread,
+    so a load must never tear down the pipeline while a generation is using it.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return wrapper
+
+
 class SDPipelineService:
     """Stable Diffusion pipeline service for T2I and I2I generation"""
 
@@ -65,8 +81,12 @@ class SDPipelineService:
         self.loaded_controlnets = {}  # {model_name: controlnet_model}
         self.controlnet_pipe = None
 
+        # Guards the pipeline against concurrent load/unload/generate (see _synchronized)
+        self._lock = threading.RLock()
+
         logger.info(f"SDPipelineService initialized on device: {self.device}")
 
+    @_synchronized
     def initialize_pipeline(self, checkpoint_path: str, vae_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Initialize Stable Diffusion pipeline from checkpoint
@@ -87,6 +107,23 @@ class SDPipelineService:
             if not full_checkpoint_path.exists():
                 raise FileNotFoundError(f"Checkpoint not found: {full_checkpoint_path}")
 
+            # Reuse the pipeline when this checkpoint is already loaded
+            # (e.g. the load button already built it and Generate asks again)
+            normalized_checkpoint = self._normalize_filesystem_path(full_checkpoint_path)
+            if (
+                self.txt2img_pipe is not None
+                and self.current_checkpoint == normalized_checkpoint
+                and (not vae_path or vae_path == self.current_vae)
+            ):
+                logger.info(f"✅ Checkpoint already loaded, reusing pipeline: {checkpoint_path}")
+                return {
+                    "success": True,
+                    "checkpoint": checkpoint_path,
+                    "vae": self.current_vae,
+                    "device": str(self.device),
+                    "already_loaded": True
+                }
+
             # Unload previous pipelines
             if self.txt2img_pipe is not None or self.img2img_pipe is not None:
                 self.unload_pipeline()
@@ -96,8 +133,8 @@ class SDPipelineService:
             if not checkpoint_result["success"]:
                 raise RuntimeError(f"Failed to load checkpoint: {checkpoint_result.get('error')}")
 
-            # Detect model type (SD 1.5 vs SDXL) from path or name
-            is_sdxl = any(keyword in checkpoint_path.upper() for keyword in ['SDXL', 'XL'])
+            # Detect model type (SD 1.5 vs SDXL) from the checkpoint's tensor keys
+            is_sdxl = self._detect_sdxl(full_checkpoint_path, name_hint=checkpoint_path)
             pipeline_class = StableDiffusionXLPipeline if is_sdxl else StableDiffusionPipeline
 
             logger.info(f"Detected model type: {'SDXL' if is_sdxl else 'SD 1.5'}")
@@ -123,9 +160,8 @@ class SDPipelineService:
                 logger.info("🚀 TF32 Enabled (Ampere+ GPU detected)")
 
             # 2. Loading Strategy
-            # ⚡ ACCELERATE MODE (Fastest Loading)
-            # Use 'low_cpu_mem_usage=True' with 'device_map="auto"' for instant loading.
-            # We SKIP hook removal because it takes too long (100s+) and is unnecessary on 4090.
+            # from_single_file ignores device_map and builds every component on the CPU,
+            # so the pipeline is moved to the GPU explicitly after loading.
             import gc
             gc.collect()
             torch.cuda.empty_cache()
@@ -135,7 +171,6 @@ class SDPipelineService:
                 "use_safetensors": full_checkpoint_path.suffix == '.safetensors',
                 "variant": "fp16",
                 "low_cpu_mem_usage": True,   # ⚡ Enable accelerate (Fast loading)
-                "device_map": "auto",        # ⚡ Auto-place on GPU (Fits easily on 4090)
             }
 
             # Try local-only first (fast path)
@@ -176,16 +211,16 @@ class SDPipelineService:
             load_time = time.time() - load_start
             logger.info(f"⏱️ Pipeline loaded in {load_time:.2f}s")
 
-            # ⚡ GPU transfer & Optimization
-            device_time = 0
+            # ⚡ GPU transfer (once per checkpoint load)
+            device_start = time.time()
+            self.txt2img_pipe.to(self.device)
+            device_time = time.time() - device_start
+            logger.info(f"⚡ Pipeline moved to {self.device} in {device_time:.2f}s")
+
+            # ⚡ Optimization
             if torch.cuda.is_available():
-                device_start = time.time()
                 logger.info("⚡ Optimizing GPU memory (SDPA)...")
 
-                # Note: We do NOT remove hooks here anymore.
-                # On RTX 4090, device_map="auto" puts everything on GPU.
-                # The hook overhead is negligible compared to the 100s+ removal time.
-                
                 # ⚡ Enforce PyTorch SDPA (Cross Attention)
                 from diffusers.models.attention_processor import AttnProcessor2_0
                 self.txt2img_pipe.unet.set_attn_processor(AttnProcessor2_0())
@@ -193,10 +228,6 @@ class SDPipelineService:
                     self.txt2img_pipe.vae.set_attn_processor(AttnProcessor2_0())
                 logger.info("✅ Enforced PyTorch SDPA (Cross Attention)")
 
-                torch.cuda.synchronize()
-                device_time = time.time() - device_start
-                logger.info(f"⚡ Optimization complete: {device_time:.2f}s")
-                
                 # Apply optimizations
                 opt_start = time.time()
 
@@ -245,7 +276,7 @@ class SDPipelineService:
             else:
                 # CPU mode
                 logger.warning("⚠️ Running on CPU (no GPU detected)")
-                total_time = load_time
+                total_time = load_time + device_time
                 logger.info(f"🎯 Total initialization: {total_time:.2f}s")
 
             # Initialize I2I pipeline (shares components with T2I)
@@ -277,7 +308,7 @@ class SDPipelineService:
                     requires_safety_checker=False
                 )
 
-            self.current_checkpoint = self._normalize_filesystem_path(full_checkpoint_path)
+            self.current_checkpoint = normalized_checkpoint
 
             # Load custom VAE if provided
             if vae_path:
@@ -352,6 +383,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def load_loras(self, loras: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Load LoRA models
@@ -657,6 +689,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def set_scheduler(self, scheduler_name: str, use_karras: bool = False) -> Dict[str, Any]:
         """
         Set scheduler for generation
@@ -724,6 +757,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def generate_t2i(
         self,
         prompt: str,
@@ -914,6 +948,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def generate_i2i(
         self,
         prompt: str,
@@ -1080,6 +1115,7 @@ class SDPipelineService:
                 "error": str(e)
             }
 
+    @_synchronized
     def unload_pipeline(self):
         """Unload pipeline and free GPU memory"""
         try:
@@ -1121,6 +1157,23 @@ class SDPipelineService:
         if os.name == "nt":
             normalized = normalized.lower()
         return normalized
+
+    def _detect_sdxl(self, checkpoint_path: Path, name_hint: str = "") -> bool:
+        """Detect SDXL from the checkpoint's keys (header only, no tensor load).
+
+        File names are unreliable: SDXL-based models such as Pony or Illustrious
+        often have no "XL" in their name.
+        """
+        if checkpoint_path.suffix == '.safetensors':
+            try:
+                with safe_open(str(checkpoint_path), framework="pt", device="cpu") as f:
+                    # SDXL's second text encoder (OpenCLIP bigG) only exists in SDXL checkpoints
+                    return any(key.startswith("conditioner.embedders.1.") for key in f.keys())
+            except Exception as e:
+                logger.warning(f"Could not read checkpoint keys, falling back to file name: {e}")
+
+        name = (name_hint or checkpoint_path.name).upper()
+        return 'SDXL' in name or 'XL' in name
 
     def get_status(self) -> Dict[str, Any]:
         """Get current pipeline status"""
@@ -1305,24 +1358,31 @@ class SDPipelineService:
 
     def _calculate_processing_size(
         self,
-        original_size: tuple,
-        guide_size: int
+        crop_size: tuple,
+        bbox_size: tuple,
+        guide_size: int,
+        max_size: int
     ) -> tuple:
-        """Determine processing resolution while preserving aspect ratio."""
-        width, height = original_size
-        if width <= 0 or height <= 0:
+        """Pick the resolution a detection is re-drawn at (ComfyUI FaceDetailer style).
+
+        The detected object itself (not the whole crop) is scaled up to guide_size,
+        the crop is capped at max_size, and a crop is never shrunk below its own size.
+        """
+        crop_w, crop_h = crop_size
+        bbox_w, bbox_h = bbox_size
+        if crop_w <= 0 or crop_h <= 0:
             return (guide_size, guide_size)
 
-        target_dim = max(guide_size, 8)
-        max_dim = max(width, height)
-        scale = target_dim / max_dim if max_dim > 0 else 1.0
+        upscale = guide_size / max(min(bbox_w, bbox_h), 1)
+        if max(crop_w, crop_h) * upscale > max_size:
+            upscale = max_size / max(crop_w, crop_h)
+        # Never downscale: re-drawing a large face at a lower resolution loses detail
+        upscale = max(upscale, 1.0)
 
         def _round_to_multiple(value: float, multiple: int = 8) -> int:
             return max(multiple, int(round(value / multiple) * multiple))
 
-        new_width = _round_to_multiple(width * scale)
-        new_height = _round_to_multiple(height * scale)
-        return (new_width, new_height)
+        return (_round_to_multiple(crop_w * upscale), _round_to_multiple(crop_h * upscale))
 
     def _partial_denoise(
         self,
@@ -1370,7 +1430,8 @@ class SDPipelineService:
                 num_inference_steps
             )
             t_start = max(num_inference_steps - init_timestep, 0)
-            timesteps = scheduler.timesteps[t_start:]
+            # Second-order schedulers (Heun, DPM2) repeat each timestep `order` times
+            timesteps = scheduler.timesteps[t_start * scheduler.order:]
 
             # Generate noise (match UNet dtype)
             noise = torch.randn(
@@ -1380,17 +1441,12 @@ class SDPipelineService:
                 dtype=unet_dtype  # CRITICAL: Use UNet's dtype
             )
 
-            # Add noise to masked region
             from backend.utils.latent_helper import LatentHelper
             helper = LatentHelper(self.img2img_pipe.vae, self.device)
 
-            latents = helper.apply_noise_to_latent(
-                latents_init,
-                latent_mask,
-                noise,
-                timesteps[0:1],
-                scheduler
-            )
+            # Start from the fully noised latent; the unmasked area is restored
+            # to the (re-noised) original after every step below
+            latents = scheduler.add_noise(latents_init, noise, timesteps[0:1])
 
             # CRITICAL: Ensure latents match UNet dtype after noise application
             latents = latents.to(dtype=unet_dtype)
@@ -1433,9 +1489,16 @@ class SDPipelineService:
                 # CRITICAL: Ensure dtype consistency after scheduler step
                 latents = latents.to(dtype=unet_dtype)
 
-                # ComfyUI 핵심: 매 step마다 마스크 재적용
+                # 매 step마다 마스크 재적용: 마스크 밖은 원본을 "다음 step의 노이즈 수준"으로 맞춰서 넣는다
+                # (깨끗한 원본을 넣으면 UNet이 보는 노이즈 수준이 영역마다 달라져 경계가 뜬다)
+                if i < len(timesteps) - 1:
+                    init_latents_proper = scheduler.add_noise(
+                        latents_init, noise, timesteps[i + 1:i + 2]
+                    )
+                else:
+                    init_latents_proper = latents_init
                 latents = helper.apply_mask_to_latent(
-                    latents_init,
+                    init_latents_proper,
                     latents,
                     latent_mask
                 )
@@ -1449,13 +1512,15 @@ class SDPipelineService:
             logger.error(f"Partial denoising failed: {e}")
             raise
 
+    @_synchronized
     def generate_detailer(
         self,
         image: Image.Image,
         detections: List[Dict[str, Any]],
         prompt: str,
         negative_prompt: str = "",
-        guide_size: int = 512,
+        guide_size: Optional[int] = None,
+        max_size: Optional[int] = None,
         crop_factor: float = 3.0,
         feather_pixels: int = 32,
         strength: float = 0.4,
@@ -1488,7 +1553,8 @@ class SDPipelineService:
             detections: YOLO detection results
             prompt: Enhancement prompt
             negative_prompt: Negative prompt
-            guide_size: Processing resolution (512/768)
+            guide_size: Target size of the detected object itself (None = 1024 SDXL / 512 SD1.5)
+            max_size: Maximum processing size of the whole crop (None = 1536 SDXL / 1024 SD1.5)
             crop_factor: BBox expansion ratio (3.0 recommended for hands)
             feather_pixels: Feathering range (32 recommended)
             strength: Denoising strength (0.0-1.0)
@@ -1542,6 +1608,13 @@ class SDPipelineService:
             latent_helper = LatentHelper(self.img2img_pipe.vae, self.device)
             base_image_size = tuple(image.size)
 
+            # SDXL is trained at 1024px, SD1.5 at 512px
+            is_sdxl = isinstance(self.img2img_pipe, StableDiffusionXLImg2ImgPipeline)
+            if guide_size is None:
+                guide_size = 1024 if is_sdxl else 512
+            if max_size is None:
+                max_size = 1536 if is_sdxl else 1024
+
             # 3. Seed 설정
             generator = torch.Generator(device=self.device)
             if seed >= 0:
@@ -1565,13 +1638,17 @@ class SDPipelineService:
             # 6. 각 detection 순차 처리
             for idx, seg in enumerate(segs_data):
                 # 6.1 Crop과 마스크 추출
-                cropped_img = seg['cropped_image']
-                cropped_mask = seg['cropped_mask']
+                # 현재(누적) 이미지에서 crop: 겹치는 crop이 앞에서 다듬은 결과를 원본으로 덮어쓰지 않도록
                 crop_region = seg['crop_region']
+                cropped_img = current_image.crop(crop_region)
+                cropped_mask = seg['cropped_mask']
                 original_size = cropped_img.size
+                bbox_x1, bbox_y1, bbox_x2, bbox_y2 = seg['original_bbox']
                 processing_size = self._calculate_processing_size(
                     original_size,
-                    guide_size
+                    (bbox_x2 - bbox_x1, bbox_y2 - bbox_y1),
+                    guide_size,
+                    max_size
                 )
 
                 logger.info(
@@ -1604,12 +1681,14 @@ class SDPipelineService:
 
                 detection_added_cond_kwargs = None
                 if base_added_cond_kwargs:
+                    # Condition like a normal full image at the processing size:
+                    # non-zero crop coords tell SDXL the image is cut off, which degrades it
                     detection_added_cond_kwargs = {
                         "text_embeds": base_added_cond_kwargs["text_embeds"],
                         "time_ids": self._build_time_ids(
-                            original_size=base_image_size,
-                            crop_region=crop_region,
-                            target_size=original_size
+                            original_size=processing_size,
+                            crop_region=(0, 0, 0, 0),
+                            target_size=processing_size
                         )
                     }
 
@@ -1697,6 +1776,7 @@ class SDPipelineService:
                     "prompt": prompt,
                     "negative_prompt": negative_prompt,
                     "guide_size": guide_size,
+                    "max_size": max_size,
                     "crop_factor": crop_factor,
                     "feather_pixels": feather_pixels,
                     "strength": strength,
