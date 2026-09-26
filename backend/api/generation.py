@@ -19,6 +19,7 @@ except ImportError:  # Pydantic v1 fallback
     ConfigDict = None
     _HAS_PYDANTIC_V2 = False
 from PIL import Image
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -471,8 +472,8 @@ async def apply_detailers(
 
                 detection_model = detailer_config.detection_model
                 confidence = detailer_config.confidence or 0.3
-                mask_padding = detailer_config.mask_padding or 32
-                mask_blur = detailer_config.mask_blur or 4
+                mask_padding = detailer_config.mask_padding if detailer_config.mask_padding is not None else 32
+                mask_blur = detailer_config.mask_blur if detailer_config.mask_blur is not None else 4
 
                 logger.info(
                     f"Applying detailer '{detailer_name}': model={detection_model}, "
@@ -501,6 +502,17 @@ async def apply_detailers(
                             continue
 
                         logger.info(f"Detected {len(detections)} objects")
+
+                        # Detail only the detected object: build each mask from the bbox/segmentation
+                        # with the UI's padding and blur (instead of re-drawing the whole crop)
+                        for detection in detections:
+                            detection_mask = detailer_service.create_mask_from_detection(
+                                detection,
+                                current_image.size,
+                                padding=mask_padding,
+                                blur=mask_blur
+                            )
+                            detection['mask'] = np.asarray(detection_mask, dtype=np.float32) / 255.0
 
                         # Set scheduler
                         sampler_key = detailer_config.sampler or ''
@@ -539,7 +551,7 @@ async def apply_detailers(
                             detections=detections,
                             prompt=prompt,
                             negative_prompt=negative_prompt,
-                            guide_size=512,  # 고정 guide size (추후 config로 변경 가능)
+                            guide_size=None,  # 탐지된 객체 기준 (SDXL 1024 / SD1.5 512)
                             crop_factor=3.0,  # BBox 확장 비율 (3.0 for hands/small objects)
                             feather_pixels=32,  # Feathering 범위 (16 → 32 증가)
                             strength=denoise,
